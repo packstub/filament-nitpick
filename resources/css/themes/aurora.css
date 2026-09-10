@@ -1,0 +1,259 @@
+/*
+ * Aurora — iridescent glass with a floating dock-style sidebar.
+ * Light "Daybreak" by default, dark "Twilight" under Filament's dark mode.
+ *
+ * Every rule is scoped to html[data-packstub-theme="aurora"], set by the
+ * plugin before the body paints, so panels with other themes are untouched.
+ * Only stable Filament 5 hooks are used: fi-* component classes, the
+ * .fi-sidebar-open state class and the fi-color-* colour classes.
+ */
+
+[data-packstub-theme="aurora"] {
+    --pst-radius-sm: 0.625rem;
+    --pst-radius: 0.875rem;
+    --pst-radius-lg: 1.25rem;
+    --pst-radius-dock: 1.75rem;
+
+    --pst-blur: 26px;
+    --pst-blur-dock: 32px;
+    --pst-blur-input: 12px;
+    --pst-saturation: 1.5;
+
+    --pst-surface: rgba(255, 255, 255, 0.78);
+    --pst-surface-dock: rgba(255, 255, 255, 0.7);
+    --pst-surface-strong: rgba(255, 255, 255, 0.97);
+    --pst-surface-soft: rgba(255, 255, 255, 0.55);
+
+    --pst-border: rgba(255, 255, 255, 0.85);
+    --pst-border-strong: rgba(255, 255, 255, 0.95);
+    --pst-divider: rgba(14, 27, 44, 0.08);
+
+    --pst-text: #0e1b2c;
+
+    --pst-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 10px 28px -14px rgba(14, 116, 144, 0.18);
+    --pst-shadow-dock: 0 1px 0 rgba(255, 255, 255, 1) inset, 0 0 0 1px rgba(56, 189, 248, 0.06), 0 18px 40px -16px rgba(14, 116, 144, 0.25);
+    --pst-shadow-active: 0 4px 14px -6px rgba(56, 189, 248, 0.45), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    --pst-shadow-btn: 0 10px 24px -10px rgba(14, 165, 233, 0.55), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+    --pst-shadow-notification: 0 24px 60px -24px rgba(14, 116, 144, 0.22);
+    --pst-shadow-tenant: 0 8px 18px -6px rgba(56, 189, 248, 0.55), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+
+    --pst-iridescent: linear-gradient(90deg, #0ea5e9, #06b6d4, #f472b6);
+    --pst-iridescent-soft: linear-gradient(90deg, #38bdf8, #22d3ee, #f9a8d4);
+    --pst-primary-gradient: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    --pst-active-bar: linear-gradient(180deg, #38bdf8, #22d3ee);
+    --pst-tenant-gradient: linear-gradient(135deg, #38bdf8, #22d3ee);
+
+    --pst-backdrop:
+        radial-gradient(800px 400px at 12% -10%, rgba(56, 189, 248, 0.3), transparent 60%),
+        radial-gradient(700px 360px at 95% 10%, rgba(34, 211, 238, 0.25), transparent 65%),
+        radial-gradient(600px 400px at 70% 110%, rgba(249, 168, 212, 0.22), transparent 60%),
+        linear-gradient(135deg, #eef7ff 0%, #f0fbff 50%, #fef0f8 100%);
+}
+
+/* Backdrop */
+
+[data-packstub-theme="aurora"] .fi-body {
+    color: var(--pst-text);
+    background: var(--pst-backdrop);
+    background-attachment: fixed;
+}
+
+/* Sidebar as a floating dock */
+
+[data-packstub-theme="aurora"] .fi-sidebar {
+    background-color: var(--pst-surface-dock);
+    backdrop-filter: blur(var(--pst-blur-dock)) saturate(var(--pst-saturation));
+    -webkit-backdrop-filter: blur(var(--pst-blur-dock)) saturate(var(--pst-saturation));
+    border: 1px solid var(--pst-border-strong);
+    border-radius: var(--pst-radius-dock);
+    box-shadow: var(--pst-shadow-dock);
+    margin: 1rem 0 1rem 1rem;
+    height: calc(100dvh - 2rem);
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar-item {
+    position: relative;
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar-item-btn {
+    border-radius: var(--pst-radius);
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {
+    width: 3rem;
+    height: 3rem;
+    margin-inline: auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar-item:not(.fi-active) .fi-sidebar-item-btn:hover {
+    background-color: var(--pst-surface-strong);
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar-item.fi-active .fi-sidebar-item-btn {
+    background-color: var(--pst-surface-strong);
+    box-shadow: var(--pst-shadow-active);
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar-item.fi-active::before {
+    content: "";
+    position: absolute;
+    left: -0.75rem;
+    top: 0.5625rem;
+    bottom: 0.5625rem;
+    width: 4px;
+    border-radius: 99px;
+    background: var(--pst-active-bar);
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar-group + .fi-sidebar-group {
+    margin-top: 0.375rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--pst-divider);
+}
+
+/* Tenant switcher as a dock avatar while collapsed */
+
+[data-packstub-theme="aurora"] .fi-tenant-menu-trigger {
+    transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar:not(.fi-sidebar-open) .fi-tenant-menu-trigger {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    padding: 0;
+    background: var(--pst-tenant-gradient);
+    box-shadow: var(--pst-shadow-tenant);
+    color: #fff;
+}
+
+[data-packstub-theme="aurora"] .fi-sidebar:not(.fi-sidebar-open) .fi-tenant-menu-trigger .fi-avatar {
+    mix-blend-mode: screen;
+    border-radius: 50%;
+}
+
+[data-packstub-theme="aurora"] .fi-tenant-menu-trigger:hover {
+    transform: translateY(-1px);
+}
+
+/* Topbar */
+
+[data-packstub-theme="aurora"] .fi-topbar {
+    background-color: var(--pst-surface-soft);
+    backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));
+    -webkit-backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));
+    border-color: var(--pst-border);
+}
+
+/* Glass surfaces */
+
+[data-packstub-theme="aurora"] .fi-section,
+[data-packstub-theme="aurora"] .fi-ta-ctn,
+[data-packstub-theme="aurora"] .fi-wi-stats-overview-stat,
+[data-packstub-theme="aurora"] .fi-wi-widget,
+[data-packstub-theme="aurora"] .fi-modal-window {
+    background-color: var(--pst-surface);
+    backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));
+    -webkit-backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));
+    border: 1px solid var(--pst-border);
+    border-radius: var(--pst-radius-lg);
+    box-shadow: var(--pst-shadow-card);
+}
+
+[data-packstub-theme="aurora"] .fi-wi-stats-overview-stat-value {
+    background: var(--pst-iridescent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+[data-packstub-theme="aurora"] .fi-wi-stats-overview-stat-chart,
+[data-packstub-theme="aurora"] progress {
+    background: var(--pst-iridescent-soft);
+}
+
+/* Buttons, inputs, badges */
+
+[data-packstub-theme="aurora"] .fi-btn,
+[data-packstub-theme="aurora"] .fi-input-wrp,
+[data-packstub-theme="aurora"] .fi-select-input {
+    border-radius: var(--pst-radius);
+}
+
+[data-packstub-theme="aurora"] .fi-btn.fi-color-primary:not(.fi-outlined) {
+    background: var(--pst-primary-gradient);
+    border: none;
+    color: #fff;
+    box-shadow: var(--pst-shadow-btn);
+}
+
+[data-packstub-theme="aurora"] .fi-input-wrp,
+[data-packstub-theme="aurora"] .fi-select-input {
+    background-color: var(--pst-surface);
+    backdrop-filter: blur(var(--pst-blur-input));
+    -webkit-backdrop-filter: blur(var(--pst-blur-input));
+    border-color: var(--pst-border);
+}
+
+[data-packstub-theme="aurora"] .fi-badge {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Notifications and dropdowns */
+
+[data-packstub-theme="aurora"] .fi-no-notification,
+[data-packstub-theme="aurora"] .fi-dropdown-panel {
+    border-radius: var(--pst-radius-lg);
+    background-color: var(--pst-surface-strong);
+    backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));
+    -webkit-backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));
+    box-shadow: var(--pst-shadow-notification);
+    border: 1px solid var(--pst-border);
+}
+
+/* Twilight — the dark variant, under Filament's own .dark toggle */
+
+.dark[data-packstub-theme="aurora"] {
+    --pst-surface: rgba(15, 28, 45, 0.5);
+    --pst-surface-dock: rgba(15, 28, 45, 0.45);
+    --pst-surface-strong: rgba(56, 189, 248, 0.12);
+    --pst-surface-soft: rgba(10, 18, 30, 0.5);
+
+    --pst-border: rgba(255, 255, 255, 0.07);
+    --pst-border-strong: rgba(255, 255, 255, 0.1);
+    --pst-divider: rgba(255, 255, 255, 0.08);
+
+    --pst-text: #d6eaf7;
+
+    --pst-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 10px 28px -14px rgba(0, 0, 0, 0.5);
+    --pst-shadow-dock: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 0 0 1px rgba(56, 189, 248, 0.06), 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+    --pst-shadow-active: 0 0 0 1px rgba(56, 189, 248, 0.3) inset, 0 8px 24px -10px rgba(56, 189, 248, 0.5);
+    --pst-shadow-btn: 0 8px 22px -8px rgba(56, 189, 248, 0.55), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    --pst-shadow-notification: 0 24px 60px -24px rgba(0, 0, 0, 0.6);
+    --pst-shadow-tenant: 0 8px 22px -6px rgba(56, 189, 248, 0.7), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+
+    --pst-iridescent: linear-gradient(90deg, #67e8f9, #22d3ee, #f9a8d4);
+    --pst-primary-gradient: linear-gradient(135deg, #38bdf8, #22d3ee);
+    --pst-active-bar: linear-gradient(180deg, #67e8f9, #38bdf8);
+
+    --pst-backdrop:
+        radial-gradient(900px 460px at 10% -10%, rgba(56, 189, 248, 0.25), transparent 60%),
+        radial-gradient(800px 420px at 100% 0%, rgba(34, 211, 238, 0.18), transparent 65%),
+        radial-gradient(700px 420px at 60% 110%, rgba(249, 168, 212, 0.15), transparent 60%),
+        linear-gradient(135deg, #050912 0%, #07101e 50%, #0a0717 100%);
+}
+
+.dark[data-packstub-theme="aurora"] .fi-no-notification,
+.dark[data-packstub-theme="aurora"] .fi-dropdown-panel {
+    background-color: rgba(15, 28, 45, 0.92);
+}
+
+.dark[data-packstub-theme="aurora"] .fi-sidebar-item.fi-active::before {
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+}

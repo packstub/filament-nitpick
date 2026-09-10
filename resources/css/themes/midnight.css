@@ -1,0 +1,88 @@
+/*
+ * Midnight — dark-first, violet-to-cyan accents, soft glass panels.
+ *
+ * Scoped to html[data-packstub-theme="midnight"]. The deep surfaces apply
+ * under Filament's .dark class (the theme's preferred mode); in light mode
+ * the palette, radii and gradient buttons stay on Filament's own surfaces,
+ * so a user who toggles light gets a coherent panel, not a broken one.
+ */
+
+[data-packstub-theme="midnight"] {
+    --pst-radius: 0.625rem;
+    --pst-radius-lg: 0.875rem;
+    --pst-accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #06b6d4 100%);
+    --pst-shadow-btn: 0 8px 24px -8px rgba(139, 92, 246, 0.4);
+}
+
+[data-packstub-theme="midnight"] .fi-btn,
+[data-packstub-theme="midnight"] .fi-input-wrp,
+[data-packstub-theme="midnight"] .fi-select-input {
+    border-radius: var(--pst-radius);
+}
+
+[data-packstub-theme="midnight"] .fi-section,
+[data-packstub-theme="midnight"] .fi-ta-ctn,
+[data-packstub-theme="midnight"] .fi-wi-stats-overview-stat,
+[data-packstub-theme="midnight"] .fi-wi-widget,
+[data-packstub-theme="midnight"] .fi-no-notification {
+    border-radius: var(--pst-radius-lg);
+}
+
+[data-packstub-theme="midnight"] .fi-btn.fi-color-primary:not(.fi-outlined) {
+    background: var(--pst-accent-gradient);
+    border: none;
+    color: #fff;
+    box-shadow: var(--pst-shadow-btn);
+}
+
+[data-packstub-theme="midnight"] .fi-wi-stats-overview-stat-value {
+    background: var(--pst-accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Deep surfaces */
+
+.dark[data-packstub-theme="midnight"] {
+    --pst-surface: #0b1020;
+    --pst-surface-muted: #060914;
+    --pst-border: rgba(139, 92, 246, 0.18);
+    --pst-shadow: 0 4px 24px -8px rgba(2, 6, 23, 0.6), 0 2px 4px -1px rgba(2, 6, 23, 0.4);
+    --pst-shadow-lg: 0 24px 48px -12px rgba(2, 6, 23, 0.65);
+}
+
+.dark[data-packstub-theme="midnight"] .fi-body {
+    background:
+        radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.08), transparent 40%),
+        radial-gradient(circle at 100% 0%, rgba(6, 182, 212, 0.06), transparent 40%),
+        var(--pst-surface-muted);
+    color: #e2e8f0;
+}
+
+.dark[data-packstub-theme="midnight"] .fi-sidebar,
+.dark[data-packstub-theme="midnight"] .fi-topbar {
+    background-color: rgba(11, 16, 32, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: var(--pst-border);
+}
+
+.dark[data-packstub-theme="midnight"] .fi-section,
+.dark[data-packstub-theme="midnight"] .fi-ta-ctn,
+.dark[data-packstub-theme="midnight"] .fi-wi-stats-overview-stat,
+.dark[data-packstub-theme="midnight"] .fi-wi-widget,
+.dark[data-packstub-theme="midnight"] .fi-modal-window {
+    background:
+        linear-gradient(180deg, rgba(139, 92, 246, 0.04), transparent 60%),
+        var(--pst-surface);
+    border: 1px solid var(--pst-border);
+    box-shadow: var(--pst-shadow);
+}
+
+.dark[data-packstub-theme="midnight"] .fi-no-notification,
+.dark[data-packstub-theme="midnight"] .fi-dropdown-panel {
+    background: var(--pst-surface);
+    border: 1px solid var(--pst-border);
+    box-shadow: var(--pst-shadow-lg);
+}

@@ -1,0 +1,103 @@
+/* Theme picker cards. Uses Filament's palette variables so it follows the active theme. */
+
+.pst-theme-picker {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.pst-theme-option {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--gray-200);
+    background-color: white;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.dark .pst-theme-option {
+    border-color: var(--gray-700);
+    background-color: var(--gray-900);
+}
+
+.pst-theme-option:hover {
+    border-color: var(--gray-300);
+}
+
+.dark .pst-theme-option:hover {
+    border-color: var(--gray-600);
+}
+
+.pst-theme-option-active,
+.dark .pst-theme-option-active {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 1px var(--primary-500);
+}
+
+.pst-theme-option-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.pst-theme-option:has(.pst-theme-option-input:focus-visible) {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+.pst-theme-swatches {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.pst-theme-swatch {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.pst-theme-option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-950);
+}
+
+.dark .pst-theme-option-label {
+    color: white;
+}
+
+.pst-theme-option-current {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    color: var(--primary-700);
+    background-color: var(--primary-50);
+}
+
+.dark .pst-theme-option-current {
+    color: var(--primary-300);
+    background-color: color-mix(in oklab, var(--primary-500) 20%, transparent);
+}
+
+.pst-theme-option-description {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--gray-500);
+}
+
+.dark .pst-theme-option-description {
+    color: var(--gray-400);
+}
