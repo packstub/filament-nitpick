@@ -10,6 +10,10 @@ With user selection on, each signed-in user can choose the theme they see in tha
 
 The plugin registers an **Appearance** page at `/{panel}/appearance` and links it from the user menu. It shows one card per offered theme with a swatch strip, the label and the description. Clicking a card previews the theme immediately, saves the choice, and shows a confirmation.
 
+![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/appearance.png)
+
+![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/user-menu.png)
+
 Hide the menu item and link the page from somewhere else:
 
 ```php

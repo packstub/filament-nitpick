@@ -47,6 +47,8 @@ use Packstub\Themes\Facades\Themes;
 Themes::register(Ocean::class);
 ```
 
+![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/custom-theme.png)
+
 ## Adding a stylesheet
 
 A stylesheet turns a palette into a look: surfaces, radii, shadows, the sidebar, typography. Return its absolute path and, if the design leans one way, the mode it is made for:

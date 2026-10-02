@@ -2,6 +2,8 @@
 
 <div class="filament-hidden">
 
+![Filament Themes: designed looks for Filament panels, one per panel and one per user](https://raw.githubusercontent.com/packstub/art/main/filament-themes/banner.jpg)
+
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/packstub/filament-themes.svg?style=flat-square)](https://packagist.org/packages/packstub/filament-themes)
 [![Tests](https://img.shields.io/github/actions/workflow/status/packstub/filament-themes/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/packstub/filament-themes/actions/workflows/tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/packstub/filament-themes.svg?style=flat-square)](https://packagist.org/packages/packstub/filament-themes)
@@ -13,6 +15,8 @@
 Themes for Filament panels, and a way for every person to pick their own.
 
 A theme is a colour palette plus a stylesheet that restyles the panel. This plugin ships two designed ones, lets any package add more, gives each panel a default, and adds an **Appearance** page where a signed-in user chooses the theme they see, the way they already choose light or dark mode.
+
+![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora.png)
 
 ## Features
 
@@ -63,6 +67,12 @@ That is the whole setup. The panel renders in Aurora, and **Appearance** appears
 | `aurora` | Iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents. "Daybreak" in light mode, "Twilight" in dark. | Light |
 | `midnight` | Deep near-black surfaces with a violet-to-cyan accent gradient. Keeps its shapes and palette on Filament's standard surfaces in light mode. | Dark |
 
+![The same dashboard in the Midnight theme: deep near-black surfaces, violet-to-cyan stat values](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/midnight.png)
+
+Both themes cover light and dark mode. This is Aurora after dark:
+
+![A deals table in Aurora's dark variant, "Twilight": the same glass surfaces and dock sidebar on a deep night backdrop](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora-dark.png)
+
 A theme's preferred mode becomes the panel's default mode while the theme is active. A user who has toggled light or dark keeps their choice.
 
 ## A theme per panel
@@ -93,11 +103,15 @@ Register the plugin on every panel that should be themed. Each has its own offer
 ThemesPlugin::make()->userSelectable()
 ```
 
+![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/appearance.png)
+
 Turning this on:
 
 - registers an **Appearance** page (`/appearance`) and links it from the user menu;
 - saves each user's choice for this panel in the `theme_preferences` table (or the session, see [Configuration](#configuration));
 - lets the picker preview a theme the moment it is clicked, no reload.
+
+![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/user-menu.png)
 
 To offer the picker inside your own profile form instead, drop in the field. It fills itself with the user's current theme and saves on change:
 
@@ -170,6 +184,8 @@ use Packstub\Themes\Facades\Themes;
 Themes::register(Ocean::class);
 ```
 
+![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/custom-theme.png)
+
 The stylesheet is registered as a Filament asset, so `php artisan filament:assets` publishes it. From there the theme can be a panel default, offered to users, or shipped as its own Composer package.
 
 ## Colour overrides and custom CSS
@@ -196,7 +212,13 @@ ThemesPlugin::make()
 
 ## Documentation
 
-Full docs at [packstub.dev/docs/filament-themes](https://packstub.dev/docs/filament-themes).
+Full docs at [packstub.dev/docs/filament-themes](https://packstub.dev/docs/filament-themes):
+
+- [Installation](https://packstub.dev/docs/filament-themes/installation)
+- [Themes](https://packstub.dev/docs/filament-themes/themes)
+- [User preferences](https://packstub.dev/docs/filament-themes/user-preferences)
+- [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme)
+- [Configuration](https://packstub.dev/docs/filament-themes/configuration)
 
 ## Testing
 
@@ -206,7 +228,7 @@ composer test
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](https://github.com/packstub/filament-themes/blob/main/CHANGELOG.md).
 
 ## Security
 
@@ -219,4 +241,4 @@ If you discover a security issue, email [support@packstub.dev](mailto:support@pa
 
 ## License
 
-MIT. See [LICENSE.md](LICENSE.md).
+MIT. See [LICENSE.md](https://github.com/packstub/filament-themes/blob/main/LICENSE.md).

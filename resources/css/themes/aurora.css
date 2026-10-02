@@ -155,7 +155,6 @@
 [data-packstub-theme="aurora"] .fi-section,
 [data-packstub-theme="aurora"] .fi-ta-ctn,
 [data-packstub-theme="aurora"] .fi-wi-stats-overview-stat,
-[data-packstub-theme="aurora"] .fi-wi-widget,
 [data-packstub-theme="aurora"] .fi-modal-window {
     background-color: var(--pst-surface);
     backdrop-filter: blur(var(--pst-blur)) saturate(var(--pst-saturation));

@@ -6,6 +6,8 @@ Themes for Filament panels, and a way for every person to pick their own. Free a
 - Packagist: [packstub/filament-themes](https://packagist.org/packages/packstub/filament-themes)
 - Support: [GitHub issues](https://github.com/packstub/filament-themes/issues)
 
+![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora.png)
+
 ## Features
 
 - **[Two bundled themes](themes.md)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.

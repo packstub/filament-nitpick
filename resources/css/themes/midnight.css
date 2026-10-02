@@ -23,7 +23,6 @@
 [data-packstub-theme="midnight"] .fi-section,
 [data-packstub-theme="midnight"] .fi-ta-ctn,
 [data-packstub-theme="midnight"] .fi-wi-stats-overview-stat,
-[data-packstub-theme="midnight"] .fi-wi-widget,
 [data-packstub-theme="midnight"] .fi-no-notification {
     border-radius: var(--pst-radius-lg);
 }
@@ -71,7 +70,6 @@
 .dark[data-packstub-theme="midnight"] .fi-section,
 .dark[data-packstub-theme="midnight"] .fi-ta-ctn,
 .dark[data-packstub-theme="midnight"] .fi-wi-stats-overview-stat,
-.dark[data-packstub-theme="midnight"] .fi-wi-widget,
 .dark[data-packstub-theme="midnight"] .fi-modal-window {
     background:
         linear-gradient(180deg, rgba(139, 92, 246, 0.04), transparent 60%),
