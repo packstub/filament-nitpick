@@ -21,3 +21,13 @@ it('scopes every bundled stylesheet to its own theme', function (string $id): vo
 it('leaves the widget wrapper unstyled', function (string $id): void {
     expect(file_get_contents(Themes::find($id)->getStylesheetPath()))->not->toContain('.fi-wi-widget');
 })->with(['aurora', 'midnight']);
+
+// .fi-wi-stats-overview-stat-chart is the strip that holds a stat's sparkline:
+// a background on it draws a solid band across the bottom of the card.
+it('leaves the stat chart strip without a background', function (string $id): void {
+    $css = file_get_contents(Themes::find($id)->getStylesheetPath());
+
+    preg_match_all('/([^{}]*\.fi-wi-stats-overview-stat-chart[^{]*)\{([^}]*)\}/', $css, $rules, PREG_SET_ORDER);
+
+    expect(array_filter($rules, fn (array $rule): bool => str_contains($rule[2], 'background')))->toBeEmpty();
+})->with(['aurora', 'midnight']);

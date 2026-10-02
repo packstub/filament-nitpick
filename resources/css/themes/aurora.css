@@ -171,9 +171,12 @@
     color: transparent;
 }
 
-[data-packstub-theme="aurora"] .fi-wi-stats-overview-stat-chart,
 [data-packstub-theme="aurora"] progress {
     background: var(--pst-iridescent-soft);
+}
+
+[data-packstub-theme="aurora"] .fi-wi-stats-overview-stat-chart {
+    border-radius: 0 0 calc(var(--pst-radius-lg) - 1px) calc(var(--pst-radius-lg) - 1px);
 }
 
 /* Buttons, inputs, badges */
