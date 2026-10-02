@@ -89,7 +89,7 @@ Bring your own store by binding `Packstub\Themes\Contracts\ThemePreferenceStore`
 
 ## Live preview
 
-When user selection is on, the page head carries every offered palette as CSS variables scoped to `html[data-packstub-theme="…"]` and a tiny script exposing `window.PackstubThemes`:
+When user selection is on, the page head carries every offered palette as CSS variables scoped to `[data-packstub-theme="…"]` and a tiny script exposing `window.PackstubThemes`:
 
 ```js
 window.PackstubThemes.current()          // 'aurora'

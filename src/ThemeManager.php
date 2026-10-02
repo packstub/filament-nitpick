@@ -20,6 +20,12 @@ class ThemeManager
     /** @var array<string, Theme> */
     protected array $themes = [];
 
+    /**
+     * A stylesheet written `vite:<entry>` is an entry of the app's Vite
+     * build (vite.config.js `input`), linked from the build's manifest.
+     */
+    public const VITE_PREFIX = 'vite:';
+
     public function register(string|Theme ...$themes): static
     {
         foreach ($themes as $theme) {
@@ -92,6 +98,18 @@ class ThemeManager
     public function has(string|Theme $theme): bool
     {
         return $this->find($theme) !== null;
+    }
+
+    /**
+     * A stylesheet is a CSS file, published as a Filament asset, unless it
+     * is a URL or a `vite:` entry: those are linked where they already are.
+     */
+    public function isPublishedStylesheet(string $stylesheet): bool
+    {
+        return ! str_starts_with($stylesheet, static::VITE_PREFIX)
+            && ! str_starts_with($stylesheet, 'http://')
+            && ! str_starts_with($stylesheet, 'https://')
+            && ! str_starts_with($stylesheet, '//');
     }
 
     /**
@@ -170,7 +188,9 @@ class ThemeManager
         $assets = [];
 
         foreach (array_values($theme->getStylesheets()) as $index => $path) {
-            $assets[] = Css::make($this->assetId($theme, $index), $path)->loadedOnRequest();
+            if ($this->isPublishedStylesheet($path)) {
+                $assets[] = Css::make($this->assetId($theme, $index), $path)->loadedOnRequest();
+            }
         }
 
         if ($assets !== []) {

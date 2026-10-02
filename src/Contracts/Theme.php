@@ -37,8 +37,10 @@ interface Theme
     public function getPreferredMode(): ?ThemeMode;
 
     /**
-     * Absolute paths to the theme's CSS files, linked in this order while the
-     * theme is active. Empty for a palette-only theme.
+     * The theme's stylesheets, linked in this order while the theme is
+     * active: absolute paths to CSS files (published as Filament assets),
+     * URLs, or `vite:<entry>` for an entry of the app's Vite build. Empty
+     * for a palette-only theme.
      *
      * @return array<int, string>
      */

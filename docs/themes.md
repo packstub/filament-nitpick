@@ -44,13 +44,110 @@ Themes::register(
 
 Run `php artisan filament:assets` and the theme is registered like any other: a panel can make it the default, offer it to users, and preview it live in the picker.
 
-- The palette and every CSS file the plugin would give a panel are read from it. There is nothing to copy or merge, and an update of the theme's package is picked up the next time assets are published.
+- The palette and every stylesheet the plugin would give a panel are read from it. There is nothing to copy or merge, and an update of the theme's package is picked up the next time assets are published or built.
 - The theme's own plugin stays off the panel: it would restyle the panel for everyone, and here it is one choice among several.
 - Configure the plugin the way its docs say, inside the closure (`NoreviqThemePlugin::make()->corners(...)`), and the theme follows.
 - Register as many as you like, one `Theme::make()` each, and add `->label()` or `->description()` for the text on its card.
-- Themes that ship ready-made CSS files fit as they are. A theme meant to be compiled into your panel's own Vite stylesheet is part of that stylesheet, so it stays the panel's base look.
 
-The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad. [Creating a theme](creating-a-theme.md#a-theme-from-the-filament-plugin-directory) covers what carries over from a theme plugin and how to layer your own colours or CSS on top.
+### Example: installing an open-source theme
+
+[Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), a teal and graphite theme by Yousef Al-Jallad, ships ready-made CSS, so it takes three steps.
+
+1. Require the package:
+
+    ```bash
+    composer require noreviq/filament-theme
+    ```
+
+2. Register it as a theme, in `AppServiceProvider::boot()`:
+
+    ```php
+    use Noreviq\FilamentTheme\NoreviqThemePlugin;
+    use Packstub\Themes\Facades\Themes;
+    use Packstub\Themes\Theme;
+
+    Themes::register(
+        Theme::make('noreviq')
+            ->description('Teal and graphite with sharp corners.')
+            ->themePlugin(fn () => NoreviqThemePlugin::make()),
+    );
+    ```
+
+3. Publish the assets:
+
+    ```bash
+    php artisan filament:assets
+    ```
+
+Open the Appearance page: Noreviq is a card beside Aurora and Midnight. To make it the look everyone starts with, set `->default('noreviq')` on the plugin.
+
+### Themes that build with Vite
+
+Some themes are Tailwind source, compiled by your app's Vite build. Follow the build step from the theme's own docs, and the stylesheet is linked from the build while the theme is active.
+
+**A theme that sets a Vite theme on its panel.** [Abyss](https://filamentphp.com/plugins/osama-nagi-abyss-theme), by Osama Nagi, asks for its stylesheet in `vite.config.js`:
+
+```js
+// vite.config.js
+laravel({
+    input: [
+        'resources/css/app.css',
+        'resources/js/app.js',
+        'vendor/osamanagi/filament-abyss-theme/resources/css/theme.css',
+    ],
+}),
+```
+
+```bash
+composer require osamanagi/filament-abyss-theme
+npm run build
+```
+
+```php
+use Nagi\FilamentAbyssTheme\FilamentAbyssThemePlugin;
+
+Themes::register(
+    Theme::make('abyss')->themePlugin(fn () => FilamentAbyssThemePlugin::make()),
+);
+```
+
+The Vite theme the plugin would set on a panel is read from it along with its palette, so that is all.
+
+**A theme imported into a Filament theme file.** [Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme), by Andréia Bohner, asks for an `@import` in a custom Filament theme. Give it a file of its own, so it is compiled apart from your panel's stylesheet:
+
+```css
+/* resources/css/themes/nord.css */
+@import '../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../vendor/andreia/filament-nord-theme/resources/css/theme.css';
+```
+
+Add `resources/css/themes/nord.css` to the `input` array in `vite.config.js`, run `npm run build`, and name the entry on the theme with the `vite:` prefix:
+
+```php
+use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
+
+Themes::register(
+    Theme::make('nord')
+        ->themePlugin(fn () => FilamentNordThemePlugin::make())
+        ->stylesheet('vite:resources/css/themes/nord.css'),
+);
+```
+
+The plugin supplies the palette; the compiled file supplies the look. A `vite:` stylesheet works for your own Tailwind-built theme too.
+
+### A theme without a plugin class
+
+A theme that is a palette, or a palette and a few rules, needs no plugin to read from. [Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme), by Openplain, is a set of colour constants:
+
+```php
+use Openplain\FilamentShadcnTheme\Color as ShadcnColor;
+
+Themes::register(
+    Theme::make('shadcn')->colors(['primary' => ShadcnColor::Default]),
+);
+```
+
+A package like this may style every panel from its service provider. To keep those rules to its own theme, save them as a CSS file, pass it to `->stylesheet()`, and list the package under `extra.laravel.dont-discover` in `composer.json`.
 
 ## Offering themes on a panel
 

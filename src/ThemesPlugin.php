@@ -13,6 +13,7 @@ use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
 use LogicException;
 use Packstub\Themes\Contracts\Theme;
@@ -411,6 +412,11 @@ class ThemesPlugin implements Plugin
             sprintf('<meta name="packstub-theme" content="%s">', e($theme->getId())),
         ];
 
+        // Before the theme's stylesheets, so a stylesheet that sets a colour variable itself wins.
+        if ($selectable) {
+            $tags[] = $this->renderPaletteStyles();
+        }
+
         foreach ($this->stylesheetHrefs($theme) as $index => $href) {
             $tags[] = sprintf(
                 '<link rel="stylesheet"%s href="%s" data-packstub-theme="%s" data-packstub-theme-stylesheet data-navigate-track>',
@@ -426,19 +432,17 @@ class ThemesPlugin implements Plugin
             $tags[] = sprintf('<link rel="stylesheet" id="packstub-theme-custom" href="%s" data-navigate-track>', e($href));
         }
 
-        if ($selectable) {
-            $tags[] = $this->renderPaletteStyles();
-        }
-
         $tags[] = $this->renderBootstrapScript($theme, $selectable ? $this->buildManifest() : null);
 
         return implode("\n", array_filter($tags));
     }
 
     /**
-     * Every offered palette as CSS variables scoped to the html attribute, so
+     * Every offered palette as CSS variables scoped to the theme attribute, so
      * the picker can preview a theme without a round trip. Filament sets the
-     * same variables on :root; this selector wins.
+     * same variables on :root; this selector weighs the same and comes later,
+     * so it wins, and a theme stylesheet that sets one (on :root or .dark)
+     * comes later still and wins over it.
      */
     protected function renderPaletteStyles(): string
     {
@@ -457,7 +461,7 @@ class ThemesPlugin implements Plugin
                 $variables,
             ));
 
-            $blocks[] = sprintf('html[data-packstub-theme="%s"] { %s }', e($id), $declarations);
+            $blocks[] = sprintf('[data-packstub-theme="%s"] { %s }', e($id), $declarations);
         }
 
         if ($blocks === []) {
@@ -574,8 +578,26 @@ class ThemesPlugin implements Plugin
     {
         $hrefs = [];
 
-        foreach (array_keys(array_values($theme->getStylesheets())) as $index) {
-            $hrefs[] = FilamentAsset::getStyleHref($this->manager()->assetId($theme, $index), package: ThemeManager::ASSET_PACKAGE);
+        foreach (array_values($theme->getStylesheets()) as $index => $stylesheet) {
+            if ($this->manager()->isPublishedStylesheet($stylesheet)) {
+                $hrefs[] = FilamentAsset::getStyleHref($this->manager()->assetId($theme, $index), package: ThemeManager::ASSET_PACKAGE);
+
+                continue;
+            }
+
+            if (! str_starts_with($stylesheet, ThemeManager::VITE_PREFIX)) {
+                $hrefs[] = $stylesheet;
+
+                continue;
+            }
+
+            // An entry missing from the build (npm run build not run yet) is reported, not fatal:
+            // the panel still renders, in the theme's colours.
+            try {
+                $hrefs[] = Vite::asset(substr($stylesheet, strlen(ThemeManager::VITE_PREFIX)));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
 
         return $hrefs;

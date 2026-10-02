@@ -34,7 +34,7 @@ Themes::register(
 ## Features
 
 - **[Two bundled themes](#the-bundled-themes)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
-- **[Themes from the plugin directory](#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker.
+- **[Themes from the plugin directory](#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker. Ready-made CSS and Vite-built themes alike.
 - **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
 - **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
 - **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
@@ -106,9 +106,25 @@ Themes::register(
 );
 ```
 
-Run `php artisan filament:assets` and it is one more card on the Appearance page: a panel default, a per-user choice, previewed live like any other theme. The palette and every CSS file the plugin would give a panel are read from it, so there is nothing to copy or merge, and the theme's own plugin stays off the panel. Configure it the way its docs say (`NoreviqThemePlugin::make()->corners(...)`) and the theme follows.
+Run `php artisan filament:assets` and it is one more card on the Appearance page: a panel default, a per-user choice, previewed live like any other theme. The palette and every stylesheet the plugin would give a panel are read from it, so there is nothing to copy or merge, and the theme's own plugin stays off the panel. Configure it the way its docs say (`NoreviqThemePlugin::make()->corners(...)`) and the theme follows.
 
-The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad. Register as many as you like, one `Theme::make()` each. [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme) covers what carries over.
+The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad, in three steps:
+
+```bash
+composer require noreviq/filament-theme   # 1. the theme's package
+#                                           2. the Themes::register() call above
+php artisan filament:assets               # 3. publish its CSS
+```
+
+Themes that build with Vite work the same way. For [Abyss](https://filamentphp.com/plugins/osama-nagi-abyss-theme), by Osama Nagi, add its stylesheet to `vite.config.js` as its docs ask, run `npm run build`, and register it:
+
+```php
+Themes::register(
+    Theme::make('abyss')->themePlugin(fn () => FilamentAbyssThemePlugin::make()),
+);
+```
+
+Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-themes/themes) walks through each kind of theme: ready-made CSS, a Vite theme, Tailwind source you compile ([Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme)), and a palette without a plugin ([Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme)).
 
 ## A theme per panel
 

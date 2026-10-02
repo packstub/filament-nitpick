@@ -68,7 +68,8 @@ class FluentTheme extends Theme
     }
 
     /**
-     * Absolute path to a CSS file, linked while the theme is active.
+     * A stylesheet linked while the theme is active: the absolute path to a
+     * CSS file, a URL, or `vite:<entry>` for an entry of the app's Vite build.
      */
     public function stylesheet(?string $path): static
     {
@@ -76,7 +77,7 @@ class FluentTheme extends Theme
     }
 
     /**
-     * Absolute paths to several CSS files, linked in this order.
+     * Several stylesheets (paths, URLs or `vite:` entries), linked in this order.
      *
      * @param  array<int, string>  $paths
      */

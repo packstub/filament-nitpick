@@ -1,9 +1,11 @@
 <?php
 
 use Filament\Panel;
+use Illuminate\Support\Facades\Vite;
 use Packstub\Themes\Facades\Themes;
 use Packstub\Themes\Tests\Fixtures\Ocean;
 use Packstub\Themes\Tests\Fixtures\SlateThemePlugin;
+use Packstub\Themes\Tests\Fixtures\TideThemePlugin;
 use Packstub\Themes\Theme;
 use Packstub\Themes\Themes\Midnight;
 use Packstub\Themes\ThemesPlugin;
@@ -58,8 +60,8 @@ it('renders every offered palette and a manifest when users may switch', functio
 
     expect($head)
         ->toContain('<style id="packstub-themes-palettes">')
-        ->toContain('html[data-packstub-theme="midnight"] { --primary-50: oklch(')
-        ->toContain('html[data-packstub-theme="ocean"] {')
+        ->toContain("\n[data-packstub-theme=\"ocean\"] {")
+        ->toContain('>[data-packstub-theme="midnight"] { --primary-50: oklch(')
         ->toContain('"midnight":{"hrefs":["')
         ->toContain('"ocean":{"hrefs":[]')
         ->toContain('"mode":"dark"')
@@ -82,8 +84,36 @@ it('links every stylesheet of a theme made of several files, in order', function
 
     $head = headFor(ThemesPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
 
-    expect(substr_count($head, 'data-packstub-theme-stylesheet data-navigate-track'))->toBe(2)
+    expect(substr_count($head, 'data-packstub-theme-stylesheet data-navigate-track'))->toBe(3)
         ->and(substr_count($head, 'id="packstub-theme-active"'))->toBe(1)
-        ->and(strpos($head, 'packstub-theme-slate--2.css'))->toBeGreaterThan(strpos($head, 'packstub-theme-slate.css'))
-        ->and($head)->toMatch('/"slate":\{"hrefs":\["[^"]+packstub-theme-slate\.css[^"]*","[^"]+packstub-theme-slate--2\.css[^"]*"\]/');
+        ->and(strpos($head, 'href="https://fonts.example.com/slate.css"'))->toBeGreaterThan(strpos($head, 'packstub-theme-slate.css'))
+        ->and(strpos($head, 'packstub-theme-slate--3.css'))->toBeGreaterThan(strpos($head, 'href="https://fonts.example.com/slate.css"'))
+        ->and($head)->toMatch('/"slate":\{"hrefs":\["[^"]+packstub-theme-slate\.css[^"]*","https:\/\/fonts\.example\.com\/slate\.css","[^"]+packstub-theme-slate--3\.css[^"]*"\]/');
+});
+
+it('links a Vite theme from the app\'s build', function (): void {
+    Vite::shouldReceive('asset')->with(TideThemePlugin::ENTRY)->andReturn('https://app.test/build/assets/theme-abc123.css');
+
+    Themes::register(Theme::make('tide')->themePlugin(fn (): TideThemePlugin => TideThemePlugin::make()));
+
+    $head = headFor(ThemesPlugin::make()->default('tide'));
+
+    expect($head)->toContain('id="packstub-theme-active" href="https://app.test/build/assets/theme-abc123.css" data-packstub-theme="tide"');
+});
+
+it('still renders when a Vite theme has not been built yet', function (): void {
+    Themes::register(Theme::make('tide')->themePlugin(fn (): TideThemePlugin => TideThemePlugin::make()));
+
+    $head = headFor(ThemesPlugin::make()->default('tide'));
+
+    expect($head)
+        ->toContain('<meta name="packstub-theme" content="tide">')
+        ->not->toContain('data-packstub-theme-stylesheet data-navigate-track');
+});
+
+it('renders the palettes ahead of the theme stylesheets, at the weight of Filament\'s own', function (): void {
+    $head = headFor(ThemesPlugin::make()->default(Midnight::class)->userSelectable());
+
+    expect(strpos($head, 'packstub-themes-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
+        ->and($head)->not->toContain('html[data-packstub-theme=');
 });
