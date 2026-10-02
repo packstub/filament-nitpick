@@ -13,8 +13,7 @@ All notable changes to `packstub/filament-themes` are documented here.
 - `Theme::make('id')->themePlugin(fn () => SomeThemePlugin::make())` offers a theme plugin from the Filament plugin directory as a choice in the picker: its palette and stylesheets are read from the plugin, which is not added to the panel. That covers the colours it sets on its panel or registers for the whole app, its CSS assets and a Vite theme (`->viteTheme()`).
 - A stylesheet can be a CSS file, a URL, or `vite:<entry>` for an entry of the app's Vite build, so Tailwind-built themes join the picker too.
 - Per-panel `->themes([...])` and `->default()`; the default accepts a closure, so it can follow the tenant.
-- Per-user choice with `->userSelectable()`: an **Appearance** page linked from the user menu, a `ThemePicker` form field that drops into any profile form, database or session storage, per panel.
-- A picked theme opens out from its card in one calm move (`->themeTransition('reveal' | 'fade' | false)`), waits for its stylesheets so nothing flashes, and is skipped for reduced motion.
+- Per-user choice with `->userSelectable()`: an **Appearance** page linked from the user menu, a `ThemePicker` form field that drops into any profile form and saves a pick quietly (`->notify()` adds a notification), database or session storage, per panel.
 - Live preview in the picker without a page reload; the user's own light/dark toggle is never overwritten on page load.
 - `->colors()` overrides on top of any theme, `->customCss()` for per-project tweaks, `->forceMode()`.
 - `ThemeChanged` event.

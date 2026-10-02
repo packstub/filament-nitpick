@@ -52,8 +52,10 @@ it('stamps the panel with the active theme', function (): void {
         ->assertSee('packstub-themes-palettes', false);
 });
 
-it('hands the picked card to the preview, so the new theme can open out from it', function (): void {
-    $this->get(Appearance::getUrl())
-        ->assertOk()
-        ->assertSee("window.PackstubThemes.preview('midnight', \$event.target.closest('label'))", false);
+it('saves a pick quietly: the new look is the confirmation', function (): void {
+    livewire(Appearance::class)
+        ->set('data.theme', 'midnight')
+        ->assertNotNotified();
+
+    expect(ThemePreference::query()->where('user_id', $this->user->id)->value('theme_id'))->toBe('midnight');
 });

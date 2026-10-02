@@ -69,16 +69,4 @@ return [
 
     'force_mode' => null,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Theme transition
-    |--------------------------------------------------------------------------
-    |
-    | How a theme picked in the picker takes over the screen: "reveal" (it
-    | opens out from the picked card), "fade" (a short cross-fade) or false
-    | (at once). Skipped for visitors who prefer reduced motion.
-    */
-
-    'transition' => 'reveal',
-
 ];

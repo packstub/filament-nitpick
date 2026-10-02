@@ -11,7 +11,7 @@ use Packstub\Themes\ThemesPlugin;
 /**
  * A card-per-theme radio for the themes the current panel offers. It fills
  * itself with the user's current theme and, by default, saves the choice
- * the moment it changes, so it works on the bundled Appearance page and
+ * the moment it changes (quietly: the new look is the confirmation), so it works on the bundled Appearance page and
  * dropped into your own profile form alike.
  */
 class ThemePicker extends Field
@@ -20,7 +20,7 @@ class ThemePicker extends Field
 
     protected bool|Closure $shouldPersist = true;
 
-    protected bool|Closure $shouldNotify = true;
+    protected bool|Closure $shouldNotify = false;
 
     public static function make(?string $name = 'theme'): static
     {
@@ -67,6 +67,11 @@ class ThemePicker extends Field
         return $this;
     }
 
+    /**
+     * Send a "Theme updated" notification after a saved change. Off by
+     * default: the panel changing its look is the confirmation, and a user
+     * trying a few themes would collect a stack of them.
+     */
     public function notify(bool|Closure $condition = true): static
     {
         $this->shouldNotify = $condition;

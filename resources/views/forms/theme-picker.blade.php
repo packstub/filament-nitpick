@@ -20,7 +20,7 @@
                     name="{{ $statePath }}"
                     value="{{ $id }}"
                     x-model="state"
-                    x-on:change="window.PackstubThemes && window.PackstubThemes.preview(@js($id), $event.target.closest('label'))"
+                    x-on:change="window.PackstubThemes && window.PackstubThemes.preview(@js($id))"
                     @disabled($isDisabled)
                     class="pst-theme-option-input"
                 />
