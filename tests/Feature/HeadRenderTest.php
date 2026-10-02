@@ -1,7 +1,10 @@
 <?php
 
 use Filament\Panel;
+use Packstub\Themes\Facades\Themes;
 use Packstub\Themes\Tests\Fixtures\Ocean;
+use Packstub\Themes\Tests\Fixtures\SlateThemePlugin;
+use Packstub\Themes\Theme;
 use Packstub\Themes\Themes\Midnight;
 use Packstub\Themes\ThemesPlugin;
 
@@ -57,8 +60,8 @@ it('renders every offered palette and a manifest when users may switch', functio
         ->toContain('<style id="packstub-themes-palettes">')
         ->toContain('html[data-packstub-theme="midnight"] { --primary-50: oklch(')
         ->toContain('html[data-packstub-theme="ocean"] {')
-        ->toContain('"midnight":{"href":"')
-        ->toContain('"ocean":{"href":null')
+        ->toContain('"midnight":{"hrefs":["')
+        ->toContain('"ocean":{"hrefs":[]')
         ->toContain('"mode":"dark"')
         ->not->toContain('data-packstub-theme="aurora"');
 });
@@ -70,4 +73,17 @@ it('links the custom stylesheet after the theme', function (): void {
     expect(strpos($head, 'packstub-theme-custom'))->toBeGreaterThan(strpos($head, 'packstub-theme-active'))
         ->and($head)->toContain('href="http://localhost/css/overrides.css"')
         ->and($remote)->toContain('href="https://cdn.example.com/x.css"');
+});
+
+it('links every stylesheet of a theme made of several files, in order', function (): void {
+    Themes::register(
+        Theme::make('slate')->themePlugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
+    );
+
+    $head = headFor(ThemesPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
+
+    expect(substr_count($head, 'data-packstub-theme-stylesheet data-navigate-track'))->toBe(2)
+        ->and(substr_count($head, 'id="packstub-theme-active"'))->toBe(1)
+        ->and(strpos($head, 'packstub-theme-slate--2.css'))->toBeGreaterThan(strpos($head, 'packstub-theme-slate.css'))
+        ->and($head)->toMatch('/"slate":\{"hrefs":\["[^"]+packstub-theme-slate\.css[^"]*","[^"]+packstub-theme-slate--2\.css[^"]*"\]/');
 });

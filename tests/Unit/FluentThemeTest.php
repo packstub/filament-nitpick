@@ -6,6 +6,7 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use Packstub\Themes\Contracts\Theme as ThemeContract;
 use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Tests\Fixtures\SlateThemePlugin;
 use Packstub\Themes\Theme;
 use Packstub\Themes\ThemeManager;
 use Packstub\Themes\ThemesPlugin;
@@ -80,3 +81,51 @@ it('registers a theme written as an anonymous class', function (): void {
     expect(Themes::find('sunset')->getLabel())->toBe('Sunset')
         ->and(Themes::find('sunset')->getSwatches())->toBe([Color::Orange[500]]);
 });
+
+it('takes several stylesheets, registered as one asset each', function (): void {
+    $theme = Theme::make('duo')->stylesheets([
+        __DIR__.'/../../resources/css/themes/midnight.css',
+        __DIR__.'/../../resources/css/themes/aurora.css',
+    ]);
+
+    Themes::register($theme);
+
+    expect($theme->getStylesheets())->toHaveCount(2)
+        ->and($theme->getStylesheetPath())->toEndWith('midnight.css')
+        ->and(FilamentAsset::getStyleHref('packstub-theme-duo', package: ThemeManager::ASSET_PACKAGE))->toContain('packstub-theme-duo.css')
+        ->and(FilamentAsset::getStyleHref('packstub-theme-duo--2', package: ThemeManager::ASSET_PACKAGE))->toContain('packstub-theme-duo--2.css');
+});
+
+it('takes its palette and stylesheets from a Filament theme plugin', function (): void {
+    SlateThemePlugin::$booted = false;
+
+    $theme = Theme::make('slate')->themePlugin(fn (): SlateThemePlugin => SlateThemePlugin::make());
+
+    expect($theme->getColors())->toBe(['primary' => Color::Slate, 'gray' => Color::Zinc])
+        ->and($theme->getStylesheets())->toBe([SlateThemePlugin::path('slate.css'), SlateThemePlugin::path('slate-corners.css')])
+        ->and($theme->getSwatches())->toBe([Color::Slate[500]])
+        ->and(SlateThemePlugin::$booted)->toBeFalse();
+});
+
+it('accepts a plugin instance and layers its own colours and stylesheets on top', function (): void {
+    $theme = Theme::make('slate')
+        ->themePlugin(SlateThemePlugin::make())
+        ->colors(['primary' => Color::Rose])
+        ->stylesheet('/themes/tweaks.css');
+
+    expect($theme->getColors())->toBe(['primary' => Color::Rose, 'gray' => Color::Zinc])
+        ->and($theme->getStylesheets())->toBe([SlateThemePlugin::path('slate.css'), SlateThemePlugin::path('slate-corners.css'), '/themes/tweaks.css']);
+});
+
+it('keeps a wrapped plugin off the panels: its assets load only as the theme', function (): void {
+    Themes::register(Theme::make('slate')->themePlugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+
+    $ids = array_map(fn ($asset): string => $asset->getId(), FilamentAsset::getStyles());
+
+    expect($ids)->not->toContain('slate-theme', 'slate-corners')
+        ->and(FilamentAsset::getStyleHref('packstub-theme-slate--2', package: ThemeManager::ASSET_PACKAGE))->toContain('packstub-theme-slate--2.css');
+});
+
+it('rejects a themePlugin that is not a Filament plugin', function (): void {
+    Theme::make('broken')->themePlugin(fn (): stdClass => new stdClass)->getColors();
+})->throws(InvalidArgumentException::class, 'expects a Filament plugin');

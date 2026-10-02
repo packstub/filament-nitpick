@@ -23,7 +23,7 @@ Themes for Filament panels, and a way for every person to pick their own. Free a
 | [Installation](installation.md) | Requirements, the install command, publishing assets, registering the plugin |
 | [Themes](themes.md) | The bundled themes, offering themes per panel, the default and the tenant hook |
 | [User preferences](user-preferences.md) | The Appearance page, the `ThemePicker` field, storage, reading and writing a choice from code |
-| [Creating a theme](creating-a-theme.md) | The `Theme` contract, palettes, stylesheets, preferred mode, `Theme::make()` for a theme without a class file, shipping a theme as a package |
+| [Creating a theme](creating-a-theme.md) | The `Theme` contract, palettes, stylesheets, preferred mode, `Theme::make()` for a theme without a class file, themes from the Filament plugin directory, shipping a theme as a package |
 | [Configuration](configuration.md) | The fluent `ThemesPlugin` API, the config file, colour overrides, custom CSS and forced mode, events |
 
 ## At a glance

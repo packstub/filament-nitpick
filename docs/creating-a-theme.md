@@ -69,6 +69,18 @@ public function getPreferredMode(): ?ThemeMode
 
 The file is registered as a Filament CSS asset loaded on request, so `php artisan filament:assets` publishes it to `public/css/packstub/filament-themes/packstub-theme-ocean.css` and the plugin links it only while the theme is active.
 
+A look split over several files returns them all from `getStylesheets()` instead, in the order they should load:
+
+```php
+public function getStylesheets(): array
+{
+    return [
+        resource_path('css/themes/ocean.css'),
+        resource_path('css/themes/ocean-corners.css'),
+    ];
+}
+```
+
 ### Writing the CSS
 
 Scope every rule to the theme's attribute on `<html>`. The plugin sets it before the body paints, and other panels or themes never see your rules:
@@ -136,10 +148,10 @@ Themes::register(
 | `description(?string)` | The line under the name in the picker |
 | `colors(array)` | The palette, in the shape of `Panel::colors()` |
 | `stylesheet(?string)` | Absolute path to a CSS file, linked while the theme is active |
+| `stylesheets(array)` | Several CSS files, linked in the order given |
+| `themePlugin(Plugin\|Closure)` | A Filament theme plugin whose palette and stylesheets become the theme's own; see [below](#a-theme-from-the-filament-plugin-directory) |
 | `mode(?ThemeMode)` | The light/dark mode the theme is designed for |
 | `swatches(array)` | Up to three CSS colours for the picker, instead of the ones derived from the palette |
-
-This is also a short way to offer a stylesheet you already have, such as a compiled CSS file from an installed package: point `stylesheet()` at the file, give the theme its palette, and run `php artisan filament:assets`.
 
 ### An anonymous class
 
@@ -170,6 +182,29 @@ Themes::register(new class extends Theme
 ```
 
 Reach for a named class when the theme is shared between apps or shipped as a package, so others can refer to it by class name.
+
+## A theme from the Filament plugin directory
+
+Many themes in the [Filament plugin directory](https://filamentphp.com/plugins) are plugins of their own: added to a panel with `->plugin()`, they restyle it for everyone. `themePlugin()` offers one as a choice instead, beside the others in the picker. Install the package, then hand its plugin to a theme, configured the way its own docs describe:
+
+```php
+use Noreviq\FilamentTheme\NoreviqThemePlugin;
+use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Theme;
+
+// AppServiceProvider::boot()
+Themes::register(
+    Theme::make('noreviq')
+        ->description('Teal and graphite with sharp corners.')
+        ->themePlugin(fn () => NoreviqThemePlugin::make()),
+);
+```
+
+Run `php artisan filament:assets` and the theme is in the picker. Do not add the theme's plugin to the panel as well: the theme takes its place.
+
+The palette and every local CSS file the plugin would give a panel are read from it and become the theme's own, however many files the plugin splits its look into. `colors()`, `stylesheet()` and `stylesheets()` on the same theme apply on top, for a tweak of your own.
+
+What carries over is what a theme is made of: colours and stylesheets. Fonts, render hooks, layout options and a Vite theme the plugin sets on its panel belong to the panel and stay behind, so a theme that depends on them looks closest to its screenshots when those are set on your panel directly.
 
 ## Shipping a theme as a package
 

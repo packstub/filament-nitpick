@@ -5,8 +5,8 @@ namespace Packstub\Themes\Contracts;
 use Filament\Enums\ThemeMode;
 
 /**
- * A theme: a Filament colour palette plus an optional stylesheet that
- * restyles the panel. Implement this (or extend Packstub\Themes\Theme) and
+ * A theme: a Filament colour palette plus optional stylesheets that
+ * restyle the panel. Implement this (or extend Packstub\Themes\Theme) and
  * register the class with the ThemeManager to make it available to panels.
  */
 interface Theme
@@ -37,9 +37,12 @@ interface Theme
     public function getPreferredMode(): ?ThemeMode;
 
     /**
-     * Absolute path to a CSS file, or null for a palette-only theme.
+     * Absolute paths to the theme's CSS files, linked in this order while the
+     * theme is active. Empty for a palette-only theme.
+     *
+     * @return array<int, string>
      */
-    public function getStylesheetPath(): ?string;
+    public function getStylesheets(): array;
 
     /**
      * Up to three CSS colours shown as swatches in the theme picker.

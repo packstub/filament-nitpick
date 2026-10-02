@@ -94,9 +94,14 @@ class ThemeManager
         return $this->find($theme) !== null;
     }
 
-    public function assetId(Theme $theme): string
+    /**
+     * The asset id of a theme's stylesheet: `packstub-theme-<id>` for the
+     * first, `packstub-theme-<id>--2` and up for the ones after it (an id
+     * never holds two dashes in a row, so the two never collide).
+     */
+    public function assetId(Theme $theme, int $index = 0): string
     {
-        return 'packstub-theme-'.$theme->getId();
+        return 'packstub-theme-'.$theme->getId().($index === 0 ? '' : '--'.($index + 1));
     }
 
     public function store(): ThemePreferenceStore
@@ -162,15 +167,15 @@ class ThemeManager
 
     protected function registerStylesheet(Theme $theme): void
     {
-        $path = $theme->getStylesheetPath();
+        $assets = [];
 
-        if ($path === null) {
-            return;
+        foreach (array_values($theme->getStylesheets()) as $index => $path) {
+            $assets[] = Css::make($this->assetId($theme, $index), $path)->loadedOnRequest();
         }
 
-        FilamentAsset::register([
-            Css::make($this->assetId($theme), $path)->loadedOnRequest(),
-        ], package: static::ASSET_PACKAGE);
+        if ($assets !== []) {
+            FilamentAsset::register($assets, package: static::ASSET_PACKAGE);
+        }
     }
 
     /**

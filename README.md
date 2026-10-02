@@ -201,7 +201,17 @@ Themes::register(
 );
 ```
 
-An anonymous class (`new class extends Theme { ... }`) works too; see [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme).
+An anonymous class (`new class extends Theme { ... }`) works too.
+
+A theme plugin from the [Filament plugin directory](https://filamentphp.com/plugins) joins the picker the same way. Install it, then pass its plugin to a theme; its palette and CSS files are read from it, so the plugin itself stays off the panel:
+
+```php
+Themes::register(
+    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+);
+```
+
+More in [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme).
 
 ## Colour overrides and custom CSS
 

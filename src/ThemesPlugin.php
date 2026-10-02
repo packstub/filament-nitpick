@@ -411,9 +411,10 @@ class ThemesPlugin implements Plugin
             sprintf('<meta name="packstub-theme" content="%s">', e($theme->getId())),
         ];
 
-        if ($href = $this->stylesheetHref($theme)) {
+        foreach ($this->stylesheetHrefs($theme) as $index => $href) {
             $tags[] = sprintf(
-                '<link rel="stylesheet" id="packstub-theme-active" href="%s" data-packstub-theme="%s" data-navigate-track>',
+                '<link rel="stylesheet"%s href="%s" data-packstub-theme="%s" data-packstub-theme-stylesheet data-navigate-track>',
+                $index === 0 ? ' id="packstub-theme-active"' : '',
                 e($href),
                 e($theme->getId()),
             );
@@ -467,7 +468,7 @@ class ThemesPlugin implements Plugin
     }
 
     /**
-     * @return array{themes: array<string, array{href: string | null, label: string, mode: string | null}>}
+     * @return array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>}
      */
     protected function buildManifest(): array
     {
@@ -475,7 +476,7 @@ class ThemesPlugin implements Plugin
 
         foreach ($this->getThemes() as $id => $theme) {
             $themes[$id] = [
-                'href' => $this->stylesheetHref($theme),
+                'hrefs' => $this->stylesheetHrefs($theme),
                 'label' => $theme->getLabel(),
                 'mode' => $this->getThemeMode($theme)?->value,
             ];
@@ -491,7 +492,7 @@ class ThemesPlugin implements Plugin
      * light/dark toggle is theirs. Only preview() adopts a theme's preferred
      * mode, because that is a deliberate choice.
      *
-     * @param  array{themes: array<string, array{href: string | null, label: string, mode: string | null}>} | null  $manifest
+     * @param  array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>} | null  $manifest
      */
     protected function renderBootstrapScript(Theme $theme, ?array $manifest): string
     {
@@ -528,19 +529,31 @@ class ThemesPlugin implements Plugin
                     preview: function (slug) {
                         if (! manifest || ! manifest.themes[slug]) { return false; }
                         var theme = manifest.themes[slug];
-                        var link = document.getElementById('packstub-theme-active');
-                        if (theme.href) {
+                        // The theme's stylesheets, in order: links already in the head are reused,
+                        // new ones follow the last (ahead of the custom stylesheet), spare ones go.
+                        var links = Array.prototype.slice.call(document.querySelectorAll('link[data-packstub-theme-stylesheet]'));
+                        var custom = document.getElementById('packstub-theme-custom');
+                        var last = null;
+                        theme.hrefs.forEach(function (href, index) {
+                            var link = links[index];
                             if (! link) {
                                 link = document.createElement('link');
-                                link.id = 'packstub-theme-active';
                                 link.rel = 'stylesheet';
-                                document.head.appendChild(link);
+                                link.setAttribute('data-packstub-theme-stylesheet', '');
+                                if (last) {
+                                    last.insertAdjacentElement('afterend', link);
+                                } else if (custom) {
+                                    custom.insertAdjacentElement('beforebegin', link);
+                                } else {
+                                    document.head.appendChild(link);
+                                }
                             }
-                            link.setAttribute('href', theme.href);
+                            if (index === 0) { link.id = 'packstub-theme-active'; }
+                            link.setAttribute('href', href);
                             link.setAttribute('data-packstub-theme', slug);
-                        } else if (link) {
-                            link.remove();
-                        }
+                            last = link;
+                        });
+                        links.slice(theme.hrefs.length).forEach(function (link) { link.remove(); });
                         html.setAttribute('data-packstub-theme', slug);
                         var meta = document.querySelector('meta[name="packstub-theme"]');
                         if (meta) { meta.setAttribute('content', slug); }
@@ -554,13 +567,18 @@ class ThemesPlugin implements Plugin
             HTML;
     }
 
-    protected function stylesheetHref(Theme $theme): ?string
+    /**
+     * @return array<int, string>
+     */
+    protected function stylesheetHrefs(Theme $theme): array
     {
-        if ($theme->getStylesheetPath() === null) {
-            return null;
+        $hrefs = [];
+
+        foreach (array_keys(array_values($theme->getStylesheets())) as $index) {
+            $hrefs[] = FilamentAsset::getStyleHref($this->manager()->assetId($theme, $index), package: ThemeManager::ASSET_PACKAGE);
         }
 
-        return FilamentAsset::getStyleHref($this->manager()->assetId($theme), package: ThemeManager::ASSET_PACKAGE);
+        return $hrefs;
     }
 
     protected function currentUser(): ?Authenticatable

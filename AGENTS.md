@@ -19,7 +19,7 @@ composer lint               # Pint
 
 ## How a theme works
 
-A theme is a class implementing `Packstub\Themes\Contracts\Theme` (id, label, Filament colour palette, optional stylesheet, optional preferred light/dark mode). The stylesheet is plain CSS scoped to `html[data-packstub-theme="<id>"]` and registered as a Filament `Css` asset loaded on request, so `php artisan filament:assets` publishes it. The plugin sets the panel colours from the active theme (a closure evaluated at panel boot, so the signed-in user's preference is known), renders the stylesheet link and a small bootstrap script in `HEAD_END`, and never writes Filament's `theme` localStorage key on page load — only when the user picks a theme.
+A theme is a class implementing `Packstub\Themes\Contracts\Theme` (id, label, Filament colour palette, optional stylesheets, optional preferred light/dark mode); `Theme::make('id')` defines one inline, and its `themePlugin()` reads the palette and CSS files of a third-party Filament theme plugin from a scratch panel (`Support\PluginCapture`). A stylesheet is plain CSS scoped to `html[data-packstub-theme="<id>"]` and registered as a Filament `Css` asset loaded on request, so `php artisan filament:assets` publishes it. The plugin sets the panel colours from the active theme (a closure evaluated at panel boot, so the signed-in user's preference is known), renders the stylesheet link and a small bootstrap script in `HEAD_END`, and never writes Filament's `theme` localStorage key on page load — only when the user picks a theme.
 
 ## Conventions
 
