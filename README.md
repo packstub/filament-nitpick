@@ -16,11 +16,25 @@ Themes for Filament panels, and a way for every person to pick their own.
 
 A theme is a colour palette plus a stylesheet that restyles the panel. This plugin ships two designed ones, lets any package add more, gives each panel a default, and adds an **Appearance** page where a signed-in user chooses the theme they see, the way they already choose light or dark mode.
 
+It is also a home for the themes you already like. Install a theme plugin from the [Filament plugin directory](https://filamentphp.com/plugins), free or paid, and one line puts it in the picker beside the others:
+
+```php
+use Noreviq\FilamentTheme\NoreviqThemePlugin;
+use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Theme;
+
+// AppServiceProvider::boot()
+Themes::register(
+    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+);
+```
+
 ![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora.png)
 
 ## Features
 
 - **[Two bundled themes](#the-bundled-themes)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
+- **[Themes from the plugin directory](#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker.
 - **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
 - **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
 - **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
@@ -74,6 +88,27 @@ Both themes cover light and dark mode. This is Aurora after dark:
 ![A deals table in Aurora's dark variant, "Twilight": the same glass surfaces and dock sidebar on a deep night backdrop](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora-dark.png)
 
 A theme's preferred mode becomes the panel's default mode while the theme is active. A user who has toggled light or dark keeps their choice.
+
+## Themes from the Filament plugin directory
+
+The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. A theme plugin that styles a panel with a palette and CSS files can sit in your picker beside the bundled ones, so a panel offers as many looks as you care to install.
+
+Install the theme's package the way its own docs describe, then hand its plugin to a theme:
+
+```php
+use Noreviq\FilamentTheme\NoreviqThemePlugin;
+use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Theme;
+
+// AppServiceProvider::boot()
+Themes::register(
+    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+);
+```
+
+Run `php artisan filament:assets` and it is one more card on the Appearance page: a panel default, a per-user choice, previewed live like any other theme. The palette and every CSS file the plugin would give a panel are read from it, so there is nothing to copy or merge, and the theme's own plugin stays off the panel. Configure it the way its docs say (`NoreviqThemePlugin::make()->corners(...)`) and the theme follows.
+
+The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad. Register as many as you like, one `Theme::make()` each. [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme) covers what carries over.
 
 ## A theme per panel
 
@@ -203,13 +238,7 @@ Themes::register(
 
 An anonymous class (`new class extends Theme { ... }`) works too.
 
-A theme plugin from the [Filament plugin directory](https://filamentphp.com/plugins) joins the picker the same way. Install it, then pass its plugin to a theme; its palette and CSS files are read from it, so the plugin itself stays off the panel:
-
-```php
-Themes::register(
-    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
-);
-```
+A theme plugin from the Filament plugin directory joins the picker with `->themePlugin()`; see [Themes from the Filament plugin directory](#themes-from-the-filament-plugin-directory).
 
 More in [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme).
 

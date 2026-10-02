@@ -25,6 +25,33 @@ A theme declares the light/dark mode it is designed for. While the theme is acti
 
 `->forceMode()` on the plugin, or `force_mode` in the config, replaces the theme's preference for the whole panel.
 
+## Themes from the Filament plugin directory
+
+The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. A theme plugin that styles a panel with a palette and CSS files can sit in the picker beside the bundled ones, so a panel offers as many looks as you care to install.
+
+Install the theme's package the way its own docs describe, then hand its plugin to a theme:
+
+```php
+use Noreviq\FilamentTheme\NoreviqThemePlugin;
+use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Theme;
+
+// AppServiceProvider::boot()
+Themes::register(
+    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+);
+```
+
+Run `php artisan filament:assets` and the theme is registered like any other: a panel can make it the default, offer it to users, and preview it live in the picker.
+
+- The palette and every CSS file the plugin would give a panel are read from it. There is nothing to copy or merge, and an update of the theme's package is picked up the next time assets are published.
+- The theme's own plugin stays off the panel: it would restyle the panel for everyone, and here it is one choice among several.
+- Configure the plugin the way its docs say, inside the closure (`NoreviqThemePlugin::make()->corners(...)`), and the theme follows.
+- Register as many as you like, one `Theme::make()` each, and add `->label()` or `->description()` for the text on its card.
+- Themes that ship ready-made CSS files fit as they are. A theme meant to be compiled into your panel's own Vite stylesheet is part of that stylesheet, so it stays the panel's base look.
+
+The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad. [Creating a theme](creating-a-theme.md#a-theme-from-the-filament-plugin-directory) covers what carries over from a theme plugin and how to layer your own colours or CSS on top.
+
 ## Offering themes on a panel
 
 By default a panel offers every registered theme. Narrow it:
