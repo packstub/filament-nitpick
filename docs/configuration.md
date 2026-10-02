@@ -16,6 +16,7 @@ ThemesPlugin::make()
     ->colors(['primary' => Color::Indigo])       // slots applied on top of every theme
     ->customCss('css/admin-overrides.css')       // loaded after the theme's stylesheet
     ->forceMode(ThemeMode::Dark)                 // ignore the theme's preferred mode; null hands it back
+    ->themeTransition('fade')                    // how a picked theme takes over: 'reveal' (default), 'fade' or false
 ```
 
 Everything is per panel. `ThemesPlugin::get()` returns the current panel's instance.
@@ -36,6 +37,7 @@ php artisan vendor:publish --tag="packstub-themes-config"
 | `colors` | `[]` | App-wide colour overrides, same shape as `->colors()` |
 | `custom_css` | `null` | App-wide extra stylesheet, path relative to `public/` or a URL |
 | `force_mode` | `null` | `'light'`, `'dark'` or `'system'` |
+| `transition` | `'reveal'` | How a picked theme takes over the screen: `'reveal'`, `'fade'` or `false` |
 
 The plugin call always wins over the config key.
 

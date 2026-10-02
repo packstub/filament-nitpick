@@ -51,3 +51,9 @@ it('stamps the panel with the active theme', function (): void {
         ->assertSee('--default-theme-mode: dark', false)
         ->assertSee('packstub-themes-palettes', false);
 });
+
+it('hands the picked card to the preview, so the new theme can open out from it', function (): void {
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertSee("window.PackstubThemes.preview('midnight', \$event.target.closest('label'))", false);
+});

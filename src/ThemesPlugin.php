@@ -33,6 +33,8 @@ class ThemesPlugin implements Plugin
     /** @var array<string, array<int | string, string | int> | string> */
     protected array $colors = [];
 
+    protected string|bool|null $transition = null;
+
     protected string|Closure|null $customCss = null;
 
     protected bool $hasCustomCss = false;
@@ -158,9 +160,30 @@ class ThemesPlugin implements Plugin
         return $this;
     }
 
+    /**
+     * How a theme picked on the Appearance page takes over the screen:
+     * "reveal" (the new theme opens out from the card that was picked),
+     * "fade" (a short cross-fade) or false (at once). Either animation waits
+     * for the theme's stylesheets, runs once and is skipped for visitors who
+     * ask their system for reduced motion.
+     */
+    public function themeTransition(string|bool $transition = 'reveal'): static
+    {
+        $this->transition = $transition === true ? 'reveal' : $transition;
+
+        return $this;
+    }
+
     // ------------------------------------------------------------------
     // Resolution
     // ------------------------------------------------------------------
+
+    public function getThemeTransition(): ?string
+    {
+        $transition = $this->transition ?? config('packstub-themes.transition', 'reveal');
+
+        return in_array($transition, ['reveal', 'fade'], true) ? $transition : null;
+    }
 
     /**
      * The themes offered on this panel, keyed by id.
@@ -472,7 +495,7 @@ class ThemesPlugin implements Plugin
     }
 
     /**
-     * @return array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>}
+     * @return array{transition: string | null, themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>}
      */
     protected function buildManifest(): array
     {
@@ -486,7 +509,7 @@ class ThemesPlugin implements Plugin
             ];
         }
 
-        return ['themes' => $themes];
+        return ['transition' => $this->getThemeTransition(), 'themes' => $themes];
     }
 
     /**
@@ -496,7 +519,7 @@ class ThemesPlugin implements Plugin
      * light/dark toggle is theirs. Only preview() adopts a theme's preferred
      * mode, because that is a deliberate choice.
      *
-     * @param  array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>} | null  $manifest
+     * @param  array{transition: string | null, themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>} | null  $manifest
      */
     protected function renderBootstrapScript(Theme $theme, ?array $manifest): string
     {
@@ -530,39 +553,79 @@ class ThemesPlugin implements Plugin
                 window.PackstubThemes = {
                     current: function () { return html.getAttribute('data-packstub-theme'); },
                     list: function () { return manifest ? Object.keys(manifest.themes) : []; },
-                    preview: function (slug) {
+                    // origin: the element the pick came from (the picker passes its card); the reveal opens from it.
+                    preview: function (slug, origin) {
                         if (! manifest || ! manifest.themes[slug]) { return false; }
                         var theme = manifest.themes[slug];
-                        // The theme's stylesheets, in order: links already in the head are reused,
-                        // new ones follow the last (ahead of the custom stylesheet), spare ones go.
-                        var links = Array.prototype.slice.call(document.querySelectorAll('link[data-packstub-theme-stylesheet]'));
-                        var custom = document.getElementById('packstub-theme-custom');
-                        var last = null;
-                        theme.hrefs.forEach(function (href, index) {
-                            var link = links[index];
-                            if (! link) {
-                                link = document.createElement('link');
-                                link.rel = 'stylesheet';
-                                link.setAttribute('data-packstub-theme-stylesheet', '');
-                                if (last) {
-                                    last.insertAdjacentElement('afterend', link);
-                                } else if (custom) {
-                                    custom.insertAdjacentElement('beforebegin', link);
-                                } else {
-                                    document.head.appendChild(link);
+                        // Puts the theme on the page; resolves once its new stylesheets have loaded (or 1.5 s on).
+                        var apply = function () {
+                            // The theme's stylesheets, in order: links already in the head are reused,
+                            // new ones follow the last (ahead of the custom stylesheet), spare ones go.
+                            var links = Array.prototype.slice.call(document.querySelectorAll('link[data-packstub-theme-stylesheet]'));
+                            var custom = document.getElementById('packstub-theme-custom');
+                            var last = null;
+                            var pending = [];
+                            theme.hrefs.forEach(function (href, index) {
+                                var link = links[index];
+                                if (! link) {
+                                    link = document.createElement('link');
+                                    link.rel = 'stylesheet';
+                                    link.setAttribute('data-packstub-theme-stylesheet', '');
+                                    if (last) {
+                                        last.insertAdjacentElement('afterend', link);
+                                    } else if (custom) {
+                                        custom.insertAdjacentElement('beforebegin', link);
+                                    } else {
+                                        document.head.appendChild(link);
+                                    }
                                 }
-                            }
-                            if (index === 0) { link.id = 'packstub-theme-active'; }
-                            link.setAttribute('href', href);
-                            link.setAttribute('data-packstub-theme', slug);
-                            last = link;
+                                if (index === 0) { link.id = 'packstub-theme-active'; }
+                                if (link.getAttribute('href') !== href) {
+                                    pending.push(new Promise(function (resolve) {
+                                        link.addEventListener('load', resolve, { once: true });
+                                        link.addEventListener('error', resolve, { once: true });
+                                    }));
+                                    link.setAttribute('href', href);
+                                }
+                                link.setAttribute('data-packstub-theme', slug);
+                                last = link;
+                            });
+                            links.slice(theme.hrefs.length).forEach(function (link) { link.remove(); });
+                            html.setAttribute('data-packstub-theme', slug);
+                            var meta = document.querySelector('meta[name="packstub-theme"]');
+                            if (meta) { meta.setAttribute('content', slug); }
+                            applyMode(theme.mode);
+                            return Promise.race([Promise.all(pending), new Promise(function (resolve) { setTimeout(resolve, 1500); })]);
+                        };
+                        var done = function () {
+                            document.dispatchEvent(new CustomEvent('packstub-theme-changed', { detail: { theme: slug } }));
+                        };
+                        var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        if (! manifest.transition || calm || typeof document.startViewTransition !== 'function' || html.getAttribute('data-packstub-theme') === slug) {
+                            apply();
+                            done();
+                            return true;
+                        }
+                        // One calm move, never a flash: the browser holds the old look as a picture until the
+                        // new one is ready, then the new look opens out from the picked card (or fades in).
+                        var box = origin && origin.getBoundingClientRect ? origin.getBoundingClientRect() : null;
+                        var x = box ? box.left + box.width / 2 : window.innerWidth / 2;
+                        var y = box ? box.top + box.height / 2 : window.innerHeight / 2;
+                        var radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+                        html.setAttribute('data-packstub-theme-transition', manifest.transition);
+                        var transition = document.startViewTransition(apply);
+                        if (manifest.transition === 'reveal') {
+                            transition.ready.then(function () {
+                                html.animate(
+                                    { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)'] },
+                                    { duration: 520, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', pseudoElement: '::view-transition-new(root)' }
+                                );
+                            }).catch(function () {});
+                        }
+                        transition.finished.catch(function () {}).then(function () {
+                            html.removeAttribute('data-packstub-theme-transition');
+                            done();
                         });
-                        links.slice(theme.hrefs.length).forEach(function (link) { link.remove(); });
-                        html.setAttribute('data-packstub-theme', slug);
-                        var meta = document.querySelector('meta[name="packstub-theme"]');
-                        if (meta) { meta.setAttribute('content', slug); }
-                        applyMode(theme.mode);
-                        document.dispatchEvent(new CustomEvent('packstub-theme-changed', { detail: { theme: slug } }));
                         return true;
                     }
                 };

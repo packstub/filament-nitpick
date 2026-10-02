@@ -99,4 +99,16 @@ window.PackstubThemes.preview('midnight') // swap stylesheet, palette and mode n
 
 `preview()` only changes the current page; the picker follows it with the save. A `packstub-theme-changed` event fires on `document` after each preview.
 
+### The theme transition
+
+A picked theme does not snap in. The browser holds the current look until the new theme's stylesheets have loaded, then the new look opens out from the card that was picked, in about half a second. It is one calm move with no flash in between, and visitors whose system asks for reduced motion get the change at once.
+
+```php
+ThemesPlugin::make()
+    ->userSelectable()
+    ->themeTransition('fade'),   // 'reveal' (default), 'fade' (a short cross-fade) or false
+```
+
+The same choice lives in the config file as `transition`. The transition uses the browser's View Transitions API; a browser without it changes theme at once, as before. From your own code, pass the element the change came from as the second argument and the reveal opens from it: `window.PackstubThemes.preview('midnight', button)`.
+
 Continue with [Creating a theme](creating-a-theme.md).

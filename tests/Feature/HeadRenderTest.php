@@ -117,3 +117,27 @@ it('renders the palettes ahead of the theme stylesheets, at the weight of Filame
     expect(strpos($head, 'packstub-themes-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
         ->and($head)->not->toContain('html[data-packstub-theme=');
 });
+
+it('reveals a picked theme from its card by default, once and never for reduced motion', function (): void {
+    $head = headFor(ThemesPlugin::make()->userSelectable());
+
+    expect($head)
+        ->toContain('{"transition":"reveal","themes":{')
+        ->toContain('document.startViewTransition(apply)')
+        ->toContain("'(prefers-reduced-motion: reduce)'")
+        ->toContain("pseudoElement: '::view-transition-new(root)'");
+});
+
+it('takes the theme transition from the plugin, then the config', function (): void {
+    expect(headFor(ThemesPlugin::make()->userSelectable()->themeTransition('fade')))->toContain('{"transition":"fade",')
+        ->and(headFor(ThemesPlugin::make()->userSelectable()->themeTransition(false)))->toContain('{"transition":null,')
+        ->and(headFor(ThemesPlugin::make()->userSelectable()->themeTransition(true)))->toContain('{"transition":"reveal",');
+
+    config(['packstub-themes.transition' => 'fade']);
+
+    expect(headFor(ThemesPlugin::make()->userSelectable()))->toContain('{"transition":"fade",');
+
+    config(['packstub-themes.transition' => false]);
+
+    expect(headFor(ThemesPlugin::make()->userSelectable()))->toContain('{"transition":null,');
+});
