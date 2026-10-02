@@ -1,6 +1,6 @@
 # Creating a theme
 
-A theme is a class implementing `Packstub\Themes\Contracts\Theme`. Extend `Packstub\Themes\Theme` for sensible defaults and you need three methods.
+A theme is a class implementing `Packstub\Themes\Contracts\Theme`. Extend `Packstub\Themes\Theme` for sensible defaults and you need three methods. For a theme that needs no file of its own, [`Theme::make()`](#a-theme-without-a-class-file) defines one inline.
 
 ## A palette-only theme
 
@@ -102,6 +102,74 @@ Useful, stable hooks in Filament 5:
 | `--primary-500`, `--gray-200`, … | Filament's palette variables, in OKLCH, following the active theme |
 
 Prefix your own variables (`--ocean-…`) so they never collide with Filament's.
+
+## A theme without a class file
+
+A small theme does not need a file of its own. Define it where you register it, in either of two ways. Both give the same result as a class: the theme is offered in the picker, saved per user and previewed live.
+
+### `Theme::make()`
+
+`Theme::make()` takes the id and returns a theme you describe with fluent methods:
+
+```php
+use Filament\Enums\ThemeMode;
+use Filament\Support\Colors\Color;
+use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Theme;
+
+// AppServiceProvider::boot()
+Themes::register(
+    Theme::make('ocean')->colors(['primary' => Color::Teal]),
+
+    Theme::make('nord')
+        ->label('Nord')
+        ->description('Arctic blues on calm, dark surfaces.')
+        ->colors(['primary' => Color::Sky, 'gray' => Color::Slate])
+        ->stylesheet(resource_path('css/themes/nord.css'))
+        ->mode(ThemeMode::Dark),
+);
+```
+
+| Method | What it sets |
+| --- | --- |
+| `label(string)` | The name in the picker. Left out, it is the id in headline case (`deep-forest` becomes "Deep Forest") |
+| `description(?string)` | The line under the name in the picker |
+| `colors(array)` | The palette, in the shape of `Panel::colors()` |
+| `stylesheet(?string)` | Absolute path to a CSS file, linked while the theme is active |
+| `mode(?ThemeMode)` | The light/dark mode the theme is designed for |
+| `swatches(array)` | Up to three CSS colours for the picker, instead of the ones derived from the palette |
+
+This is also a short way to offer a stylesheet you already have, such as a compiled CSS file from an installed package: point `stylesheet()` at the file, give the theme its palette, and run `php artisan filament:assets`.
+
+### An anonymous class
+
+`Themes::register()` accepts an instance as well as a class name, so a theme that needs logic (a palette read from config, a label that is translated) can be an anonymous class with the same methods a named class has:
+
+```php
+use Filament\Support\Colors\Color;
+use Packstub\Themes\Facades\Themes;
+use Packstub\Themes\Theme;
+
+Themes::register(new class extends Theme
+{
+    public function getId(): string
+    {
+        return 'sunset';
+    }
+
+    public function getLabel(): string
+    {
+        return __('themes.sunset');
+    }
+
+    public function getColors(): array
+    {
+        return ['primary' => config('brand.primary', Color::Orange)];
+    }
+});
+```
+
+Reach for a named class when the theme is shared between apps or shipped as a package, so others can refer to it by class name.
 
 ## Shipping a theme as a package
 

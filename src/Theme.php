@@ -16,9 +16,19 @@ use Packstub\Themes\Contracts\Theme as ThemeContract;
  *         public function getLabel(): string { return 'Ocean'; }
  *         public function getColors(): array { return ['primary' => Color::Teal]; }
  *     }
+ *
+ * Or without a class: Theme::make('ocean')->colors(['primary' => Color::Teal]).
  */
 abstract class Theme implements ThemeContract
 {
+    /**
+     * A theme defined inline: the id, then label(), colors(), stylesheet(), mode().
+     */
+    public static function make(string $id): FluentTheme
+    {
+        return new FluentTheme($id);
+    }
+
     public function getDescription(): ?string
     {
         return null;

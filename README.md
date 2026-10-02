@@ -23,7 +23,7 @@ A theme is a colour palette plus a stylesheet that restyles the panel. This plug
 - **[Two bundled themes](#the-bundled-themes)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
 - **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
 - **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
-- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign.
+- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
 - **[Fits your brand](#colour-overrides-and-custom-css)**: your colours and CSS on top of any theme.
 - **Dark mode and translations**: both bundled themes have a dark variant; every string lives in a language file.
 
@@ -187,6 +187,21 @@ Themes::register(Ocean::class);
 ![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/custom-theme.png)
 
 The stylesheet is registered as a Filament asset, so `php artisan filament:assets` publishes it. From there the theme can be a panel default, offered to users, or shipped as its own Composer package.
+
+A small theme needs no class file. `Theme::make()` defines one where you register it:
+
+```php
+use Packstub\Themes\Theme;
+
+Themes::register(
+    Theme::make('nord')
+        ->colors(['primary' => Color::Sky, 'gray' => Color::Slate])
+        ->stylesheet(resource_path('css/themes/nord.css'))
+        ->mode(ThemeMode::Dark),
+);
+```
+
+An anonymous class (`new class extends Theme { ... }`) works too; see [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme).
 
 ## Colour overrides and custom CSS
 

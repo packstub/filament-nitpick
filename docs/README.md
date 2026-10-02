@@ -13,7 +13,7 @@ Themes for Filament panels, and a way for every person to pick their own. Free a
 - **[Two bundled themes](themes.md)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
 - **[A theme per panel](themes.md)**: each panel picks its themes and default; the default can follow the workspace.
 - **[A theme per user](user-preferences.md)**: an Appearance page where each person picks their theme, previewed instantly.
-- **[Write your own](creating-a-theme.md)**: a theme is a class with a palette, plus a stylesheet for a full redesign.
+- **[Write your own](creating-a-theme.md)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
 - **[Fits your brand](configuration.md#colour-overrides)**: your colours and CSS on top of any theme.
 
 ## Guides
@@ -23,7 +23,7 @@ Themes for Filament panels, and a way for every person to pick their own. Free a
 | [Installation](installation.md) | Requirements, the install command, publishing assets, registering the plugin |
 | [Themes](themes.md) | The bundled themes, offering themes per panel, the default and the tenant hook |
 | [User preferences](user-preferences.md) | The Appearance page, the `ThemePicker` field, storage, reading and writing a choice from code |
-| [Creating a theme](creating-a-theme.md) | The `Theme` contract, palettes, stylesheets, preferred mode, shipping a theme as a package |
+| [Creating a theme](creating-a-theme.md) | The `Theme` contract, palettes, stylesheets, preferred mode, `Theme::make()` for a theme without a class file, shipping a theme as a package |
 | [Configuration](configuration.md) | The fluent `ThemesPlugin` API, the config file, colour overrides, custom CSS and forced mode, events |
 
 ## At a glance
