@@ -6,14 +6,13 @@ Themes for Filament panels, and a way for every person to pick their own. Free a
 - Packagist: [packstub/filament-themes](https://packagist.org/packages/packstub/filament-themes)
 - Support: [GitHub issues](https://github.com/packstub/filament-themes/issues)
 
-## What you get
+## Features
 
-| Feature | What it means for you |
-| --- | --- |
-| **Two bundled themes** | *Aurora*, iridescent glass with a floating dock-style sidebar, in light and dark. *Midnight*, dark-first with violet-to-cyan accents. Both restyle Filament's own components, so nothing about how you build changes. |
-| **A theme per panel** | Each panel chooses the themes it offers and its default. The default can be a closure, so a workspace can carry its own look. |
-| **A theme per user** | An Appearance page in the user menu where each person picks the theme they see, saved per panel, previewed instantly, without touching their light/dark toggle. |
-| **Open registry** | A theme is a class with an id, a label and a palette; add a stylesheet for a full redesign. Register it and every panel can offer it, from your app or from a package of your own. |
+- **[Two bundled themes](themes.md)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
+- **[A theme per panel](themes.md)**: each panel picks its themes and default; the default can follow the workspace.
+- **[A theme per user](user-preferences.md)**: an Appearance page where each person picks their theme, previewed instantly.
+- **[Write your own](creating-a-theme.md)**: a theme is a class with a palette, plus a stylesheet for a full redesign.
+- **[Fits your brand](configuration.md#colour-overrides)**: your colours and CSS on top of any theme.
 
 ## Guides
 

@@ -16,12 +16,12 @@ A theme is a colour palette plus a stylesheet that restyles the panel. This plug
 
 ## Features
 
-- **[Two bundled themes](#the-bundled-themes)** — *Aurora*, iridescent glass with a floating dock-style sidebar, light and dark; and *Midnight*, dark-first with violet-to-cyan accents.
-- **[A theme per panel](#a-theme-per-panel)** — each panel picks the themes it offers and its default. The default can be a closure, so a workspace can carry its own look.
-- **[A theme per user](#a-theme-per-user)** — turn on `->userSelectable()` and every user gets an Appearance page in the user menu. The choice is saved per panel, previews instantly, and never resets their light/dark toggle.
-- **[Open registry](#writing-a-theme)** — a theme is a class with an id, a label and a palette; add a stylesheet for a full redesign. Register it and every panel can offer it.
-- **[Fits your brand](#colour-overrides-and-custom-css)** — override colour slots on top of any theme and layer a stylesheet of your own.
-- **Dark mode ready** and **translatable** — both bundled themes carry a dark variant; every string lives in a language file.
+- **[Two bundled themes](#the-bundled-themes)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
+- **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
+- **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
+- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign.
+- **[Fits your brand](#colour-overrides-and-custom-css)**: your colours and CSS on top of any theme.
+- **Dark mode and translations**: both bundled themes have a dark variant; every string lives in a language file.
 
 ## Compatibility
 
