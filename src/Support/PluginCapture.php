@@ -28,7 +28,7 @@ class PluginCapture
         if (! $plugin instanceof Plugin) {
             $given = is_object($plugin) ? $plugin::class : gettype($plugin);
 
-            throw new InvalidArgumentException("themePlugin() expects a Filament plugin, [{$given}] given.");
+            throw new InvalidArgumentException("Theme::make()->plugin() expects a Filament plugin, [{$given}] given.");
         }
 
         $panel = CapturingPanel::make()->id('packstub-themes-capture');

@@ -25,7 +25,7 @@ use Packstub\Themes\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
@@ -102,7 +102,7 @@ use Packstub\Themes\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
@@ -120,7 +120,7 @@ Themes that build with Vite work the same way. For [Abyss](https://filamentphp.c
 
 ```php
 Themes::register(
-    Theme::make('abyss')->themePlugin(fn () => FilamentAbyssThemePlugin::make()),
+    Theme::make('abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
 );
 ```
 
@@ -254,7 +254,7 @@ Themes::register(
 
 An anonymous class (`new class extends Theme { ... }`) works too.
 
-A theme plugin from the Filament plugin directory joins the picker with `->themePlugin()`; see [Themes from the Filament plugin directory](#themes-from-the-filament-plugin-directory).
+A theme plugin from the Filament plugin directory joins the picker with `Theme::make()->plugin()`; see [Themes from the Filament plugin directory](#themes-from-the-filament-plugin-directory).
 
 More in [Creating a theme](https://packstub.dev/docs/filament-themes/creating-a-theme).
 

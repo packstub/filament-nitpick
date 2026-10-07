@@ -79,7 +79,7 @@ it('links the custom stylesheet after the theme', function (): void {
 
 it('links every stylesheet of a theme made of several files, in order', function (): void {
     Themes::register(
-        Theme::make('slate')->themePlugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
+        Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
     );
 
     $head = headFor(ThemesPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
@@ -94,7 +94,7 @@ it('links every stylesheet of a theme made of several files, in order', function
 it('links a Vite theme from the app\'s build', function (): void {
     Vite::shouldReceive('asset')->with(TideThemePlugin::ENTRY)->andReturn('https://app.test/build/assets/theme-abc123.css');
 
-    Themes::register(Theme::make('tide')->themePlugin(fn (): TideThemePlugin => TideThemePlugin::make()));
+    Themes::register(Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()));
 
     $head = headFor(ThemesPlugin::make()->default('tide'));
 
@@ -102,7 +102,7 @@ it('links a Vite theme from the app\'s build', function (): void {
 });
 
 it('still renders when a Vite theme has not been built yet', function (): void {
-    Themes::register(Theme::make('tide')->themePlugin(fn (): TideThemePlugin => TideThemePlugin::make()));
+    Themes::register(Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()));
 
     $head = headFor(ThemesPlugin::make()->default('tide'));
 

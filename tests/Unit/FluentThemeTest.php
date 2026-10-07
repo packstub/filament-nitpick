@@ -102,7 +102,7 @@ it('takes several stylesheets, registered as one asset each', function (): void 
 it('takes its palette and stylesheets from a Filament theme plugin', function (): void {
     SlateThemePlugin::$booted = false;
 
-    $theme = Theme::make('slate')->themePlugin(fn (): SlateThemePlugin => SlateThemePlugin::make());
+    $theme = Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make());
 
     expect($theme->getColors())->toBe(['primary' => Color::Slate, 'gray' => Color::Zinc])
         ->and($theme->getStylesheets())->toBe([SlateThemePlugin::path('slate.css'), 'https://fonts.example.com/slate.css', SlateThemePlugin::path('slate-corners.css')])
@@ -112,7 +112,7 @@ it('takes its palette and stylesheets from a Filament theme plugin', function ()
 
 it('accepts a plugin instance and layers its own colours and stylesheets on top', function (): void {
     $theme = Theme::make('slate')
-        ->themePlugin(SlateThemePlugin::make())
+        ->plugin(SlateThemePlugin::make())
         ->colors(['primary' => Color::Rose])
         ->stylesheet('/themes/tweaks.css');
 
@@ -121,7 +121,7 @@ it('accepts a plugin instance and layers its own colours and stylesheets on top'
 });
 
 it('keeps a wrapped plugin off the panels: its assets load only as the theme', function (): void {
-    Themes::register(Theme::make('slate')->themePlugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
 
     $ids = array_map(fn ($asset): string => $asset->getId(), FilamentAsset::getStyles());
 
@@ -129,14 +129,14 @@ it('keeps a wrapped plugin off the panels: its assets load only as the theme', f
         ->and(FilamentAsset::getStyleHref('packstub-theme-slate--3', package: ThemeManager::ASSET_PACKAGE))->toContain('packstub-theme-slate--3.css');
 });
 
-it('rejects a themePlugin that is not a Filament plugin', function (): void {
-    Theme::make('broken')->themePlugin(fn (): stdClass => new stdClass)->getColors();
+it('rejects a plugin that is not a Filament plugin', function (): void {
+    Theme::make('broken')->plugin(fn (): stdClass => new stdClass)->getColors();
 })->throws(InvalidArgumentException::class, 'expects a Filament plugin');
 
 it('reads a Vite theme and an app-wide palette from a plugin, and leaves Tailwind source out', function (): void {
     $manager = app(ColorManager::class);
 
-    $theme = Theme::make('tide')->themePlugin(fn (): TideThemePlugin => TideThemePlugin::make());
+    $theme = Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make());
 
     expect($theme->getColors())->toBe(['gray' => Color::Stone, 'primary' => Color::Cyan])
         ->and($theme->getStylesheets())->toBe(['vite:'.TideThemePlugin::ENTRY])

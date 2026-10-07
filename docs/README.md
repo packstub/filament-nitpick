@@ -17,7 +17,7 @@ use Packstub\Themes\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 

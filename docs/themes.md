@@ -38,7 +38,7 @@ use Packstub\Themes\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->themePlugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
@@ -69,7 +69,7 @@ Run `php artisan filament:assets` and the theme is registered like any other: a 
     Themes::register(
         Theme::make('noreviq')
             ->description('Teal and graphite with sharp corners.')
-            ->themePlugin(fn () => NoreviqThemePlugin::make()),
+            ->plugin(fn () => NoreviqThemePlugin::make()),
     );
     ```
 
@@ -107,7 +107,7 @@ npm run build
 use Nagi\FilamentAbyssTheme\FilamentAbyssThemePlugin;
 
 Themes::register(
-    Theme::make('abyss')->themePlugin(fn () => FilamentAbyssThemePlugin::make()),
+    Theme::make('abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
 );
 ```
 
@@ -128,7 +128,7 @@ use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
 
 Themes::register(
     Theme::make('nord')
-        ->themePlugin(fn () => FilamentNordThemePlugin::make())
+        ->plugin(fn () => FilamentNordThemePlugin::make())
         ->stylesheet('vite:resources/css/themes/nord.css'),
 );
 ```

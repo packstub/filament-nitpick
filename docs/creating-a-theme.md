@@ -149,7 +149,7 @@ Themes::register(
 | `colors(array)` | The palette, in the shape of `Panel::colors()` |
 | `stylesheet(?string)` | A stylesheet linked while the theme is active: the absolute path to a CSS file, a URL, or `vite:<entry>` for an entry of your Vite build |
 | `stylesheets(array)` | Several stylesheets, linked in the order given |
-| `themePlugin(Plugin\|Closure)` | A Filament theme plugin whose palette and stylesheets become the theme's own; see [below](#a-theme-from-the-filament-plugin-directory) |
+| `plugin(Plugin\|Closure)` | A Filament theme plugin whose palette and stylesheets become the theme's own; see [below](#a-theme-from-the-filament-plugin-directory) |
 | `mode(?ThemeMode)` | The light/dark mode the theme is designed for |
 | `swatches(array)` | Up to three CSS colours for the picker, instead of the ones derived from the palette |
 
@@ -185,7 +185,7 @@ Reach for a named class when the theme is shared between apps or shipped as a pa
 
 ## A theme from the Filament plugin directory
 
-Many themes in the [Filament plugin directory](https://filamentphp.com/plugins) are plugins of their own: added to a panel with `->plugin()`, they restyle it for everyone. `themePlugin()` offers one as a choice instead, beside the others in the picker. Install the package, then hand its plugin to a theme, configured the way its own docs describe:
+Many themes in the [Filament plugin directory](https://filamentphp.com/plugins) are plugins of their own: given to a panel with `$panel->plugin()`, they restyle it for everyone. Given to a theme with `Theme::make()->plugin()`, the same plugin becomes one choice in the picker, beside the others. Install the package, then hand its plugin to a theme, configured the way its own docs describe:
 
 ```php
 use Noreviq\FilamentTheme\NoreviqThemePlugin;
@@ -196,7 +196,7 @@ use Packstub\Themes\Theme;
 Themes::register(
     Theme::make('noreviq')
         ->description('Teal and graphite with sharp corners.')
-        ->themePlugin(fn () => NoreviqThemePlugin::make()),
+        ->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 

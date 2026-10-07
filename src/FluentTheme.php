@@ -29,7 +29,7 @@ class FluentTheme extends Theme
     /** @var array<int, string> */
     protected array $stylesheets = [];
 
-    protected Plugin|Closure|null $themePlugin = null;
+    protected Plugin|Closure|null $plugin = null;
 
     /** @var array{colors: array<string, array<int | string, string | int> | string>, stylesheets: array<int, string>} | null */
     protected ?array $captured = null;
@@ -93,13 +93,13 @@ class FluentTheme extends Theme
      * stylesheet it would give a panel become the theme's own, so the plugin
      * is not added to the panel. Configure it as its docs say:
      *
-     *     ->themePlugin(fn () => NordThemePlugin::make()->corners('round'))
+     *     ->plugin(fn () => NordThemePlugin::make()->corners('round'))
      *
      * colors() and stylesheets() set here apply on top of the plugin's.
      */
-    public function themePlugin(Plugin|Closure|null $plugin): static
+    public function plugin(Plugin|Closure|null $plugin): static
     {
-        $this->themePlugin = $plugin;
+        $this->plugin = $plugin;
         $this->captured = null;
 
         return $this;
@@ -172,12 +172,12 @@ class FluentTheme extends Theme
      */
     protected function captured(): array
     {
-        if ($this->themePlugin === null) {
+        if ($this->plugin === null) {
             return ['colors' => [], 'stylesheets' => []];
         }
 
         return $this->captured ??= PluginCapture::of(
-            $this->themePlugin instanceof Closure ? ($this->themePlugin)() : $this->themePlugin,
+            $this->plugin instanceof Closure ? ($this->plugin)() : $this->plugin,
         );
     }
 }
