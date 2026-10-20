@@ -43,7 +43,7 @@ Themes::register(
 ## At a glance
 
 ```bash
-composer require packstub/filament-nitpick
+composer require "packstub/filament-nitpick:^1.0@beta"
 php artisan nitpick:install
 php artisan filament:assets
 ```
