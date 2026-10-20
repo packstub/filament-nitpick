@@ -29,7 +29,7 @@ Themes::register(
 );
 ```
 
-![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora.png)
+![One Filament dashboard sweeping through the picker's themes, light and dark in turn: Aurora and Midnight (bundled), Kinetics, Abyss, Nord, Shadcn, Ocean and Noreviq](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/theme-sweep.gif)
 
 ## Features
 

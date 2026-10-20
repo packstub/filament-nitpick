@@ -6,7 +6,7 @@ Themes for Filament panels, and a way for every person to pick their own. Free a
 - Packagist: [packstub/filament-nitpick](https://packagist.org/packages/packstub/filament-nitpick)
 - Support: [GitHub issues](https://github.com/packstub/filament-nitpick/issues)
 
-![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora.png)
+![One Filament dashboard sweeping through the picker's themes, light and dark in turn: Aurora and Midnight (bundled), Kinetics, Abyss, Nord, Shadcn, Ocean and Noreviq](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/theme-sweep.gif)
 
 Two designed themes ship with the plugin, and a theme plugin from the [Filament plugin directory](https://filamentphp.com/plugins), free or paid, joins them in the picker with one line:
 
