@@ -6,13 +6,13 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Colors\ColorManager;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentColor;
-use Packstub\Themes\Contracts\Theme as ThemeContract;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Tests\Fixtures\SlateThemePlugin;
-use Packstub\Themes\Tests\Fixtures\TideThemePlugin;
-use Packstub\Themes\Theme;
-use Packstub\Themes\ThemeManager;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\Contracts\Theme as ThemeContract;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
+use Packstub\Nitpick\Tests\Fixtures\TideThemePlugin;
+use Packstub\Nitpick\Theme;
+use Packstub\Nitpick\ThemeManager;
 
 it('makes a palette-only theme from an id and its colours', function (): void {
     $theme = Theme::make('deep-forest')->colors(['primary' => Color::Emerald]);
@@ -50,7 +50,7 @@ it('registers like any other theme, stylesheet included', function (): void {
     );
 
     $panel = Panel::make()->id('test');
-    ThemesPlugin::make()->default('nord')->register($panel);
+    NitpickPlugin::make()->default('nord')->register($panel);
 
     expect(Themes::find('nord')->getLabel())->toBe('Nord')
         ->and($panel->getColors()['primary'])->toBe(Color::Indigo)

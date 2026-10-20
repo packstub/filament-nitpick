@@ -1,8 +1,8 @@
 <?php
 
 use Filament\Facades\Filament;
-use Packstub\Themes\Filament\Pages\Appearance;
-use Packstub\Themes\Models\ThemePreference;
+use Packstub\Nitpick\Filament\Pages\Appearance;
+use Packstub\Nitpick\Models\ThemePreference;
 
 use function Pest\Livewire\livewire;
 
@@ -15,7 +15,7 @@ beforeEach(function (): void {
 it('is linked from the user menu when users may switch', function (): void {
     $items = collect(Filament::getPanel('admin')->getUserMenuItems())->flatten();
 
-    expect($items->contains(fn ($item): bool => $item->getName() === 'packstub-themes-appearance'))->toBeTrue();
+    expect($items->contains(fn ($item): bool => $item->getName() === 'nitpick-appearance'))->toBeTrue();
 });
 
 it('lists the offered themes', function (): void {
@@ -36,7 +36,7 @@ it('saves the theme as soon as it is picked', function (): void {
 });
 
 it('is closed when user selection is turned off', function (): void {
-    config()->set('packstub-themes-test.selectable', false);
+    config()->set('nitpick-test.selectable', false);
 
     $this->get(Appearance::getUrl())->assertForbidden();
 });
@@ -49,7 +49,7 @@ it('stamps the panel with the active theme', function (): void {
         ->assertSee('<meta name="packstub-theme" content="midnight">', false)
         ->assertSee('packstub-theme-midnight.css', false)
         ->assertSee('--default-theme-mode: dark', false)
-        ->assertSee('packstub-themes-palettes', false);
+        ->assertSee('nitpick-palettes', false);
 });
 
 it('saves a pick quietly: the new look is the confirmation', function (): void {

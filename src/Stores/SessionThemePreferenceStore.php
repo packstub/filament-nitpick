@@ -1,9 +1,9 @@
 <?php
 
-namespace Packstub\Themes\Stores;
+namespace Packstub\Nitpick\Stores;
 
 use Illuminate\Contracts\Auth\Authenticatable;
-use Packstub\Themes\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 
 class SessionThemePreferenceStore implements ThemePreferenceStore
 {
@@ -25,6 +25,6 @@ class SessionThemePreferenceStore implements ThemePreferenceStore
 
     protected function key(Authenticatable $user, string $panelId): string
     {
-        return "packstub-themes.{$panelId}.{$user->getAuthIdentifier()}";
+        return "nitpick.{$panelId}.{$user->getAuthIdentifier()}";
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes\Support;
+namespace Packstub\Nitpick\Support;
 
 use Filament\Support\Colors\ColorManager;
 

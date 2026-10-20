@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes\Tests\Fixtures;
+namespace Packstub\Nitpick\Tests\Fixtures;
 
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -15,8 +15,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Packstub\Themes\Themes\Midnight;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\Themes\Midnight;
 
 /**
  * A second panel: Midnight only, no user choice.
@@ -45,7 +45,7 @@ class CustomerPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->plugin(
-                ThemesPlugin::make()
+                NitpickPlugin::make()
                     ->themes([Midnight::class])
                     ->default(Midnight::class),
             );

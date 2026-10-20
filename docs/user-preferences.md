@@ -1,7 +1,7 @@
 # User preferences
 
 ```php
-ThemesPlugin::make()->userSelectable()
+NitpickPlugin::make()->userSelectable()
 ```
 
 With user selection on, each signed-in user can choose the theme they see in that panel. The choice is theirs alone, saved for that panel, and applied on every device they sign in from (with the database store).
@@ -10,27 +10,27 @@ With user selection on, each signed-in user can choose the theme they see in tha
 
 The plugin registers an **Appearance** page at `/{panel}/appearance` and links it from the user menu. It shows one card per offered theme with a swatch strip, the label and the description. Clicking a card previews the theme immediately, saves the choice, and shows a confirmation.
 
-![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/appearance.png)
+![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/appearance.png)
 
-![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/user-menu.png)
+![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/user-menu.png)
 
 Hide the menu item and link the page from somewhere else:
 
 ```php
-ThemesPlugin::make()->userSelectable(userMenuItem: false)
+NitpickPlugin::make()->userSelectable(userMenuItem: false)
 ```
 
 Replace the page with your own subclass:
 
 ```php
-use Packstub\Themes\Filament\Pages\Appearance;
+use Packstub\Nitpick\Filament\Pages\Appearance;
 
 class ChooseYourLook extends Appearance
 {
     protected static ?string $slug = 'look';
 }
 
-ThemesPlugin::make()->userSelectable()->appearancePage(ChooseYourLook::class)
+NitpickPlugin::make()->userSelectable()->appearancePage(ChooseYourLook::class)
 ```
 
 Access follows the panel's own rules plus one more: the page returns 403 when user selection is off, so a `->userSelectable(fn () => ...)` closure can gate it per user.
@@ -40,7 +40,7 @@ Access follows the panel's own rules plus one more: the page returns 403 when us
 The same picker is a form field. Drop it into your own profile page, a settings page or any Filament form:
 
 ```php
-use Packstub\Themes\Filament\Forms\Components\ThemePicker;
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 
 ThemePicker::make(),
 ```
@@ -55,7 +55,7 @@ ThemePicker::make('theme')
 ```
 
 ```php
-ThemesPlugin::get()->setUserTheme($data['theme']);
+NitpickPlugin::get()->setUserTheme($data['theme']);
 ```
 
 The field is `dehydrated(false)`, so it never lands in your model's data by accident.
@@ -63,9 +63,9 @@ The field is `dehydrated(false)`, so it never lands in your model's data by acci
 ## Reading and writing a choice from code
 
 ```php
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\NitpickPlugin;
 
-$plugin = ThemesPlugin::get();        // the current panel's plugin
+$plugin = NitpickPlugin::get();        // the current panel's plugin
 
 $plugin->getActiveTheme();            // what this request renders
 $plugin->getUserTheme();              // the signed-in user's choice, or null
@@ -75,7 +75,7 @@ $plugin->setUserTheme(null);          // clear, so the panel default applies aga
 $plugin->setUserTheme('aurora', $someone);
 ```
 
-`setUserTheme()` refuses a theme the panel does not offer and fires `Packstub\Themes\Events\ThemeChanged` with the user, the panel id and the theme (null when cleared).
+`setUserTheme()` refuses a theme the panel does not offer and fires `Packstub\Nitpick\Events\ThemeChanged` with the user, the panel id and the theme (null when cleared).
 
 A stored choice that is no longer offered, because a theme was removed from the panel or uninstalled, is ignored and the default applies. Nothing breaks for the user.
 
@@ -86,7 +86,7 @@ A stored choice that is no longer offered, because a theme was removed from the 
 | `database` (default) | One row per user and panel in `theme_preferences`. Survives logout and follows the user across devices. Needs the migration. |
 | `session` | Kept in the session. No migration, forgotten at logout. Handy for a demo or a first try. |
 
-Bring your own store by binding `Packstub\Themes\Contracts\ThemePreferenceStore` in a service provider; it is two methods, `get()` and `set()`.
+Bring your own store by binding `Packstub\Nitpick\Contracts\ThemePreferenceStore` in a service provider; it is two methods, `get()` and `set()`.
 
 ## Live preview
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes\Contracts;
+namespace Packstub\Nitpick\Contracts;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 

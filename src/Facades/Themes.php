@@ -1,18 +1,18 @@
 <?php
 
-namespace Packstub\Themes\Facades;
+namespace Packstub\Nitpick\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Packstub\Themes\ThemeManager;
+use Packstub\Nitpick\ThemeManager;
 
 /**
- * @method static ThemeManager register(string|\Packstub\Themes\Contracts\Theme ...$themes)
- * @method static array<string, \Packstub\Themes\Contracts\Theme> all()
- * @method static \Packstub\Themes\Contracts\Theme|null find(string|\Packstub\Themes\Contracts\Theme $theme)
- * @method static \Packstub\Themes\Contracts\Theme resolve(string|\Packstub\Themes\Contracts\Theme $theme)
- * @method static bool has(string|\Packstub\Themes\Contracts\Theme $theme)
- * @method static string assetId(\Packstub\Themes\Contracts\Theme $theme)
- * @method static \Packstub\Themes\Contracts\ThemePreferenceStore store()
+ * @method static ThemeManager register(string|\Packstub\Nitpick\Contracts\Theme ...$themes)
+ * @method static array<string, \Packstub\Nitpick\Contracts\Theme> all()
+ * @method static \Packstub\Nitpick\Contracts\Theme|null find(string|\Packstub\Nitpick\Contracts\Theme $theme)
+ * @method static \Packstub\Nitpick\Contracts\Theme resolve(string|\Packstub\Nitpick\Contracts\Theme $theme)
+ * @method static bool has(string|\Packstub\Nitpick\Contracts\Theme $theme)
+ * @method static string assetId(\Packstub\Nitpick\Contracts\Theme $theme)
+ * @method static \Packstub\Nitpick\Contracts\ThemePreferenceStore store()
  *
  * @see ThemeManager
  */

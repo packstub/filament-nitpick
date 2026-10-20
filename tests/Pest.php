@@ -2,9 +2,9 @@
 
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Hash;
-use Packstub\Themes\Tests\Fixtures\User;
-use Packstub\Themes\Tests\TestCase;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\Tests\Fixtures\User;
+use Packstub\Nitpick\Tests\TestCase;
 
 pest()->extend(TestCase::class)->in('Feature', 'Unit');
 
@@ -28,14 +28,14 @@ function createUser(array $attributes = []): User
 /**
  * Make a registered panel current and return its themes plugin.
  */
-function pluginFor(string $panelId): ThemesPlugin
+function pluginFor(string $panelId): NitpickPlugin
 {
     $panel = Filament::getPanel($panelId);
 
     Filament::setCurrentPanel($panel);
 
-    /** @var ThemesPlugin $plugin */
-    $plugin = $panel->getPlugin(ThemesPlugin::ID);
+    /** @var NitpickPlugin $plugin */
+    $plugin = $panel->getPlugin(NitpickPlugin::ID);
 
     return $plugin;
 }

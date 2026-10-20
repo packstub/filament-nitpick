@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes\Support;
+namespace Packstub\Nitpick\Support;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
@@ -9,7 +9,7 @@ use Filament\Support\Colors\ColorManager;
 use Filament\Support\Facades\FilamentColor;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Packstub\Themes\ThemeManager;
+use Packstub\Nitpick\ThemeManager;
 
 /**
  * Reads what a Filament theme plugin would give a panel without adding it to
@@ -31,7 +31,7 @@ class PluginCapture
             throw new InvalidArgumentException("Theme::make()->plugin() expects a Filament plugin, [{$given}] given.");
         }
 
-        $panel = CapturingPanel::make()->id('packstub-themes-capture');
+        $panel = CapturingPanel::make()->id('nitpick-capture');
 
         // A plugin may register colours for the whole app: they are read from a stand-in manager.
         $manager = app(ColorManager::class);

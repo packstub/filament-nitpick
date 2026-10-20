@@ -34,7 +34,7 @@
                 <span class="pst-theme-option-label">
                     {{ $theme->getLabel() }}
                     <span class="pst-theme-option-current" x-show="state === @js($id)" x-cloak>
-                        {{ __('packstub-themes::themes.picker.current') }}
+                        {{ __('nitpick::themes.picker.current') }}
                     </span>
                 </span>
 

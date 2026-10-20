@@ -2,7 +2,7 @@
 
 use Filament\Facades\Filament;
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 
 // Filament boots the panel (SetUpPanel) before StartSession runs, so the user
 // is not known when the colours are first registered. These tests

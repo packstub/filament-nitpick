@@ -2,13 +2,13 @@
 
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
-use Packstub\Themes\Contracts\Theme as ThemeContract;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Tests\Fixtures\Ocean;
-use Packstub\Themes\Theme;
-use Packstub\Themes\ThemeManager;
-use Packstub\Themes\Themes\Aurora;
-use Packstub\Themes\Themes\Midnight;
+use Packstub\Nitpick\Contracts\Theme as ThemeContract;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Tests\Fixtures\Ocean;
+use Packstub\Nitpick\Theme;
+use Packstub\Nitpick\ThemeManager;
+use Packstub\Nitpick\Themes\Aurora;
+use Packstub\Nitpick\Themes\Midnight;
 
 it('registers the bundled themes', function (): void {
     expect(array_keys(Themes::all()))->toContain('aurora', 'midnight');
@@ -54,7 +54,7 @@ it('rejects a class that is not a theme', function (): void {
 it('registers a stylesheet as a Filament asset loaded on request', function (): void {
     $href = FilamentAsset::getStyleHref('packstub-theme-aurora', package: ThemeManager::ASSET_PACKAGE);
 
-    expect($href)->toContain('css/packstub/filament-themes/packstub-theme-aurora.css');
+    expect($href)->toContain('css/packstub/filament-nitpick/packstub-theme-aurora.css');
 });
 
 it('does not register an asset for a palette-only theme', function (): void {

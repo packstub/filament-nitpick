@@ -1,13 +1,13 @@
 <?php
 
-namespace Packstub\Themes;
+namespace Packstub\Nitpick;
 
 use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use InvalidArgumentException;
-use Packstub\Themes\Contracts\Theme;
-use Packstub\Themes\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Contracts\Theme;
+use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 
 /**
  * The theme registry. Themes register here (the bundled ones from this
@@ -15,7 +15,7 @@ use Packstub\Themes\Contracts\ThemePreferenceStore;
  */
 class ThemeManager
 {
-    public const ASSET_PACKAGE = 'packstub/filament-themes';
+    public const ASSET_PACKAGE = 'packstub/filament-nitpick';
 
     /** @var array<string, Theme> */
     protected array $themes = [];
@@ -157,7 +157,7 @@ class ThemeManager
 
     public static function userModel(): string
     {
-        return config('packstub-themes.user_model')
+        return config('nitpick.user_model')
             ?? config('auth.providers.users.model');
     }
 
@@ -167,7 +167,7 @@ class ThemeManager
      */
     public static function connectionName(): ?string
     {
-        $connection = config('packstub-themes.connection');
+        $connection = config('nitpick.connection');
 
         if (filled($connection)) {
             return $connection;
@@ -180,7 +180,7 @@ class ThemeManager
 
     public static function tableName(): string
     {
-        return config('packstub-themes.table', 'theme_preferences');
+        return config('nitpick.table', 'theme_preferences');
     }
 
     protected function registerStylesheet(Theme $theme): void

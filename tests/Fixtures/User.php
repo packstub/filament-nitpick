@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes\Tests\Fixtures;
+namespace Packstub\Nitpick\Tests\Fixtures;
 
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;

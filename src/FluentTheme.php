@@ -1,12 +1,12 @@
 <?php
 
-namespace Packstub\Themes;
+namespace Packstub\Nitpick;
 
 use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Enums\ThemeMode;
 use Illuminate\Support\Str;
-use Packstub\Themes\Support\PluginCapture;
+use Packstub\Nitpick\Support\PluginCapture;
 
 /**
  * A theme defined inline, without a class of its own; Theme::make() returns one:

@@ -1,10 +1,10 @@
 <?php
 
-namespace Packstub\Themes;
+namespace Packstub\Nitpick;
 
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Contracts\Theme as ThemeContract;
+use Packstub\Nitpick\Contracts\Theme as ThemeContract;
 
 /**
  * Sensible defaults for a theme: no description, no stylesheet, no preferred

@@ -9,15 +9,15 @@
 ## 1. Require the package
 
 ```bash
-composer require packstub/filament-themes
-php artisan packstub-themes:install
+composer require packstub/filament-nitpick
+php artisan nitpick:install
 ```
 
 The install command publishes the config file and the `theme_preferences` migration and offers to run it. The migration is only needed when users may pick a theme and the choice is kept in the database (the default). You can run the pieces yourself instead:
 
 ```bash
-php artisan vendor:publish --tag="packstub-themes-config"
-php artisan vendor:publish --tag="packstub-themes-migrations"
+php artisan vendor:publish --tag="nitpick-config"
+php artisan vendor:publish --tag="nitpick-migrations"
 php artisan migrate
 ```
 
@@ -37,14 +37,14 @@ Add this to your deploy script if it is not there already. No Vite build is invo
 ## 3. Register the plugin
 
 ```php
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\NitpickPlugin;
 
 public function panel(Panel $panel): Panel
 {
     return $panel
         // ...
         ->plugin(
-            ThemesPlugin::make()
+            NitpickPlugin::make()
                 ->default('aurora')
                 ->userSelectable(),
         );

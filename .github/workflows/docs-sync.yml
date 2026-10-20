@@ -31,15 +31,15 @@ jobs:
       - name: Clone store repo
         run: git clone --depth 1 git@github.com:packstub/store.git /tmp/store
 
-      - name: Sync docs/ into resources/docs/filament-themes/1.x/
+      - name: Sync docs/ into resources/docs/filament-nitpick/1.x/
         run: |
-          mkdir -p /tmp/store/resources/docs/filament-themes/1.x
-          rsync -a --delete docs/ /tmp/store/resources/docs/filament-themes/1.x/
+          mkdir -p /tmp/store/resources/docs/filament-nitpick/1.x
+          rsync -a --delete docs/ /tmp/store/resources/docs/filament-nitpick/1.x/
           # The screenshots also go where the store keeps published images, which packstub:art:publish mirrors
           # to packstub/art (the URLs the README and the docs link).
           if [ -d docs/images ]; then
-            mkdir -p /tmp/store/public/images/plugins/filament-themes/docs
-            rsync -a --delete docs/images/ /tmp/store/public/images/plugins/filament-themes/docs/
+            mkdir -p /tmp/store/public/images/plugins/filament-nitpick/docs
+            rsync -a --delete docs/images/ /tmp/store/public/images/plugins/filament-nitpick/docs/
           fi
 
       - name: Commit and push if changed
@@ -47,11 +47,11 @@ jobs:
         run: |
           git config user.name "packstub-bot"
           git config user.email "support@packstub.dev"
-          git add -A resources/docs/filament-themes
-          if [ -d public/images/plugins/filament-themes/docs ]; then git add -A public/images/plugins/filament-themes/docs; fi
+          git add -A resources/docs/filament-nitpick
+          if [ -d public/images/plugins/filament-nitpick/docs ]; then git add -A public/images/plugins/filament-nitpick/docs; fi
           if git diff --cached --quiet; then
             echo "Storefront docs already up to date."
           else
-            git commit -m "docs: sync filament-themes from packstub/filament-themes@${GITHUB_SHA::7}"
+            git commit -m "docs: sync filament-nitpick from packstub/filament-nitpick@${GITHUB_SHA::7}"
             git push origin main
           fi

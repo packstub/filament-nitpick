@@ -1,21 +1,21 @@
 <?php
 
-namespace Packstub\Themes;
+namespace Packstub\Nitpick;
 
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
-use Packstub\Themes\Contracts\ThemePreferenceStore;
-use Packstub\Themes\Stores\DatabaseThemePreferenceStore;
-use Packstub\Themes\Stores\SessionThemePreferenceStore;
-use Packstub\Themes\Themes\Aurora;
-use Packstub\Themes\Themes\Midnight;
+use Packstub\Nitpick\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Stores\DatabaseThemePreferenceStore;
+use Packstub\Nitpick\Stores\SessionThemePreferenceStore;
+use Packstub\Nitpick\Themes\Aurora;
+use Packstub\Nitpick\Themes\Midnight;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class ThemesServiceProvider extends PackageServiceProvider
+class NitpickServiceProvider extends PackageServiceProvider
 {
-    public static string $name = 'packstub-themes';
+    public static string $name = 'nitpick';
 
     public function configurePackage(Package $package): void
     {
@@ -30,7 +30,7 @@ class ThemesServiceProvider extends PackageServiceProvider
                     ->publishConfigFile()
                     ->publishMigrations()
                     ->askToRunMigrations()
-                    ->askToStarRepoOnGitHub('packstub/filament-themes');
+                    ->askToStarRepoOnGitHub('packstub/filament-nitpick');
             });
     }
 
@@ -39,7 +39,7 @@ class ThemesServiceProvider extends PackageServiceProvider
         $this->app->singleton(ThemeManager::class);
 
         $this->app->bind(ThemePreferenceStore::class, function (): ThemePreferenceStore {
-            return match (config('packstub-themes.store', 'database')) {
+            return match (config('nitpick.store', 'database')) {
                 'session' => new SessionThemePreferenceStore,
                 default => new DatabaseThemePreferenceStore,
             };
@@ -51,7 +51,7 @@ class ThemesServiceProvider extends PackageServiceProvider
         $this->app->make(ThemeManager::class)->register(Aurora::class, Midnight::class);
 
         FilamentAsset::register([
-            Css::make('packstub-themes', __DIR__.'/../resources/css/packstub-themes.css'),
+            Css::make('nitpick', __DIR__.'/../resources/css/nitpick.css'),
         ], package: ThemeManager::ASSET_PACKAGE);
     }
 }

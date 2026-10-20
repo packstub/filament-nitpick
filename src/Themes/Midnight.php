@@ -1,10 +1,10 @@
 <?php
 
-namespace Packstub\Themes\Themes;
+namespace Packstub\Nitpick\Themes;
 
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Theme;
 
 /**
  * Dark-first with violet-to-cyan accent gradients. In light mode it keeps
@@ -19,12 +19,12 @@ class Midnight extends Theme
 
     public function getLabel(): string
     {
-        return __('packstub-themes::themes.themes.midnight.label');
+        return __('nitpick::themes.themes.midnight.label');
     }
 
     public function getDescription(): ?string
     {
-        return __('packstub-themes::themes.themes.midnight.description');
+        return __('nitpick::themes.themes.midnight.description');
     }
 
     public function getColors(): array

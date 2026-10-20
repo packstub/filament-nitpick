@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes\Tests;
+namespace Packstub\Nitpick\Tests;
 
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
@@ -17,12 +17,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Packstub\Themes\Tests\Fixtures\AdminPanelProvider;
-use Packstub\Themes\Tests\Fixtures\CustomerPanelProvider;
-use Packstub\Themes\Tests\Fixtures\Ocean;
-use Packstub\Themes\Tests\Fixtures\User;
-use Packstub\Themes\ThemeManager;
-use Packstub\Themes\ThemesServiceProvider;
+use Packstub\Nitpick\NitpickServiceProvider;
+use Packstub\Nitpick\Tests\Fixtures\AdminPanelProvider;
+use Packstub\Nitpick\Tests\Fixtures\CustomerPanelProvider;
+use Packstub\Nitpick\Tests\Fixtures\Ocean;
+use Packstub\Nitpick\Tests\Fixtures\User;
+use Packstub\Nitpick\ThemeManager;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 
 abstract class TestCase extends Orchestra
@@ -54,7 +54,7 @@ abstract class TestCase extends Orchestra
             // Real apps discover filament/* before livewire; Filament binds its DataStore
             // override first and Livewire pins the shared instance. Keep that order.
             LivewireServiceProvider::class,
-            ThemesServiceProvider::class,
+            NitpickServiceProvider::class,
             AdminPanelProvider::class,
             CustomerPanelProvider::class,
         ];

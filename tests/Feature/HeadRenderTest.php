@@ -2,15 +2,15 @@
 
 use Filament\Panel;
 use Illuminate\Support\Facades\Vite;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Tests\Fixtures\Ocean;
-use Packstub\Themes\Tests\Fixtures\SlateThemePlugin;
-use Packstub\Themes\Tests\Fixtures\TideThemePlugin;
-use Packstub\Themes\Theme;
-use Packstub\Themes\Themes\Midnight;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\Tests\Fixtures\Ocean;
+use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
+use Packstub\Nitpick\Tests\Fixtures\TideThemePlugin;
+use Packstub\Nitpick\Theme;
+use Packstub\Nitpick\Themes\Midnight;
 
-function headFor(ThemesPlugin $plugin): string
+function headFor(NitpickPlugin $plugin): string
 {
     $plugin->register(Panel::make()->id('head-test'));
 
@@ -18,7 +18,7 @@ function headFor(ThemesPlugin $plugin): string
 }
 
 it('renders the active theme meta, stylesheet link and bootstrap script', function (): void {
-    $head = headFor(ThemesPlugin::make()->default(Midnight::class));
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class));
 
     expect($head)
         ->toContain('<meta name="packstub-theme" content="midnight">')
@@ -30,7 +30,7 @@ it('renders the active theme meta, stylesheet link and bootstrap script', functi
 });
 
 it('renders no stylesheet link for a palette-only theme', function (): void {
-    $head = headFor(ThemesPlugin::make()->default(Ocean::class));
+    $head = headFor(NitpickPlugin::make()->default(Ocean::class));
 
     expect($head)
         ->toContain('content="ocean"')
@@ -38,7 +38,7 @@ it('renders no stylesheet link for a palette-only theme', function (): void {
 });
 
 it('never writes a fixed light or dark mode on page load', function (): void {
-    $head = headFor(ThemesPlugin::make()->default(Midnight::class)->userSelectable());
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->userSelectable());
 
     // The user's toggle is theirs. The only write is inside preview(), with
     // the previewed theme's mode as a variable.
@@ -48,18 +48,18 @@ it('never writes a fixed light or dark mode on page load', function (): void {
 });
 
 it('omits the palettes and manifest unless users may switch', function (): void {
-    $head = headFor(ThemesPlugin::make());
+    $head = headFor(NitpickPlugin::make());
 
     expect($head)
-        ->not->toContain('packstub-themes-palettes')
+        ->not->toContain('nitpick-palettes')
         ->toContain('var manifest = null;');
 });
 
 it('renders every offered palette and a manifest when users may switch', function (): void {
-    $head = headFor(ThemesPlugin::make()->themes([Midnight::class, Ocean::class])->userSelectable());
+    $head = headFor(NitpickPlugin::make()->themes([Midnight::class, Ocean::class])->userSelectable());
 
     expect($head)
-        ->toContain('<style id="packstub-themes-palettes">')
+        ->toContain('<style id="nitpick-palettes">')
         ->toContain("\n[data-packstub-theme=\"ocean\"] {")
         ->toContain('>[data-packstub-theme="midnight"] { --primary-50: oklch(')
         ->toContain('"midnight":{"hrefs":["')
@@ -69,8 +69,8 @@ it('renders every offered palette and a manifest when users may switch', functio
 });
 
 it('links the custom stylesheet after the theme', function (): void {
-    $head = headFor(ThemesPlugin::make()->customCss('css/overrides.css'));
-    $remote = headFor(ThemesPlugin::make()->customCss('https://cdn.example.com/x.css'));
+    $head = headFor(NitpickPlugin::make()->customCss('css/overrides.css'));
+    $remote = headFor(NitpickPlugin::make()->customCss('https://cdn.example.com/x.css'));
 
     expect(strpos($head, 'packstub-theme-custom'))->toBeGreaterThan(strpos($head, 'packstub-theme-active'))
         ->and($head)->toContain('href="http://localhost/css/overrides.css"')
@@ -82,7 +82,7 @@ it('links every stylesheet of a theme made of several files, in order', function
         Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
     );
 
-    $head = headFor(ThemesPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
+    $head = headFor(NitpickPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
 
     expect(substr_count($head, 'data-packstub-theme-stylesheet data-navigate-track'))->toBe(3)
         ->and(substr_count($head, 'id="packstub-theme-active"'))->toBe(1)
@@ -96,7 +96,7 @@ it('links a Vite theme from the app\'s build', function (): void {
 
     Themes::register(Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()));
 
-    $head = headFor(ThemesPlugin::make()->default('tide'));
+    $head = headFor(NitpickPlugin::make()->default('tide'));
 
     expect($head)->toContain('id="packstub-theme-active" href="https://app.test/build/assets/theme-abc123.css" data-packstub-theme="tide"');
 });
@@ -104,7 +104,7 @@ it('links a Vite theme from the app\'s build', function (): void {
 it('still renders when a Vite theme has not been built yet', function (): void {
     Themes::register(Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()));
 
-    $head = headFor(ThemesPlugin::make()->default('tide'));
+    $head = headFor(NitpickPlugin::make()->default('tide'));
 
     expect($head)
         ->toContain('<meta name="packstub-theme" content="tide">')
@@ -112,8 +112,8 @@ it('still renders when a Vite theme has not been built yet', function (): void {
 });
 
 it('renders the palettes ahead of the theme stylesheets, at the weight of Filament\'s own', function (): void {
-    $head = headFor(ThemesPlugin::make()->default(Midnight::class)->userSelectable());
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->userSelectable());
 
-    expect(strpos($head, 'packstub-themes-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
+    expect(strpos($head, 'nitpick-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
         ->and($head)->not->toContain('html[data-packstub-theme=');
 });

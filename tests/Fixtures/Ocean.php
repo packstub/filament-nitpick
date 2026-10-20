@@ -1,9 +1,9 @@
 <?php
 
-namespace Packstub\Themes\Tests\Fixtures;
+namespace Packstub\Nitpick\Tests\Fixtures;
 
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Theme;
 
 /**
  * A palette-only theme, the smallest thing a third party can register.

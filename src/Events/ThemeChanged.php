@@ -1,9 +1,9 @@
 <?php
 
-namespace Packstub\Themes\Events;
+namespace Packstub\Nitpick\Events;
 
 use Illuminate\Contracts\Auth\Authenticatable;
-use Packstub\Themes\Contracts\Theme;
+use Packstub\Nitpick\Contracts\Theme;
 
 /**
  * Fired after a user's theme preference for a panel is saved. A null theme

@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Event;
-use Packstub\Themes\Events\ThemeChanged;
-use Packstub\Themes\Models\ThemePreference;
-use Packstub\Themes\Themes\Midnight;
+use Packstub\Nitpick\Events\ThemeChanged;
+use Packstub\Nitpick\Models\ThemePreference;
+use Packstub\Nitpick\Themes\Midnight;
 
 it('uses the panel default until the user picks a theme', function (): void {
     $this->actingAs(createUser());
@@ -33,7 +33,7 @@ it('keeps the choice per panel', function (): void {
     expect(pluginFor('customer')->getActiveTheme()->getId())->toBe('midnight');
 
     pluginFor('customer');
-    config()->set('packstub-themes.default', 'ocean');
+    config()->set('nitpick.default', 'ocean');
 
     // The customer panel offers Midnight only and is not user-selectable,
     // so a choice saved elsewhere never leaks into it.
@@ -62,7 +62,7 @@ it('ignores a stored choice when user selection is turned off', function (): voi
     $this->actingAs($user);
 
     pluginFor('admin')->setUserTheme('midnight');
-    config()->set('packstub-themes-test.selectable', false);
+    config()->set('nitpick-test.selectable', false);
 
     $plugin = pluginFor('admin');
 
@@ -89,7 +89,7 @@ it('throws when saving without a signed-in user', function (): void {
 })->throws(LogicException::class, 'no signed-in user');
 
 it('can keep the choice in the session instead of the database', function (): void {
-    config()->set('packstub-themes.store', 'session');
+    config()->set('nitpick.store', 'session');
     $this->actingAs(createUser());
 
     $plugin = pluginFor('admin');
@@ -97,5 +97,5 @@ it('can keep the choice in the session instead of the database', function (): vo
 
     expect($plugin->getActiveTheme()->getId())->toBe('midnight')
         ->and(ThemePreference::query()->count())->toBe(0)
-        ->and(session()->all())->toHaveKey('packstub-themes');
+        ->and(session()->all())->toHaveKey('nitpick');
 });

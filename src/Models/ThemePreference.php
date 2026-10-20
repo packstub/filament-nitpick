@@ -1,10 +1,10 @@
 <?php
 
-namespace Packstub\Themes\Models;
+namespace Packstub\Nitpick\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Packstub\Themes\ThemeManager;
+use Packstub\Nitpick\ThemeManager;
 
 /**
  * @property int $id

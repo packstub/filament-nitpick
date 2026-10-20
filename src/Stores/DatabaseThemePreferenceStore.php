@@ -1,12 +1,12 @@
 <?php
 
-namespace Packstub\Themes\Stores;
+namespace Packstub\Nitpick\Stores;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Packstub\Themes\Contracts\ThemePreferenceStore;
-use Packstub\Themes\Models\ThemePreference;
+use Packstub\Nitpick\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Models\ThemePreference;
 
 class DatabaseThemePreferenceStore implements ThemePreferenceStore
 {

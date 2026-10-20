@@ -1,10 +1,10 @@
 <?php
 
-namespace Packstub\Themes\Themes;
+namespace Packstub\Nitpick\Themes;
 
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Theme;
 
 /**
  * Iridescent glass surfaces and a floating dock-style sidebar. Light-first
@@ -19,12 +19,12 @@ class Aurora extends Theme
 
     public function getLabel(): string
     {
-        return __('packstub-themes::themes.themes.aurora.label');
+        return __('nitpick::themes.themes.aurora.label');
     }
 
     public function getDescription(): ?string
     {
-        return __('packstub-themes::themes.themes.aurora.description');
+        return __('nitpick::themes.themes.aurora.description');
     }
 
     public function getColors(): array

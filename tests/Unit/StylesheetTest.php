@@ -1,6 +1,6 @@
 <?php
 
-use Packstub\Themes\Facades\Themes;
+use Packstub\Nitpick\Facades\Themes;
 
 it('scopes every bundled stylesheet to its own theme', function (string $id): void {
     $css = file_get_contents(Themes::find($id)->getStylesheetPath());

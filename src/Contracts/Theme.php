@@ -1,12 +1,12 @@
 <?php
 
-namespace Packstub\Themes\Contracts;
+namespace Packstub\Nitpick\Contracts;
 
 use Filament\Enums\ThemeMode;
 
 /**
  * A theme: a Filament colour palette plus optional stylesheets that
- * restyle the panel. Implement this (or extend Packstub\Themes\Theme) and
+ * restyle the panel. Implement this (or extend Packstub\Nitpick\Theme) and
  * register the class with the ThemeManager to make it available to panels.
  */
 interface Theme

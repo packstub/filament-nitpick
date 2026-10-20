@@ -1,6 +1,6 @@
 <?php
 
-namespace Packstub\Themes;
+namespace Packstub\Nitpick;
 
 use Closure;
 use Filament\Actions\Action;
@@ -16,14 +16,14 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
 use LogicException;
-use Packstub\Themes\Contracts\Theme;
-use Packstub\Themes\Events\ThemeChanged;
-use Packstub\Themes\Filament\Pages\Appearance;
+use Packstub\Nitpick\Contracts\Theme;
+use Packstub\Nitpick\Events\ThemeChanged;
+use Packstub\Nitpick\Filament\Pages\Appearance;
 use Throwable;
 
-class ThemesPlugin implements Plugin
+class NitpickPlugin implements Plugin
 {
-    public const ID = 'packstub-themes';
+    public const ID = 'nitpick';
 
     /** @var array<int, string | Theme> | Closure | null */
     protected array|Closure|null $themes = null;
@@ -194,7 +194,7 @@ class ThemesPlugin implements Plugin
     {
         $themes = $this->getThemes();
         $default = $this->default instanceof Closure ? ($this->default)() : $this->default;
-        $default ??= config('packstub-themes.default');
+        $default ??= config('nitpick.default');
 
         if ($default !== null) {
             $resolved = $this->manager()->find($default);
@@ -290,14 +290,14 @@ class ThemesPlugin implements Plugin
     {
         return [
             ...$theme->getColors(),
-            ...(array) config('packstub-themes.colors', []),
+            ...(array) config('nitpick.colors', []),
             ...$this->colors,
         ];
     }
 
     public function getCustomCss(): ?string
     {
-        $path = $this->hasCustomCss ? value($this->customCss) : config('packstub-themes.custom_css');
+        $path = $this->hasCustomCss ? value($this->customCss) : config('nitpick.custom_css');
 
         return filled($path) ? $path : null;
     }
@@ -313,7 +313,7 @@ class ThemesPlugin implements Plugin
             return $this->forcedMode;
         }
 
-        $configured = config('packstub-themes.force_mode');
+        $configured = config('nitpick.force_mode');
 
         if ($configured instanceof ThemeMode) {
             return $configured;
@@ -365,8 +365,8 @@ class ThemesPlugin implements Plugin
 
         if ($this->userMenuItem) {
             $panel->userMenuItems([
-                'packstub-themes-appearance' => Action::make('packstub-themes-appearance')
-                    ->label(fn (): string => __('packstub-themes::themes.appearance.title'))
+                'nitpick-appearance' => Action::make('nitpick-appearance')
+                    ->label(fn (): string => __('nitpick::themes.appearance.title'))
                     ->icon(Heroicon::OutlinedSwatch)
                     ->url(fn (): string => $this->appearancePage::getUrl())
                     ->visible(fn (): bool => $this->isUserSelectable()),
@@ -468,7 +468,7 @@ class ThemesPlugin implements Plugin
             return '';
         }
 
-        return '<style id="packstub-themes-palettes">'.implode("\n", $blocks).'</style>';
+        return '<style id="nitpick-palettes">'.implode("\n", $blocks).'</style>';
     }
 
     /**

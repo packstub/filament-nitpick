@@ -1,6 +1,6 @@
 # Creating a theme
 
-A theme is a class implementing `Packstub\Themes\Contracts\Theme`. Extend `Packstub\Themes\Theme` for sensible defaults and you need three methods. For a theme that needs no file of its own, [`Theme::make()`](#a-theme-without-a-class-file) defines one inline.
+A theme is a class implementing `Packstub\Nitpick\Contracts\Theme`. Extend `Packstub\Nitpick\Theme` for sensible defaults and you need three methods. For a theme that needs no file of its own, [`Theme::make()`](#a-theme-without-a-class-file) defines one inline.
 
 ## A palette-only theme
 
@@ -8,7 +8,7 @@ A theme is a class implementing `Packstub\Themes\Contracts\Theme`. Extend `Packs
 namespace App\Themes;
 
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Theme;
 
 class Ocean extends Theme
 {
@@ -41,13 +41,13 @@ Register it and it is available to every panel:
 
 ```php
 use App\Themes\Ocean;
-use Packstub\Themes\Facades\Themes;
+use Packstub\Nitpick\Facades\Themes;
 
 // AppServiceProvider::boot()
 Themes::register(Ocean::class);
 ```
 
-![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/custom-theme.png)
+![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/custom-theme.png)
 
 ## Adding a stylesheet
 
@@ -67,7 +67,7 @@ public function getPreferredMode(): ?ThemeMode
 }
 ```
 
-The file is registered as a Filament CSS asset loaded on request, so `php artisan filament:assets` publishes it to `public/css/packstub/filament-themes/packstub-theme-ocean.css` and the plugin links it only while the theme is active.
+The file is registered as a Filament CSS asset loaded on request, so `php artisan filament:assets` publishes it to `public/css/packstub/filament-nitpick/packstub-theme-ocean.css` and the plugin links it only while the theme is active.
 
 A look split over several files returns them all from `getStylesheets()` instead, in the order they should load. An entry is the absolute path to a CSS file, a URL (linked as it is), or `vite:<entry>` for a file compiled by your Vite build (linked from the build's manifest):
 
@@ -126,8 +126,8 @@ A small theme does not need a file of its own. Define it where you register it, 
 ```php
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
@@ -159,8 +159,8 @@ Themes::register(
 
 ```php
 use Filament\Support\Colors\Color;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Theme;
 
 Themes::register(new class extends Theme
 {
@@ -189,8 +189,8 @@ Many themes in the [Filament plugin directory](https://filamentphp.com/plugins) 
 
 ```php
 use Noreviq\FilamentTheme\NoreviqThemePlugin;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
@@ -223,7 +223,7 @@ A theme package is a Composer package with the class, the stylesheet and a servi
 ```php
 namespace Vendor\OceanTheme;
 
-use Packstub\Themes\Facades\Themes;
+use Packstub\Nitpick\Facades\Themes;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -241,6 +241,6 @@ class OceanThemeServiceProvider extends PackageServiceProvider
 }
 ```
 
-Require `packstub/filament-themes` in the package's `composer.json`. Anyone who installs it, runs `filament:assets` and lists the theme on a panel (or leaves the panel open to every registered theme) can use it straight away.
+Require `packstub/filament-nitpick` in the package's `composer.json`. Anyone who installs it, runs `filament:assets` and lists the theme on a panel (or leaves the panel open to every registered theme) can use it straight away.
 
 Continue with [Configuration](configuration.md).

@@ -1,12 +1,12 @@
 <?php
 
-namespace Packstub\Themes\Filament\Forms\Components;
+namespace Packstub\Nitpick\Filament\Forms\Components;
 
 use Closure;
 use Filament\Forms\Components\Field;
 use Filament\Notifications\Notification;
-use Packstub\Themes\Contracts\Theme;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\Contracts\Theme;
+use Packstub\Nitpick\NitpickPlugin;
 
 /**
  * A card-per-theme radio for the themes the current panel offers. It fills
@@ -16,7 +16,7 @@ use Packstub\Themes\ThemesPlugin;
  */
 class ThemePicker extends Field
 {
-    protected string $view = 'packstub-themes::forms.theme-picker';
+    protected string $view = 'nitpick::forms.theme-picker';
 
     protected bool|Closure $shouldPersist = true;
 
@@ -31,8 +31,8 @@ class ThemePicker extends Field
     {
         parent::setUp();
 
-        $this->label(fn (): string => __('packstub-themes::themes.picker.label'));
-        $this->helperText(fn (): string => __('packstub-themes::themes.picker.helper'));
+        $this->label(fn (): string => __('nitpick::themes.picker.label'));
+        $this->helperText(fn (): string => __('nitpick::themes.picker.helper'));
         $this->live();
         $this->dehydrated(false);
 
@@ -49,7 +49,7 @@ class ThemePicker extends Field
 
             if ($component->shouldNotify()) {
                 Notification::make()
-                    ->title(__('packstub-themes::themes.notifications.saved'))
+                    ->title(__('nitpick::themes.notifications.saved'))
                     ->success()
                     ->send();
             }
@@ -89,9 +89,9 @@ class ThemePicker extends Field
         return (bool) $this->evaluate($this->shouldNotify);
     }
 
-    public function getPlugin(): ThemesPlugin
+    public function getPlugin(): NitpickPlugin
     {
-        return ThemesPlugin::get();
+        return NitpickPlugin::get();
     }
 
     /**

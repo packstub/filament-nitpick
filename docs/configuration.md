@@ -5,9 +5,9 @@
 ```php
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\NitpickPlugin;
 
-ThemesPlugin::make()
+NitpickPlugin::make()
     ->themes([...])                              // what this panel offers; ids, classes, instances or a closure
     ->default('aurora')                          // id, class, instance or a closure
     ->userSelectable()                           // Appearance page + user-menu link; bool or closure
@@ -18,12 +18,12 @@ ThemesPlugin::make()
     ->forceMode(ThemeMode::Dark)                 // ignore the theme's preferred mode; null hands it back
 ```
 
-Everything is per panel. `ThemesPlugin::get()` returns the current panel's instance.
+Everything is per panel. `NitpickPlugin::get()` returns the current panel's instance.
 
 ## The config file
 
 ```bash
-php artisan vendor:publish --tag="packstub-themes-config"
+php artisan vendor:publish --tag="nitpick-config"
 ```
 
 | Key | Default | What it does |
@@ -44,7 +44,7 @@ The plugin call always wins over the config key.
 Overrides sit on top of whichever theme is active, so a brand colour survives a theme switch:
 
 ```php
-ThemesPlugin::make()->colors(['primary' => Color::Indigo])
+NitpickPlugin::make()->colors(['primary' => Color::Indigo])
 ```
 
 Slots you do not override keep the theme's own values. The order is: theme palette, then `colors` from the config, then `->colors()`.
@@ -54,7 +54,7 @@ Slots you do not override keep the theme's own values. The order is: theme palet
 For per-project tweaks without forking a theme:
 
 ```php
-ThemesPlugin::make()->customCss('css/admin-overrides.css')
+NitpickPlugin::make()->customCss('css/admin-overrides.css')
 ```
 
 The file is linked after the active theme's stylesheet, so your rules win on equal specificity. Scope them to `[data-packstub-theme="…"]` when a tweak should only apply to one theme.
@@ -63,15 +63,15 @@ The file is linked after the active theme's stylesheet, so your rules win on equ
 
 | Event | When | Payload |
 | --- | --- | --- |
-| `Packstub\Themes\Events\ThemeChanged` | After a user's choice is saved or cleared | `$user`, `$panelId`, `$theme` (null when cleared) |
+| `Packstub\Nitpick\Events\ThemeChanged` | After a user's choice is saved or cleared | `$user`, `$panelId`, `$theme` (null when cleared) |
 
 ## Translations
 
 ```bash
-php artisan vendor:publish --tag="packstub-themes-translations"
+php artisan vendor:publish --tag="nitpick-translations"
 ```
 
-Strings live under `packstub-themes::themes`: the Appearance page title and subheading, the picker label, the saved notification, and the bundled themes' labels and descriptions.
+Strings live under `nitpick::themes`: the Appearance page title and subheading, the picker label, the saved notification, and the bundled themes' labels and descriptions.
 
 ## Assets on deploy
 

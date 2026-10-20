@@ -7,17 +7,17 @@
 | `aurora` | Aurora | Iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents with a blush edge. "Daybreak" in light mode, "Twilight" in dark. | Light |
 | `midnight` | Midnight | Deep near-black surfaces with a violet-to-cyan accent gradient on primary actions and stat values. In light mode it keeps the palette and shapes on Filament's standard surfaces. | Dark |
 
-![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora.png)
+![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora.png)
 
-![The same dashboard in the Midnight theme: deep near-black surfaces, violet-to-cyan stat values](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/midnight.png)
+![The same dashboard in the Midnight theme: deep near-black surfaces, violet-to-cyan stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight.png)
 
-Both are ordinary theme classes, `Packstub\Themes\Themes\Aurora` and `Packstub\Themes\Themes\Midnight`, and can be referenced by class or id.
+Both are ordinary theme classes, `Packstub\Nitpick\Themes\Aurora` and `Packstub\Nitpick\Themes\Midnight`, and can be referenced by class or id.
 
 Each covers both modes. Aurora in dark mode, and Midnight on a form:
 
-![A deals table in Aurora's dark variant, "Twilight": the same glass surfaces and dock sidebar on a deep night backdrop](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/aurora-dark.png)
+![A deals table in Aurora's dark variant, "Twilight": the same glass surfaces and dock sidebar on a deep night backdrop](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora-dark.png)
 
-![An edit form in the Midnight theme: dark inputs and a violet-to-cyan gradient on the primary button](https://raw.githubusercontent.com/packstub/art/main/filament-themes/docs/midnight-form.png)
+![An edit form in the Midnight theme: dark inputs and a violet-to-cyan gradient on the primary button](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight-form.png)
 
 ### Preferred mode
 
@@ -33,8 +33,8 @@ Install the theme's package the way its own docs describe, then hand its plugin 
 
 ```php
 use Noreviq\FilamentTheme\NoreviqThemePlugin;
-use Packstub\Themes\Facades\Themes;
-use Packstub\Themes\Theme;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
@@ -63,8 +63,8 @@ Run `php artisan filament:assets` and the theme is registered like any other: a 
 
     ```php
     use Noreviq\FilamentTheme\NoreviqThemePlugin;
-    use Packstub\Themes\Facades\Themes;
-    use Packstub\Themes\Theme;
+    use Packstub\Nitpick\Facades\Themes;
+    use Packstub\Nitpick\Theme;
 
     Themes::register(
         Theme::make('noreviq')
@@ -154,10 +154,10 @@ A package like this may style every panel from its service provider. To keep tho
 By default a panel offers every registered theme. Narrow it:
 
 ```php
-use Packstub\Themes\Themes\Aurora;
-use Packstub\Themes\Themes\Midnight;
+use Packstub\Nitpick\Themes\Aurora;
+use Packstub\Nitpick\Themes\Midnight;
 
-ThemesPlugin::make()
+NitpickPlugin::make()
     ->themes([Aurora::class, Midnight::class, 'ocean'])
 ```
 
@@ -166,7 +166,7 @@ Entries may be class names, ids or instances. The list can be a closure, evaluat
 ## The default
 
 ```php
-ThemesPlugin::make()->default(Midnight::class)
+NitpickPlugin::make()->default(Midnight::class)
 ```
 
 Resolution order: the plugin's `->default()`, then the `default` config key, then the first offered theme. A `->default()` that names a theme the panel does not offer throws, so a typo is caught at boot rather than showing the wrong look.
@@ -178,7 +178,7 @@ The default may be a closure. It runs when the panel boots on each request, so i
 ```php
 use Filament\Facades\Filament;
 
-ThemesPlugin::make()
+NitpickPlugin::make()
     ->default(fn (): string => Filament::getTenant()?->theme ?? 'aurora')
 ```
 
@@ -190,10 +190,10 @@ Each panel registers its own plugin instance, with its own offer and default:
 
 ```php
 // Admin panel
-->plugin(ThemesPlugin::make()->default(Midnight::class)->userSelectable())
+->plugin(NitpickPlugin::make()->default(Midnight::class)->userSelectable())
 
 // Customer panel
-->plugin(ThemesPlugin::make()->themes([Aurora::class])->default(Aurora::class))
+->plugin(NitpickPlugin::make()->themes([Aurora::class])->default(Aurora::class))
 ```
 
 A user who chose Aurora in the admin panel is unaffected in the customer panel: choices are stored per panel.

@@ -1,5 +1,5 @@
 {
-    "name": "packstub/filament-themes",
+    "name": "packstub/filament-nitpick",
     "description": "Themes for Filament panels: designed looks with a per-panel default, an open registry any package can add a theme to, and a picker that lets each user choose their own.",
     "keywords": [
         "packstub",
@@ -9,17 +9,18 @@
         "filament-v5",
         "filament-theme",
         "filament-themes",
+        "nitpick",
         "theme",
         "themes",
         "theme-switcher",
         "dark-mode",
         "ui"
     ],
-    "homepage": "https://github.com/packstub/filament-themes",
+    "homepage": "https://github.com/packstub/filament-nitpick",
     "support": {
-        "issues": "https://github.com/packstub/filament-themes/issues",
-        "source": "https://github.com/packstub/filament-themes",
-        "docs": "https://packstub.dev/docs/filament-themes"
+        "issues": "https://github.com/packstub/filament-nitpick/issues",
+        "source": "https://github.com/packstub/filament-nitpick",
+        "docs": "https://packstub.dev/docs/filament-nitpick"
     },
     "license": "MIT",
     "funding": [
@@ -54,12 +55,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Packstub\\Themes\\": "src/"
+            "Packstub\\Nitpick\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Packstub\\Themes\\Tests\\": "tests/"
+            "Packstub\\Nitpick\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -77,10 +78,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Packstub\\Themes\\ThemesServiceProvider"
+                "Packstub\\Nitpick\\NitpickServiceProvider"
             ],
             "aliases": {
-                "Themes": "Packstub\\Themes\\Facades\\Themes"
+                "Themes": "Packstub\\Nitpick\\Facades\\Themes"
             }
         }
     },

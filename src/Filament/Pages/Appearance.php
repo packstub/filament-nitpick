@@ -1,13 +1,13 @@
 <?php
 
-namespace Packstub\Themes\Filament\Pages;
+namespace Packstub\Nitpick\Filament\Pages;
 
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Packstub\Themes\Filament\Forms\Components\ThemePicker;
-use Packstub\Themes\ThemesPlugin;
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
+use Packstub\Nitpick\NitpickPlugin;
 
 /**
  * Where a user picks the theme they see in this panel. Registered by the
@@ -21,14 +21,14 @@ class Appearance extends Page
 
     protected static ?string $slug = 'appearance';
 
-    protected string $view = 'packstub-themes::pages.appearance';
+    protected string $view = 'nitpick::pages.appearance';
 
     /** @var array<string, mixed> | null */
     public ?array $data = [];
 
     public static function getLabel(): string
     {
-        return __('packstub-themes::themes.appearance.title');
+        return __('nitpick::themes.appearance.title');
     }
 
     public function getTitle(): string
@@ -38,12 +38,12 @@ class Appearance extends Page
 
     public function getSubheading(): ?string
     {
-        return __('packstub-themes::themes.appearance.subheading');
+        return __('nitpick::themes.appearance.subheading');
     }
 
     public static function canAccess(): bool
     {
-        return parent::canAccess() && ThemesPlugin::get()->isUserSelectable();
+        return parent::canAccess() && NitpickPlugin::get()->isUserSelectable();
     }
 
     public function mount(): void
