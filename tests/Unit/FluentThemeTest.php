@@ -6,9 +6,13 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Colors\ColorManager;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentColor;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Exceptions;
 use Packstub\Nitpick\Contracts\Theme as ThemeContract;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\Tests\Fixtures\GlobalThemePlugin;
 use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
 use Packstub\Nitpick\Tests\Fixtures\TideThemePlugin;
 use Packstub\Nitpick\Theme;
@@ -154,4 +158,55 @@ it('publishes files only: a URL or a Vite entry is linked where it is', function
     $ids = array_map(fn ($asset): string => $asset->getId(), FilamentAsset::getStyles([ThemeManager::ASSET_PACKAGE]));
 
     expect($ids)->toContain('packstub-theme-mixed--3')->not->toContain('packstub-theme-mixed', 'packstub-theme-mixed--2');
+});
+
+it('configures the panel through serving()', function (): void {
+    $panel = Panel::make()->id('serving-test');
+    $theme = Theme::make('rail')->serving(fn (Panel $panel, ThemeContract $theme) => $panel->brandName($theme->getLabel()));
+
+    $theme->servingPanel($panel);
+
+    expect($theme->configuresPanel())->toBeTrue()
+        ->and(app(ThemeManager::class)->configuresPanel($theme))->toBeTrue()
+        ->and(app(ThemeManager::class)->configuresPanel(Theme::make('plain')))->toBeFalse()
+        ->and($panel->getBrandName())->toBe('Rail');
+});
+
+it('reads the colours a serving() callback sets, for the picker, without touching the app palette', function (): void {
+    $theme = Theme::make('tide')->serving(fn (Panel $panel) => $panel->plugin(TideThemePlugin::make()));
+
+    expect($theme->getColors())->toBe(['gray' => Color::Stone, 'primary' => Color::Cyan])
+        ->and($theme->getSwatches())->toBe([Color::Cyan[500]])
+        ->and($theme->getStylesheets())->toBe([])
+        ->and(FilamentColor::getColor('gray'))->not->toBe(Color::Stone);
+});
+
+it('keeps its own colours when a serving() callback cannot run outside a request', function (): void {
+    Exceptions::fake();
+
+    $theme = Theme::make('needs-user')
+        ->colors(['primary' => Color::Lime])
+        ->serving(fn (Panel $panel) => $panel->brandName(auth()->user()->name));
+
+    expect($theme->getColors())->toBe(['primary' => Color::Lime]);
+
+    Exceptions::assertReported(ErrorException::class);
+});
+
+it('keeps what a plugin registers for the whole app to its theme', function (): void {
+    $theme = Theme::make('global')->plugin(fn () => GlobalThemePlugin::make());
+    $serving = Theme::make('global-serving')->serving(fn (Panel $panel) => $panel->plugin(GlobalThemePlugin::make()));
+
+    expect($theme->getStylesheets())->toBe([realpath(__DIR__.'/../Fixtures/css/slate.css')]);
+    $serving->getColors();
+
+    $styles = collect(FilamentAsset::getStyles(['acme/global-theme']));
+    $scripts = collect(FilamentAsset::getScripts(['acme/global-theme']));
+
+    // Still published by filament:assets, never loaded on every page.
+    expect($styles)->not->toBeEmpty()
+        ->and($styles->every(fn ($asset): bool => $asset->isLoadedOnRequest()))->toBeTrue()
+        ->and($scripts)->not->toBeEmpty()
+        ->and($scripts->every(fn ($asset): bool => $asset->isLoadedOnRequest()))->toBeTrue()
+        ->and(FilamentView::renderHook(PanelsRenderHook::HEAD_END)->toHtml())->not->toContain('global-theme-font');
 });

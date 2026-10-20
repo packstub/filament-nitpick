@@ -4,8 +4,13 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ## Unreleased
 
+### Added
+
+- A theme can configure the panel while it is active: `Theme::make()->serving(fn (Panel $panel) => ...)`, or a theme class implementing `ConfiguresPanel`. Top navigation, fonts, render hooks, colours, and a styling plugin added to the panel itself, so themes like Press work as their docs describe. The colours set there also give the theme its swatches in the picker. Pages, resources and widgets added there are left out and reported, since their routes exist before the request. Picking such a theme reloads the page. ([#2](https://github.com/packstub/filament-nitpick/issues/2))
+
 ### Fixed
 
+- A theme plugin given to `Theme::make()->plugin()` that registers assets or render hooks for the whole app (`FilamentAsset::register()`, `FilamentView::registerRenderHook()`) no longer loads them on every panel and every theme. Its stylesheets become the theme's own, its other assets are still published by `filament:assets`, and its render hooks stay behind (add the plugin from `->serving()` to keep them).
 - Picking a theme keeps its preferred light/dark mode after a reload on Filament 5.10.2 and later, which stores the mode under `filament:theme:mode` instead of `theme`. Both keys are written, so earlier 5.x releases keep working.
 
 ## 1.0.0-beta.1 — 2026-10-20

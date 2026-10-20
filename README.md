@@ -37,7 +37,7 @@ Themes::register(
 - **[Themes from the plugin directory](#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker. Ready-made CSS and Vite-built themes alike.
 - **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
 - **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
-- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
+- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline, and `->serving()` lets it configure the panel (top navigation, fonts, a styling plugin) while it is active.
 - **[Fits your brand](#colour-overrides-and-custom-css)**: your colours and CSS on top of any theme.
 - **Dark mode and translations**: both bundled themes have a dark variant; every string lives in a language file.
 
@@ -255,6 +255,12 @@ Themes::register(
 An anonymous class (`new class extends Theme { ... }`) works too.
 
 A theme plugin from the Filament plugin directory joins the picker with `Theme::make()->plugin()`; see [Themes from the Filament plugin directory](#themes-from-the-filament-plugin-directory).
+
+A theme can also configure the panel while it is active, with top navigation, fonts or a styling plugin added to the panel itself:
+
+```php
+Theme::make('press')->serving(fn (Panel $panel) => $panel->topNavigation()->plugin(PressFilamentTheme::make())),
+```
 
 More in [Creating a theme](https://packstub.dev/docs/filament-nitpick/creating-a-theme).
 

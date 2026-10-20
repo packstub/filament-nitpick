@@ -214,7 +214,59 @@ A CSS asset that is Tailwind source (`@apply` and friends) is left out, because 
 
 `colors()`, `stylesheet()` and `stylesheets()` on the same theme apply on top, for a tweak of your own. A palette the plugin registers for the whole app stays with the theme: it does not reach your other panels or themes.
 
-What carries over is what a theme is made of: colours and stylesheets. Fonts, render hooks and layout options the plugin sets on its panel belong to the panel and stay behind, so a theme that depends on them looks closest to its screenshots when those are set on your panel directly.
+What carries over is what a theme is made of: colours and stylesheets. Fonts, render hooks and layout options the plugin sets on its panel stay behind. A theme that depends on them can configure the panel itself while it is active: see [Configuring the panel](#configuring-the-panel).
+
+## Configuring the panel
+
+Some looks are more than colours and CSS: navigation along the top, a narrower sidebar, other fonts, a render hook. `->serving()` configures the panel while the theme is active, the way a panel provider would:
+
+```php
+use Filament\Panel;
+
+Themes::register(
+    Theme::make('newsroom')
+        ->colors(['primary' => Color::Red])
+        ->stylesheet(resource_path('css/themes/newsroom.css'))
+        ->serving(fn (Panel $panel) => $panel
+            ->topNavigation()
+            ->font('Fraunces')),
+);
+```
+
+A theme class implements `Packstub\Nitpick\Contracts\ConfiguresPanel` instead:
+
+```php
+use Filament\Panel;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
+
+class Newsroom extends Theme implements ConfiguresPanel
+{
+    // getId(), getLabel(), getColors() ...
+
+    public function servingPanel(Panel $panel): void
+    {
+        $panel->topNavigation()->font('Fraunces');
+    }
+}
+```
+
+A theme plugin that needs a real panel can be added to it here, so it works exactly as its docs describe, only while its theme is active:
+
+```php
+use Elemind\PressFilamentTheme\PressFilamentTheme;
+
+Theme::make('press')->serving(fn (Panel $panel) => $panel->plugin(PressFilamentTheme::make())),
+```
+
+How it runs:
+
+- Once per request, for the active theme only, as Filament serves the request. The user's choice is known by then.
+- What the panel reads while rendering just works: top navigation, navigation items, sidebar width, fonts, brand, user menu items.
+- Render hooks, assets and colours set here are registered, and a plugin added here is booted. The plugin colour overrides (`->colors()` on `NitpickPlugin`) still win.
+- Pages, resources and widgets cannot be added: their routes and Livewire components are registered before the request. Any the callback adds are left out, and the reason is reported to your log. A plugin that brings its own pages belongs on the panel itself, or with its pages turned off.
+- Picking such a theme on the Appearance page, or leaving one, reloads the page instead of previewing it live, because the layout changes.
+
+The picker shows a theme's swatches before any request, so Nitpick also runs the callback once on a panel that is never served and takes the colours it sets: a plugin added there gives the theme its palette in the picker too. That run has no request and no signed-in user. A callback that needs one is reported to your log, and the theme keeps the colours given to it with `->colors()`.
 
 ## Shipping a theme as a package
 

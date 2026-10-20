@@ -6,6 +6,7 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use InvalidArgumentException;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 
@@ -93,6 +94,19 @@ class ThemeManager
         }
 
         return $resolved;
+    }
+
+    /**
+     * Whether the theme configures the panel while active (ConfiguresPanel), so
+     * switching to or from it needs a page load rather than a live preview.
+     */
+    public function configuresPanel(Theme $theme): bool
+    {
+        if ($theme instanceof FluentTheme) {
+            return $theme->configuresPanel();
+        }
+
+        return $theme instanceof ConfiguresPanel;
     }
 
     public function has(string|Theme $theme): bool

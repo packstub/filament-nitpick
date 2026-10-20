@@ -2,11 +2,18 @@
 
 namespace Packstub\Nitpick\Support;
 
+use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Filament\Support\Assets\Asset;
+use Filament\Support\Assets\AssetManager;
 use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Theme as FilamentTheme;
 use Filament\Support\Colors\ColorManager;
+use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentColor;
+use Filament\Support\Facades\FilamentView;
+use Filament\Support\View\ViewManager;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Packstub\Nitpick\ThemeManager;
@@ -15,8 +22,9 @@ use Packstub\Nitpick\ThemeManager;
  * Reads what a Filament theme plugin would give a panel without adding it to
  * one: the plugin registers on a scratch panel that is never served, and the
  * colours, the CSS assets and the Vite theme it set there are taken from it,
- * along with any palette it registered for the whole app. The plugin's boot()
- * never runs, so nothing it does reaches the real panels.
+ * along with the palette and stylesheets it registered for the whole app.
+ * The plugin's boot() never runs, and what it registers for the whole app
+ * stays here, so nothing it does reaches the real panels.
  */
 class PluginCapture
 {
@@ -31,19 +39,7 @@ class PluginCapture
             throw new InvalidArgumentException("Theme::make()->plugin() expects a Filament plugin, [{$given}] given.");
         }
 
-        $panel = CapturingPanel::make()->id('nitpick-capture');
-
-        // A plugin may register colours for the whole app: they are read from a stand-in manager.
-        $manager = app(ColorManager::class);
-        $colors = new CapturingColorManager;
-
-        static::useColorManager($colors);
-
-        try {
-            $plugin->register($panel);
-        } finally {
-            static::useColorManager($manager);
-        }
+        [$panel, $registered, $globalAssets] = static::run(fn (Panel $panel) => $plugin->register($panel));
 
         $stylesheets = [];
 
@@ -52,8 +48,9 @@ class PluginCapture
             $stylesheets[] = ThemeManager::VITE_PREFIX.$entry;
         }
 
-        foreach ($panel->getCapturedAssets() as $asset) {
-            if (! $asset instanceof Css || ! is_string($path = $asset->getPath())) {
+        foreach ([...$panel->getCapturedAssets(), ...$globalAssets] as $asset) {
+            // A Filament theme (`$panel->theme()`) or an asset kept for on-request use is not a stylesheet of its own.
+            if (! $asset instanceof Css || $asset instanceof FilamentTheme || $asset->isLoadedOnRequest() || ! is_string($path = $asset->getPath())) {
                 continue;
             }
 
@@ -62,7 +59,75 @@ class PluginCapture
             }
         }
 
-        return ['colors' => [...$colors->getRegistered(), ...$panel->getColors()], 'stylesheets' => $stylesheets];
+        return ['colors' => [...$registered, ...$panel->getColors()], 'stylesheets' => $stylesheets];
+    }
+
+    /**
+     * The colours a theme's serving() callback sets, read the same way from
+     * a scratch panel, so the picker has its swatches before any request.
+     * Only colours: the stylesheets the callback brings are linked by the
+     * plugins it adds, on the real panel.
+     *
+     * @return array<string, array<int | string, string | int> | string>
+     */
+    public static function colorsFrom(Closure $configure): array
+    {
+        [$panel, $registered] = static::run($configure);
+
+        return [...$registered, ...$panel->getColors()];
+    }
+
+    /**
+     * Runs $configure on a scratch panel with stand-ins for Filament's
+     * colour, asset and view managers, so nothing it registers for the whole
+     * app reaches the real panels: palettes and assets are returned, render
+     * hooks are dropped. The assets go back to the real manager loaded on
+     * request only, so `php artisan filament:assets` still publishes them.
+     *
+     * @return array{0: CapturingPanel, 1: array<string, array<int | string, string | int> | string>, 2: array<int, Asset>}
+     */
+    protected static function run(Closure $configure): array
+    {
+        $panel = CapturingPanel::make()->id('nitpick-capture');
+
+        $real = [ColorManager::class => app(ColorManager::class), AssetManager::class => app(AssetManager::class), ViewManager::class => app(ViewManager::class)];
+        $colors = new CapturingColorManager;
+        $assets = new CapturingAssetManager;
+
+        static::swap([ColorManager::class => $colors, AssetManager::class => $assets, ViewManager::class => new ViewManager]);
+
+        try {
+            $configure($panel);
+        } finally {
+            static::swap($real);
+        }
+
+        $globalAssets = [];
+
+        foreach ($assets->getRegistered() as $package => $registered) {
+            foreach ($registered as $asset) {
+                // Read before it is marked on-request below: an asset the plugin loads on every page is a stylesheet.
+                $globalAssets[] = clone $asset;
+            }
+
+            FilamentAsset::register(array_map(fn (Asset $asset): Asset => $asset->loadedOnRequest(), $registered), $package);
+        }
+
+        return [$panel, $colors->getRegistered(), $globalAssets];
+    }
+
+    /**
+     * @param  array<class-string, object>  $instances
+     */
+    protected static function swap(array $instances): void
+    {
+        foreach ($instances as $abstract => $instance) {
+            app()->instance($abstract, $instance);
+        }
+
+        FilamentColor::clearResolvedInstance(ColorManager::class);
+        FilamentAsset::clearResolvedInstance(AssetManager::class);
+        FilamentView::clearResolvedInstance(ViewManager::class);
     }
 
     /**
@@ -73,12 +138,5 @@ class PluginCapture
     protected static function needsCompiling(string $path): bool
     {
         return is_file($path) && preg_match('/@(apply|tailwind|source|plugin|config)\b/', (string) file_get_contents($path)) === 1;
-    }
-
-    protected static function useColorManager(ColorManager $manager): void
-    {
-        app()->instance(ColorManager::class, $manager);
-
-        FilamentColor::clearResolvedInstance(ColorManager::class);
     }
 }

@@ -5,8 +5,11 @@ namespace Packstub\Nitpick;
 use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Enums\ThemeMode;
+use Filament\Panel;
 use Illuminate\Support\Str;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Support\PluginCapture;
+use Throwable;
 
 /**
  * A theme defined inline, without a class of its own; Theme::make() returns one:
@@ -17,7 +20,7 @@ use Packstub\Nitpick\Support\PluginCapture;
  *             ->stylesheet(resource_path('css/themes/nord.css')),
  *     );
  */
-class FluentTheme extends Theme
+class FluentTheme extends Theme implements ConfiguresPanel
 {
     protected ?string $label = null;
 
@@ -33,6 +36,11 @@ class FluentTheme extends Theme
 
     /** @var array{colors: array<string, array<int | string, string | int> | string>, stylesheets: array<int, string>} | null */
     protected ?array $captured = null;
+
+    protected ?Closure $serving = null;
+
+    /** @var array<string, array<int | string, string | int> | string> | null */
+    protected ?array $servingColors = null;
 
     protected ?ThemeMode $mode = null;
 
@@ -106,6 +114,36 @@ class FluentTheme extends Theme
     }
 
     /**
+     * Configure the panel while this is the active theme, the way a panel
+     * provider would. A styling plugin can be added here too:
+     *
+     *     ->serving(fn (Panel $panel) => $panel->topNavigation()->plugin(PressFilamentTheme::make()))
+     *
+     * See ConfiguresPanel for what runs when; picking such a theme reloads the page.
+     * The callback also runs once on a scratch panel that is never served,
+     * so the colours it sets are the theme's palette in the picker too.
+     */
+    public function serving(?Closure $callback): static
+    {
+        $this->serving = $callback;
+        $this->servingColors = null;
+
+        return $this;
+    }
+
+    public function servingPanel(Panel $panel): void
+    {
+        if ($this->serving !== null) {
+            ($this->serving)($panel, $this);
+        }
+    }
+
+    public function configuresPanel(): bool
+    {
+        return $this->serving !== null;
+    }
+
+    /**
      * The light/dark mode the theme is designed for.
      */
     public function mode(?ThemeMode $mode): static
@@ -144,7 +182,7 @@ class FluentTheme extends Theme
 
     public function getColors(): array
     {
-        return [...$this->captured()['colors'], ...$this->colors];
+        return [...$this->captured()['colors'], ...$this->servingColors(), ...$this->colors];
     }
 
     public function getPreferredMode(): ?ThemeMode
@@ -165,6 +203,26 @@ class FluentTheme extends Theme
     public function getSwatches(): array
     {
         return $this->swatches ?? parent::getSwatches();
+    }
+
+    /**
+     * @return array<string, array<int | string, string | int> | string>
+     */
+    protected function servingColors(): array
+    {
+        if ($this->serving === null) {
+            return [];
+        }
+
+        // Read without a request or a user: a callback that needs one is reported, and the theme
+        // keeps the colours given to it directly.
+        try {
+            return $this->servingColors ??= PluginCapture::colorsFrom(fn (Panel $panel) => $this->servingPanel($panel));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $this->servingColors = [];
+        }
     }
 
     /**

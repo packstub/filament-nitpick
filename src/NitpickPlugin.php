@@ -16,9 +16,11 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
 use LogicException;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Events\ThemeChanged;
 use Packstub\Nitpick\Filament\Pages\Appearance;
+use Packstub\Nitpick\Support\PanelServing;
 use Throwable;
 
 class NitpickPlugin implements Plugin
@@ -284,12 +286,14 @@ class NitpickPlugin implements Plugin
     /**
      * A theme's palette with the config and plugin overrides applied.
      *
+     * @param  array<string, array<int | string, string | int> | string>  $panelColors  colours the theme set on the panel while serving it
      * @return array<string, array<int | string, string | int> | string>
      */
-    public function getColorsFor(Theme $theme): array
+    public function getColorsFor(Theme $theme, array $panelColors = []): array
     {
         return [
             ...$theme->getColors(),
+            ...$panelColors,
             ...(array) config('nitpick.colors', []),
             ...$this->colors,
         ];
@@ -358,7 +362,7 @@ class NitpickPlugin implements Plugin
                 return;
             }
 
-            $this->applyActiveTheme($panel);
+            $this->applyActiveTheme($panel, serving: true);
         });
 
         $panel->pages([$this->appearancePage]);
@@ -387,16 +391,22 @@ class NitpickPlugin implements Plugin
      * the guard already knows them) and again once Filament is serving the
      * request with the session started.
      */
-    protected function applyActiveTheme(Panel $panel): void
+    protected function applyActiveTheme(Panel $panel, bool $serving = false): void
     {
         $theme = $this->getActiveTheme();
         $mode = $this->getThemeMode($theme);
+
+        // A theme that configures the panel does it once the user is known:
+        // while Filament serves the request, never on the earlier boot pass.
+        $panelColors = $serving && $theme instanceof ConfiguresPanel && $this->manager()->configuresPanel($theme)
+            ? PanelServing::run($theme, $panel)
+            : [];
 
         if ($mode !== null) {
             $panel->defaultThemeMode($mode);
         }
 
-        FilamentColor::register($this->getColorsFor($theme));
+        FilamentColor::register($this->getColorsFor($theme, $panelColors));
     }
 
     // ------------------------------------------------------------------
@@ -483,6 +493,7 @@ class NitpickPlugin implements Plugin
                 'hrefs' => $this->stylesheetHrefs($theme),
                 'label' => $theme->getLabel(),
                 'mode' => $this->getThemeMode($theme)?->value,
+                'reload' => $this->manager()->configuresPanel($theme),
             ];
         }
 

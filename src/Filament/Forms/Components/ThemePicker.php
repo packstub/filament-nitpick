@@ -7,6 +7,7 @@ use Filament\Forms\Components\Field;
 use Filament\Notifications\Notification;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\ThemeManager;
 
 /**
  * A card-per-theme radio for the themes the current panel offers. It fills
@@ -40,12 +41,17 @@ class ThemePicker extends Field
             $component->state($component->getPlugin()->getActiveTheme()->getId());
         });
 
-        $this->afterStateUpdated(function (ThemePicker $component, ?string $state): void {
+        $this->afterStateUpdated(function (ThemePicker $component, ?string $state, ?string $old): void {
             if (! $component->shouldPersist()) {
                 return;
             }
 
             $component->getPlugin()->setUserTheme($state);
+
+            // A theme that configures the panel (top navigation, plugins) shows only after a page load.
+            if ($component->needsReload($old) || $component->needsReload($state)) {
+                $component->getLivewire()->js('window.location.reload()');
+            }
 
             if ($component->shouldNotify()) {
                 Notification::make()
@@ -87,6 +93,13 @@ class ThemePicker extends Field
     public function shouldNotify(): bool
     {
         return (bool) $this->evaluate($this->shouldNotify);
+    }
+
+    public function needsReload(?string $theme): bool
+    {
+        $theme = $theme === null ? null : app(ThemeManager::class)->find($theme);
+
+        return $theme !== null && app(ThemeManager::class)->configuresPanel($theme);
     }
 
     public function getPlugin(): NitpickPlugin

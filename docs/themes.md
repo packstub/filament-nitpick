@@ -149,6 +149,23 @@ Themes::register(
 
 A package like this may style every panel from its service provider. To keep those rules to its own theme, save them as a CSS file, pass it to `->stylesheet()`, and list the package under `extra.laravel.dont-discover` in `composer.json`.
 
+### A theme that configures its panel
+
+Some theme plugins set more than colours and stylesheets: [Press](https://filamentphp.com/plugins/elemind-press-filament-theme), by Elemind, moves navigation into a top rail and sets a prebuilt Filament theme when its plugin boots. Add such a plugin to the panel from `->serving()`, and it does all of that while its theme is active:
+
+```php
+use Elemind\PressFilamentTheme\PressFilamentTheme;
+use Filament\Panel;
+
+Themes::register(
+    Theme::make('press')
+        ->description('An editorial look with navigation along the top. Open source, by Elemind.')
+        ->serving(fn (Panel $panel) => $panel->plugin(PressFilamentTheme::make())),
+);
+```
+
+The same works for a theme that styles the panel from render hooks, like [DaisyUI Themes](https://filamentphp.com/plugins/osama-nagi-daisyui-themes). Picking one of these themes reloads the page. [Configuring the panel](creating-a-theme.md#configuring-the-panel) has the details, and what cannot be added this way.
+
 ## Offering themes on a panel
 
 By default a panel offers every registered theme. Narrow it:
