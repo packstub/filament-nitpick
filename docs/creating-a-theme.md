@@ -265,6 +265,7 @@ How it runs:
 - Render hooks, assets and colours set here are registered, and a plugin added here is booted. The plugin colour overrides (`->colors()` on `NitpickPlugin`) still win.
 - Pages, resources and widgets cannot be added: their routes and Livewire components are registered before the request. Any the callback adds are left out, and the reason is reported to your log. A plugin that brings its own pages belongs on the panel itself, or with its pages turned off.
 - Picking such a theme on the Appearance page, or leaving one, reloads the page instead of previewing it live, because the layout changes.
+- The panel is put back the way it was when the request ends, so on a server that keeps the app in memory between requests (Octane), the next request starts clean, whoever makes it and whatever their theme.
 
 The picker shows a theme's swatches before any request, so Nitpick also runs the callback once on a panel that is never served and takes the colours it sets: a plugin added there gives the theme its palette in the picker too. That run has no request and no signed-in user. A callback that needs one is reported to your log, and the theme keeps the colours given to it with `->colors()`.
 

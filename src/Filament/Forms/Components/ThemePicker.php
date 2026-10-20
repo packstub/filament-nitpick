@@ -95,7 +95,7 @@ class ThemePicker extends Field
         return (bool) $this->evaluate($this->shouldNotify);
     }
 
-    public function needsReload(?string $theme): bool
+    protected function needsReload(?string $theme): bool
     {
         $theme = $theme === null ? null : app(ThemeManager::class)->find($theme);
 

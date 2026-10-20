@@ -259,7 +259,7 @@ A theme plugin from the Filament plugin directory joins the picker with `Theme::
 A theme can also configure the panel while it is active, with top navigation, fonts or a styling plugin added to the panel itself:
 
 ```php
-Theme::make('press')->serving(fn (Panel $panel) => $panel->topNavigation()->plugin(PressFilamentTheme::make())),
+Theme::make('press')->serving(fn (Panel $panel) => $panel->plugin(PressFilamentTheme::make())),
 ```
 
 More in [Creating a theme](https://packstub.dev/docs/filament-nitpick/creating-a-theme).

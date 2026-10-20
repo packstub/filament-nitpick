@@ -98,6 +98,6 @@ window.PackstubThemes.list()             // ['aurora', 'midnight']
 window.PackstubThemes.preview('midnight') // swap stylesheet, palette and mode now
 ```
 
-`preview()` only changes the current page; the picker follows it with the save. A `packstub-theme-changed` event fires on `document` after each preview.
+`preview()` only changes the current page; the picker follows it with the save. A `packstub-theme-changed` event fires on `document` after each preview. A theme that [configures the panel](creating-a-theme.md#configuring-the-panel), or a move away from one, shows only after a page load: `preview()` then adopts the theme's light/dark mode and returns `false`, and the picker reloads the page once the choice is saved.
 
 Continue with [Creating a theme](creating-a-theme.md).

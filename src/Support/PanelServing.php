@@ -20,6 +20,11 @@ use Packstub\Nitpick\Contracts\Theme;
  * Pages, resources and widgets cannot join a panel mid-request (their
  * routes and Livewire components are registered before it): any the theme
  * added are taken back out and reported, so the panel keeps rendering.
+ *
+ * Filament keeps a panel for the life of the process, so on a server that
+ * handles many requests in one (Octane) the panel is put back the way it
+ * was once the request ends: the next one, maybe another user's on another
+ * theme, starts without this theme's navigation, hooks and plugins.
  */
 class PanelServing
 {
@@ -29,6 +34,9 @@ class PanelServing
     public static function run(ConfiguresPanel $theme, Panel $panel): array
     {
         $before = static::state($panel);
+        $snapshot = static::snapshot($panel);
+
+        app()->terminating(fn () => static::restore($panel, $snapshot));
 
         $theme->servingPanel($panel);
 
@@ -75,15 +83,31 @@ class PanelServing
             return;
         }
 
-        (function (array $components): void {
-            foreach ($components as $property => $value) {
-                $this->{$property} = $value;
-            }
-        })->call($panel, $before);
+        static::restore($panel, $before);
 
         $id = $theme instanceof Theme ? $theme->getId() : $theme::class;
 
         report(new LogicException("The theme [{$id}] added pages, resources or widgets to the [{$panel->getId()}] panel while serving it; they were left out, because their routes are registered before the request. Add the plugin that brings them to the panel itself, or turn its pages off."));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected static function snapshot(Panel $panel): array
+    {
+        return (fn (): array => get_object_vars($this))->call($panel);
+    }
+
+    /**
+     * @param  array<string, mixed>  $properties
+     */
+    protected static function restore(Panel $panel, array $properties): void
+    {
+        (function (array $properties): void {
+            foreach ($properties as $property => $value) {
+                $this->{$property} = $value;
+            }
+        })->call($panel, $properties);
     }
 
     /**

@@ -117,7 +117,7 @@ class FluentTheme extends Theme implements ConfiguresPanel
      * Configure the panel while this is the active theme, the way a panel
      * provider would. A styling plugin can be added here too:
      *
-     *     ->serving(fn (Panel $panel) => $panel->topNavigation()->plugin(PressFilamentTheme::make()))
+     *     ->serving(fn (Panel $panel) => $panel->font('Fraunces')->plugin(PressFilamentTheme::make()))
      *
      * See ConfiguresPanel for what runs when; picking such a theme reloads the page.
      * The callback also runs once on a scratch panel that is never served,

@@ -84,6 +84,10 @@ class PluginCapture
      * hooks are dropped. The assets go back to the real manager loaded on
      * request only, so `php artisan filament:assets` still publishes them.
      *
+     * Filament's facades also replay each registration on every manager the
+     * container builds later (a queue worker builds new ones between jobs):
+     * those replays are taken back out too.
+     *
      * @return array{0: CapturingPanel, 1: array<string, array<int | string, string | int> | string>, 2: array<int, Asset>}
      */
     protected static function run(Closure $configure): array
@@ -91,6 +95,7 @@ class PluginCapture
         $panel = CapturingPanel::make()->id('nitpick-capture');
 
         $real = [ColorManager::class => app(ColorManager::class), AssetManager::class => app(AssetManager::class), ViewManager::class => app(ViewManager::class)];
+        $replays = static::replays(array_keys($real));
         $colors = new CapturingColorManager;
         $assets = new CapturingAssetManager;
 
@@ -100,17 +105,16 @@ class PluginCapture
             $configure($panel);
         } finally {
             static::swap($real);
+            static::restoreReplays($replays);
         }
 
         $globalAssets = [];
 
         foreach ($assets->getRegistered() as $package => $registered) {
-            foreach ($registered as $asset) {
-                // Read before it is marked on-request below: an asset the plugin loads on every page is a stylesheet.
-                $globalAssets[] = clone $asset;
-            }
+            $globalAssets = [...$globalAssets, ...$registered];
 
-            FilamentAsset::register(array_map(fn (Asset $asset): Asset => $asset->loadedOnRequest(), $registered), $package);
+            // Copies: the plugin may keep its asset objects and register them again on a real panel.
+            FilamentAsset::register(array_map(fn (Asset $asset): Asset => (clone $asset)->loadedOnRequest(), $registered), $package);
         }
 
         return [$panel, $colors->getRegistered(), $globalAssets];
@@ -128,6 +132,30 @@ class PluginCapture
         FilamentColor::clearResolvedInstance(ColorManager::class);
         FilamentAsset::clearResolvedInstance(AssetManager::class);
         FilamentView::clearResolvedInstance(ViewManager::class);
+    }
+
+    /**
+     * The container's after-resolving callbacks for these classes, which is
+     * where Filament's facades keep their replays.
+     *
+     * @param  array<int, class-string>  $abstracts
+     * @return array<class-string, array<int, Closure>>
+     */
+    protected static function replays(array $abstracts): array
+    {
+        return (fn (): array => array_map(fn (string $abstract): array => $this->afterResolvingCallbacks[$abstract] ?? [], array_combine($abstracts, $abstracts)))->call(app());
+    }
+
+    /**
+     * @param  array<class-string, array<int, Closure>>  $replays
+     */
+    protected static function restoreReplays(array $replays): void
+    {
+        (function () use ($replays): void {
+            foreach ($replays as $abstract => $callbacks) {
+                $this->afterResolvingCallbacks[$abstract] = $callbacks;
+            }
+        })->call(app());
     }
 
     /**

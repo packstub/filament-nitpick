@@ -1,7 +1,9 @@
 <?php
 
+use Filament\Contracts\Plugin;
 use Filament\Enums\ThemeMode;
 use Filament\Panel;
+use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Support\Colors\ColorManager;
 use Filament\Support\Facades\FilamentAsset;
@@ -179,6 +181,12 @@ it('reads the colours a serving() callback sets, for the picker, without touchin
         ->and($theme->getSwatches())->toBe([Color::Cyan[500]])
         ->and($theme->getStylesheets())->toBe([])
         ->and(FilamentColor::getColor('gray'))->not->toBe(Color::Stone);
+
+    // Nor on a colour manager built after it.
+    app()->forgetScopedInstances();
+    FilamentColor::clearResolvedInstances();
+
+    expect(FilamentColor::getColor('gray'))->not->toBe(Color::Stone);
 });
 
 it('keeps its own colours when a serving() callback cannot run outside a request', function (): void {
@@ -209,4 +217,36 @@ it('keeps what a plugin registers for the whole app to its theme', function (): 
         ->and($scripts)->not->toBeEmpty()
         ->and($scripts->every(fn ($asset): bool => $asset->isLoadedOnRequest()))->toBeTrue()
         ->and(FilamentView::renderHook(PanelsRenderHook::HEAD_END)->toHtml())->not->toContain('global-theme-font');
+
+    // Nor on the managers built after it, the way a queue worker builds new ones between jobs.
+    app()->forgetScopedInstances();
+    FilamentView::clearResolvedInstances();
+
+    expect(FilamentView::renderHook(PanelsRenderHook::HEAD_END)->toHtml())->not->toContain('global-theme-font')
+        ->and(collect(FilamentAsset::getStyles(['acme/global-theme']))->every(fn ($asset): bool => $asset->isLoadedOnRequest()))->toBeTrue();
+});
+
+it('leaves a plugin its own asset objects as they were', function (): void {
+    $stylesheet = Css::make('kept-theme', __DIR__.'/../Fixtures/css/slate.css');
+
+    $plugin = new class($stylesheet) implements Plugin
+    {
+        public function __construct(public Css $stylesheet) {}
+
+        public function getId(): string
+        {
+            return 'kept-theme';
+        }
+
+        public function register(Panel $panel): void
+        {
+            FilamentAsset::register([$this->stylesheet], 'acme/kept-theme');
+        }
+
+        public function boot(Panel $panel): void {}
+    };
+
+    Theme::make('kept')->plugin($plugin)->getStylesheets();
+
+    expect($stylesheet->isLoadedOnRequest())->toBeFalse();
 });

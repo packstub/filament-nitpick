@@ -55,6 +55,14 @@ class NitpickPlugin implements Plugin
     /** @var array<int | string, Theme> */
     protected array $activeThemes = [];
 
+    /**
+     * The colours the active theme set on the panel while serving this
+     * request, by theme id.
+     *
+     * @var array<string, array<string, array<int | string, string | int> | string>>
+     */
+    protected array $servingColors = [];
+
     public static function make(): static
     {
         return app(static::class);
@@ -284,16 +292,16 @@ class NitpickPlugin implements Plugin
     }
 
     /**
-     * A theme's palette with the config and plugin overrides applied.
+     * A theme's palette, with the colours it set on the panel while serving
+     * this request, then the config and plugin overrides, applied.
      *
-     * @param  array<string, array<int | string, string | int> | string>  $panelColors  colours the theme set on the panel while serving it
      * @return array<string, array<int | string, string | int> | string>
      */
-    public function getColorsFor(Theme $theme, array $panelColors = []): array
+    public function getColorsFor(Theme $theme): array
     {
         return [
             ...$theme->getColors(),
-            ...$panelColors,
+            ...$this->servingColors[$theme->getId()] ?? [],
             ...(array) config('nitpick.colors', []),
             ...$this->colors,
         ];
@@ -398,15 +406,19 @@ class NitpickPlugin implements Plugin
 
         // A theme that configures the panel does it once the user is known:
         // while Filament serves the request, never on the earlier boot pass.
-        $panelColors = $serving && $theme instanceof ConfiguresPanel && $this->manager()->configuresPanel($theme)
-            ? PanelServing::run($theme, $panel)
-            : [];
+        if ($serving && $theme instanceof ConfiguresPanel && $this->manager()->configuresPanel($theme)) {
+            $this->servingColors = [$theme->getId() => PanelServing::run($theme, $panel)];
+
+            app()->terminating(function (): void {
+                $this->servingColors = [];
+            });
+        }
 
         if ($mode !== null) {
             $panel->defaultThemeMode($mode);
         }
 
-        FilamentColor::register($this->getColorsFor($theme, $panelColors));
+        FilamentColor::register($this->getColorsFor($theme));
     }
 
     // ------------------------------------------------------------------
@@ -482,7 +494,7 @@ class NitpickPlugin implements Plugin
     }
 
     /**
-     * @return array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>}
+     * @return array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null, reload: bool}>}
      */
     protected function buildManifest(): array
     {
@@ -507,7 +519,7 @@ class NitpickPlugin implements Plugin
      * light/dark toggle is theirs. Only preview() adopts a theme's preferred
      * mode, because that is a deliberate choice.
      *
-     * @param  array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>} | null  $manifest
+     * @param  array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null, reload: bool}>} | null  $manifest
      */
     protected function renderBootstrapScript(Theme $theme, ?array $manifest): string
     {
@@ -545,6 +557,13 @@ class NitpickPlugin implements Plugin
                     preview: function (slug) {
                         if (! manifest || ! manifest.themes[slug]) { return false; }
                         var theme = manifest.themes[slug];
+                        var active = manifest.themes[html.getAttribute('data-packstub-theme')];
+                        // A theme that configures the panel shows only after a page load (the picker
+                        // reloads once the pick is saved): only its light/dark mode is taken now.
+                        if (theme.reload || (active && active.reload)) {
+                            applyMode(theme.mode);
+                            return false;
+                        }
                         // The theme's stylesheets, in order: links already in the head are reused,
                         // new ones follow the last (ahead of the custom stylesheet), spare ones go.
                         var links = Array.prototype.slice.call(document.querySelectorAll('link[data-packstub-theme-stylesheet]'));

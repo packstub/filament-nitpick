@@ -6,10 +6,12 @@ use Filament\Panel;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Exceptions;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Tests\Fixtures\RailThemePlugin;
 use Packstub\Nitpick\Theme;
+use Packstub\Nitpick\Theme as BaseTheme;
 
 use function Pest\Livewire\livewire;
 
@@ -39,10 +41,60 @@ it('configures the panel while the theme is active', function (): void {
         ->assertSee('id="rail-hook"', false)
         ->assertSee('id="rail-theme-marker"', false)
         ->assertSee('--primary-500:'.Color::Lime[500], false)
-        ->assertSee('--danger-500:'.Color::Pink[500], false);
+        ->assertSee('--danger-500:'.Color::Pink[500], false)
+        ->assertSee('fi-body-has-top-navigation', false);
 
-    expect(Filament::getPanel('admin')->hasTopNavigation())->toBeTrue()
-        ->and(RailThemePlugin::$booted)->toBeTrue();
+    expect(RailThemePlugin::$booted)->toBeTrue();
+});
+
+it('puts the panel back once the request ends, so the next request starts clean (Octane)', function (): void {
+    $panel = Filament::getPanel('admin');
+    $plugins = array_keys($panel->getPlugins());
+    pluginFor('admin')->setUserTheme('rail');
+
+    $this->get($panel->getUrl())->assertOk()->assertSee('fi-body-has-top-navigation', false);
+
+    expect($panel->hasTopNavigation())->toBeFalse()
+        ->and(array_keys($panel->getPlugins()))->toBe($plugins);
+
+    // The next request in the same process, on another theme. (Filament's render hooks and
+    // colours live in services Octane builds anew for each request; the panel is kept.)
+    pluginFor('admin')->setUserTheme(null);
+
+    $this->get($panel->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertDontSee('fi-body-has-top-navigation', false);
+});
+
+it('previews the colours a theme class sets while serving in its palette', function (): void {
+    Themes::register(new class extends BaseTheme implements ConfiguresPanel
+    {
+        public function getId(): string
+        {
+            return 'newsroom';
+        }
+
+        public function getLabel(): string
+        {
+            return 'Newsroom';
+        }
+
+        public function getColors(): array
+        {
+            return ['primary' => Color::Red];
+        }
+
+        public function servingPanel(Panel $panel): void
+        {
+            $panel->colors(['danger' => Color::Pink]);
+        }
+    });
+    pluginFor('admin')->setUserTheme('newsroom');
+
+    $html = $this->get(Filament::getPanel('admin')->getUrl())->assertOk()->getContent();
+
+    expect($html)->toMatch('/\[data-packstub-theme="newsroom"\] \{[^}]*--danger-500: '.preg_quote(Color::Pink[500], '/').';/');
 });
 
 it('leaves the panel alone while another theme is active', function (): void {
@@ -68,7 +120,9 @@ it('marks the themes that configure the panel in the preview manifest', function
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
         ->assertSee('"rail":{"hrefs":[],"label":"Rail","mode":null,"reload":true}', false)
-        ->assertSee('"reload":false', false);
+        ->assertSee('"reload":false', false)
+        // The live preview stops at the light/dark mode for such a theme, or when leaving one.
+        ->assertSee('if (theme.reload || (active && active.reload))', false);
 });
 
 it('reloads the page when a pick enters or leaves such a theme', function (): void {
