@@ -492,7 +492,7 @@ class NitpickPlugin implements Plugin
     /**
      * Stamps the active theme on <html> before the body paints and, when
      * users may switch, exposes window.PackstubThemes.preview(id). Nothing
-     * here writes Filament's `theme` localStorage key on load: the user's
+     * here writes Filament's light/dark localStorage key on load: the user's
      * light/dark toggle is theirs. Only preview() adopts a theme's preferred
      * mode, because that is a deliberate choice.
      *
@@ -516,7 +516,8 @@ class NitpickPlugin implements Plugin
 
                 function applyMode(mode) {
                     if (! mode) { return; }
-                    try { localStorage.setItem('theme', mode); } catch (e) {}
+                    // Filament 5.10.2 renamed its key from `theme` to `filament:theme:mode`: both are written.
+                    try { localStorage.setItem('filament:theme:mode', mode); localStorage.setItem('theme', mode); } catch (e) {}
                     var dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     html.classList.toggle('dark', dark);
                     if (window.Alpine && typeof Alpine.store === 'function' && Alpine.store('theme') !== undefined) {

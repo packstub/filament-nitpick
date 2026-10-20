@@ -2,6 +2,12 @@
 
 All notable changes to `packstub/filament-nitpick` are documented here.
 
+## Unreleased
+
+### Fixed
+
+- Picking a theme keeps its preferred light/dark mode after a reload on Filament 5.10.2 and later, which stores the mode under `filament:theme:mode` instead of `theme`. Both keys are written, so earlier 5.x releases keep working.
+
 ## 1.0.0-beta.1 — 2026-10-20
 
 ### Added

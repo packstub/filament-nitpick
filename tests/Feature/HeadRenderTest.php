@@ -44,6 +44,8 @@ it('never writes a fixed light or dark mode on page load', function (): void {
     // the previewed theme's mode as a variable.
     expect($head)
         ->not->toContain("localStorage.setItem('theme', '")
+        ->not->toContain("localStorage.setItem('filament:theme:mode', '")
+        ->toContain("localStorage.setItem('filament:theme:mode', mode)")
         ->toContain("localStorage.setItem('theme', mode)");
 });
 
