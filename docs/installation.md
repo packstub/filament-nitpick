@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- PHP 8.2 or newer
+- PHP 8.3 or newer
 - Laravel 12 or 13
 - Filament 5
 

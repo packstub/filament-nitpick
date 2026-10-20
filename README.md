@@ -45,7 +45,7 @@ Themes::register(
 
 | Plugin | Filament | Laravel | PHP |
 | --- | --- | --- | --- |
-| 1.x | 5.x | 12.x, 13.x | 8.2+ |
+| 1.x | 5.x | 12.x, 13.x | 8.3+ |
 
 ## Installation
 
