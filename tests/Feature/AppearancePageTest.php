@@ -1,8 +1,11 @@
 <?php
 
 use Filament\Facades\Filament;
+use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Models\ThemePreference;
+use Packstub\Nitpick\Theme;
 
 use function Pest\Livewire\livewire;
 
@@ -58,4 +61,39 @@ it('saves a pick quietly: the new look is the confirmation', function (): void {
         ->assertNotNotified();
 
     expect(ThemePreference::query()->where('user_id', $this->user->id)->value('theme_id'))->toBe('midnight');
+});
+
+it('keeps descriptions off the cards by default, as their tooltip', function (): void {
+    $description = __('nitpick::themes.themes.midnight.description');
+
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertSee('title="'.e($description).'"', false)
+        ->assertDontSee('pst-theme-option-description', false);
+});
+
+it('shows descriptions when the panel asks for them', function (): void {
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->descriptions());
+
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertSee('<span class="pst-theme-option-description">'.e(__('nitpick::themes.themes.midnight.description')).'</span>', false)
+        ->assertDontSee('title="'.e(__('nitpick::themes.themes.midnight.description')).'"', false);
+});
+
+it('shows empty swatches for a theme whose colours are unknown', function (): void {
+    Themes::register(Theme::make('blank'));
+
+    $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
+
+    expect(substr_count($html, 'pst-theme-swatch pst-theme-swatch-empty'))->toBe(3);
+});
+
+it('can leave the swatches out', function (): void {
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->swatches(false));
+
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertSee('Midnight')
+        ->assertDontSee('pst-theme-swatches', false);
 });

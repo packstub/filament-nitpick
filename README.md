@@ -162,7 +162,7 @@ Turning this on:
 
 - registers an **Appearance** page (`/appearance`) and links it from the user menu;
 - saves each user's choice for this panel in the `theme_preferences` table (or the session, see [Configuration](#configuration));
-- lets the picker preview a theme the moment it is clicked, no reload.
+- lets the picker preview a theme the moment it is clicked, no reload (a theme that changes the layout reloads the page).
 
 ![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/user-menu.png)
 
@@ -174,7 +174,7 @@ use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 ThemePicker::make(),
 ```
 
-Use `->persist(false)` to handle the value yourself on submit, and `NitpickPlugin::get()->setUserTheme($id)` to save it. Reading and writing a choice from code:
+Each card shows the theme's swatches and name, with its description as the tooltip; `->descriptions()` shows it under the name, and `->picker(fn (ThemePicker $picker) => $picker->descriptions())` on the plugin does the same on the Appearance page. Use `->persist(false)` to handle the value yourself on submit, and `NitpickPlugin::get()->setUserTheme($id)` to save it. Reading and writing a choice from code:
 
 ```php
 $plugin = NitpickPlugin::get();

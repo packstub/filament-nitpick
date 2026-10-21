@@ -2,6 +2,8 @@
     $themes = $getThemes();
     $statePath = $getStatePath();
     $isDisabled = $isDisabled();
+    $hasDescriptions = $hasDescriptions();
+    $hasSwatches = $hasSwatches();
 @endphp
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
@@ -11,9 +13,14 @@
         role="radiogroup"
     >
         @foreach ($themes as $id => $theme)
+            @php
+                $description = $theme->getDescription();
+            @endphp
+
             <label
                 class="pst-theme-option"
                 x-bind:class="{ 'pst-theme-option-active': state === @js($id) }"
+                @if (! $hasDescriptions && filled($description)) title="{{ $description }}" @endif
             >
                 <input
                     type="radio"
@@ -25,11 +32,18 @@
                     class="pst-theme-option-input"
                 />
 
-                <span class="pst-theme-swatches" aria-hidden="true">
-                    @foreach (array_slice($theme->getSwatches(), 0, 3) as $swatch)
-                        <span class="pst-theme-swatch" style="background: {{ $swatch }}"></span>
-                    @endforeach
-                </span>
+                @if ($hasSwatches)
+                    <span class="pst-theme-swatches" aria-hidden="true">
+                        @forelse (array_slice($theme->getSwatches(), 0, 3) as $swatch)
+                            <span class="pst-theme-swatch" style="background: {{ $swatch }}"></span>
+                        @empty
+                            {{-- Colours unknown (set in a plugin's boot(), say): empty swatches keep the cards in line. --}}
+                            @for ($i = 0; $i < 3; $i++)
+                                <span class="pst-theme-swatch pst-theme-swatch-empty"></span>
+                            @endfor
+                        @endforelse
+                    </span>
+                @endif
 
                 <span class="pst-theme-option-label">
                     {{ $theme->getLabel() }}
@@ -38,7 +52,7 @@
                     </span>
                 </span>
 
-                @if (filled($description = $theme->getDescription()))
+                @if ($hasDescriptions && filled($description))
                     <span class="pst-theme-option-description">{{ $description }}</span>
                 @endif
             </label>

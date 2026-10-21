@@ -23,6 +23,10 @@ class ThemePicker extends Field
 
     protected bool|Closure $shouldNotify = false;
 
+    protected bool|Closure $hasDescriptions = false;
+
+    protected bool|Closure $hasSwatches = true;
+
     public static function make(?string $name = 'theme'): static
     {
         return parent::make($name);
@@ -83,6 +87,39 @@ class ThemePicker extends Field
         $this->shouldNotify = $condition;
 
         return $this;
+    }
+
+    /**
+     * Show each theme's description under its name. Off by default: the
+     * name and swatches tell themes apart, and short cards scan faster; the
+     * description is still the card's tooltip.
+     */
+    public function descriptions(bool|Closure $condition = true): static
+    {
+        $this->hasDescriptions = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Show each theme's swatches above its name. On by default; a theme
+     * whose colours are unknown shows empty ones, so the cards line up.
+     */
+    public function swatches(bool|Closure $condition = true): static
+    {
+        $this->hasSwatches = $condition;
+
+        return $this;
+    }
+
+    public function hasDescriptions(): bool
+    {
+        return (bool) $this->evaluate($this->hasDescriptions);
+    }
+
+    public function hasSwatches(): bool
+    {
+        return (bool) $this->evaluate($this->hasSwatches);
     }
 
     public function shouldPersist(): bool

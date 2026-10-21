@@ -49,6 +49,14 @@ it('never writes a fixed light or dark mode on page load', function (): void {
         ->toContain("localStorage.setItem('theme', mode)");
 });
 
+it('points the user menu\'s light/dark switcher at the mode a preview applies', function (): void {
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->userSelectable());
+
+    expect($head)
+        ->toContain("document.querySelectorAll('.fi-theme-switcher')")
+        ->toContain('data.theme = mode;');
+});
+
 it('omits the palettes and manifest unless users may switch', function (): void {
     $head = headFor(NitpickPlugin::make());
 

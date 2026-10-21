@@ -13,6 +13,7 @@ NitpickPlugin::make()
     ->userSelectable()                           // Appearance page + user-menu link; bool or closure
     ->userSelectable(userMenuItem: false)        // page only
     ->appearancePage(MyAppearance::class)        // your subclass of the page
+    ->picker(fn (ThemePicker $picker) => $picker->descriptions()) // configure the page's picker
     ->colors(['primary' => Color::Indigo])       // slots applied on top of every theme
     ->customCss('css/admin-overrides.css')       // loaded after the theme's stylesheet
     ->forceMode(ThemeMode::Dark)                 // ignore the theme's preferred mode; null hands it back

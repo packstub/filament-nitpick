@@ -8,7 +8,7 @@ With user selection on, each signed-in user can choose the theme they see in tha
 
 ## The Appearance page
 
-The plugin registers an **Appearance** page at `/{panel}/appearance` and links it from the user menu. It shows one card per offered theme with a swatch strip, the label and the description. Clicking a card previews the theme immediately, saves the choice, and shows a confirmation.
+The plugin registers an **Appearance** page at `/{panel}/appearance` and links it from the user menu. It shows one card per offered theme with a swatch strip and the label; the description is the card's tooltip. Clicking a card previews the theme immediately and saves the choice. A theme that changes the panel's layout reloads the page instead.
 
 ![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/appearance.png)
 
@@ -31,6 +31,16 @@ class ChooseYourLook extends Appearance
 }
 
 NitpickPlugin::make()->userSelectable()->appearancePage(ChooseYourLook::class)
+```
+
+Configure the picker on the page the way you would your own `ThemePicker` field (see [below](#cards-descriptions-and-swatches)):
+
+```php
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
+
+NitpickPlugin::make()
+    ->userSelectable()
+    ->picker(fn (ThemePicker $picker) => $picker->descriptions())
 ```
 
 Access follows the panel's own rules plus one more: the page returns 403 when user selection is off, so a `->userSelectable(fn () => ...)` closure can gate it per user.
@@ -59,6 +69,22 @@ NitpickPlugin::get()->setUserTheme($data['theme']);
 ```
 
 The field is `dehydrated(false)`, so it never lands in your model's data by accident.
+
+### Cards: descriptions and swatches
+
+Each card shows up to three swatches and the theme's name. Short cards scan faster, so the description is left off and shown as the card's tooltip. Show it under the name:
+
+```php
+ThemePicker::make()->descriptions()
+```
+
+The swatches come from the theme's `primary`, `info` and `success` colours, or from `->swatches([...])` on the theme. A theme whose colours are unknown (a plugin that sets them in `boot()`, say) shows three empty swatches, so the cards line up. Leave the strip out:
+
+```php
+ThemePicker::make()->swatches(false)
+```
+
+Both take a closure, evaluated when the form renders.
 
 ## Reading and writing a choice from code
 

@@ -19,6 +19,7 @@ use LogicException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Events\ThemeChanged;
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Support\PanelServing;
 use Throwable;
@@ -45,6 +46,8 @@ class NitpickPlugin implements Plugin
 
     /** @var class-string<Appearance> */
     protected string $appearancePage = Appearance::class;
+
+    protected ?Closure $configurePicker = null;
 
     protected ?ThemeMode $forcedMode = null;
 
@@ -154,6 +157,28 @@ class NitpickPlugin implements Plugin
         $this->appearancePage = $page;
 
         return $this;
+    }
+
+    /**
+     * Configure the theme picker on the Appearance page, the way you would
+     * your own ThemePicker field:
+     *
+     *     ->picker(fn (ThemePicker $picker) => $picker->descriptions())
+     */
+    public function picker(?Closure $callback): static
+    {
+        $this->configurePicker = $callback;
+
+        return $this;
+    }
+
+    public function configurePicker(ThemePicker $picker): ThemePicker
+    {
+        if ($this->configurePicker !== null) {
+            ($this->configurePicker)($picker);
+        }
+
+        return $picker;
     }
 
     /**
@@ -545,6 +570,14 @@ class NitpickPlugin implements Plugin
                     html.classList.toggle('dark', dark);
                     if (window.Alpine && typeof Alpine.store === 'function' && Alpine.store('theme') !== undefined) {
                         Alpine.store('theme', dark ? 'dark' : 'light');
+                    }
+                    // The light/dark switcher in the user menu read the mode once, when the page loaded:
+                    // set its own state, as a click on it would, so it marks the mode now in use.
+                    if (window.Alpine && typeof Alpine['\$data'] === 'function') {
+                        document.querySelectorAll('.fi-theme-switcher').forEach(function (switcher) {
+                            var data = Alpine['\$data'](switcher);
+                            if (data && 'theme' in data) { data.theme = mode; }
+                        });
                     }
                 }
 
