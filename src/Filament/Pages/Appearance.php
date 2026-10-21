@@ -55,7 +55,7 @@ class Appearance extends Page
     {
         return $schema
             ->components([
-                ThemePicker::make('theme')->hiddenLabel(),
+                NitpickPlugin::get()->configurePicker(ThemePicker::make('theme')->hiddenLabel()),
             ])
             ->statePath('data');
     }

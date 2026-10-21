@@ -5,8 +5,12 @@ namespace Packstub\Nitpick;
 use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Enums\ThemeMode;
+use Filament\Panel;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Support\PluginCapture;
+use Throwable;
 
 /**
  * A theme defined inline, without a class of its own; Theme::make() returns one:
@@ -17,7 +21,7 @@ use Packstub\Nitpick\Support\PluginCapture;
  *             ->stylesheet(resource_path('css/themes/nord.css')),
  *     );
  */
-class FluentTheme extends Theme
+class FluentTheme extends Theme implements ConfiguresPanel
 {
     protected ?string $label = null;
 
@@ -31,8 +35,10 @@ class FluentTheme extends Theme
 
     protected Plugin|Closure|null $plugin = null;
 
-    /** @var array{colors: array<string, array<int | string, string | int> | string>, stylesheets: array<int, string>} | null */
-    protected ?array $captured = null;
+    protected ?Closure $panelCallback = null;
+
+    /** @var array<string, array<int | string, string | int> | string> | null */
+    protected ?array $panelColors = null;
 
     protected ?ThemeMode $mode = null;
 
@@ -89,20 +95,57 @@ class FluentTheme extends Theme
     }
 
     /**
-     * A Filament theme plugin to offer as this theme: the palette and every
-     * stylesheet it would give a panel become the theme's own, so the plugin
-     * is not added to the panel. Configure it as its docs say:
+     * A Filament theme plugin to offer as this theme: it joins the panel
+     * while this is the active theme, and only then, so it styles the panel
+     * the way its own docs describe. Configure it as they say:
      *
      *     ->plugin(fn () => NordThemePlugin::make()->corners('round'))
      *
-     * colors() and stylesheets() set here apply on top of the plugin's.
+     * A closure makes a fresh plugin for each request; an instance works
+     * too, and is reused for every request of the process. colors() and
+     * stylesheets() set here apply on top of the plugin's; its colours give
+     * the theme its swatches in the picker. Picking it reloads the page.
      */
     public function plugin(Plugin|Closure|null $plugin): static
     {
         $this->plugin = $plugin;
-        $this->captured = null;
+        $this->panelColors = null;
 
         return $this;
+    }
+
+    /**
+     * Configure the panel while this is the active theme, the way a panel
+     * provider would, after the plugin given to plugin(), if any:
+     *
+     *     ->panel(fn (Panel $panel) => $panel->topNavigation()->font('Fraunces'))
+     *
+     * See ConfiguresPanel for what runs when; picking such a theme reloads the page.
+     * The callback also runs once on a scratch panel that is never served,
+     * so the colours it sets give the theme its swatches in the picker.
+     */
+    public function panel(?Closure $callback): static
+    {
+        $this->panelCallback = $callback;
+        $this->panelColors = null;
+
+        return $this;
+    }
+
+    public function configurePanel(Panel $panel): void
+    {
+        if ($this->plugin !== null) {
+            $panel->plugin($this->resolvePlugin());
+        }
+
+        if ($this->panelCallback !== null) {
+            ($this->panelCallback)($panel, $this);
+        }
+    }
+
+    public function configuresPanel(): bool
+    {
+        return $this->plugin !== null || $this->panelCallback !== null;
     }
 
     /**
@@ -144,7 +187,7 @@ class FluentTheme extends Theme
 
     public function getColors(): array
     {
-        return [...$this->captured()['colors'], ...$this->colors];
+        return $this->colors;
     }
 
     public function getPreferredMode(): ?ThemeMode
@@ -159,25 +202,48 @@ class FluentTheme extends Theme
 
     public function getStylesheets(): array
     {
-        return [...$this->captured()['stylesheets'], ...$this->stylesheets];
+        return $this->stylesheets;
     }
 
     public function getSwatches(): array
     {
-        return $this->swatches ?? parent::getSwatches();
+        return $this->swatches ?? $this->swatchesFrom([...$this->panelColors(), ...$this->colors]);
     }
 
     /**
-     * @return array{colors: array<string, array<int | string, string | int> | string>, stylesheets: array<int, string>}
+     * The colours the theme's plugin and panel() callback set, read from a
+     * scratch panel: only the picker's swatches use them, the real panel gets
+     * them from the plugin itself.
+     *
+     * @return array<string, array<int | string, string | int> | string>
      */
-    protected function captured(): array
+    protected function panelColors(): array
     {
-        if ($this->plugin === null) {
-            return ['colors' => [], 'stylesheets' => []];
+        if (! $this->configuresPanel()) {
+            return [];
         }
 
-        return $this->captured ??= PluginCapture::of(
-            $this->plugin instanceof Closure ? ($this->plugin)() : $this->plugin,
-        );
+        // Read without a request or a user: a callback that needs one is reported, and the theme
+        // keeps the colours given to it directly.
+        try {
+            return $this->panelColors ??= PluginCapture::colorsFrom(fn (Panel $panel) => $this->configurePanel($panel));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $this->panelColors = [];
+        }
+    }
+
+    protected function resolvePlugin(): Plugin
+    {
+        $plugin = $this->plugin instanceof Closure ? ($this->plugin)() : $this->plugin;
+
+        if (! $plugin instanceof Plugin) {
+            $given = is_object($plugin) ? $plugin::class : gettype($plugin);
+
+            throw new InvalidArgumentException("Theme::make()->plugin() expects a Filament plugin, [{$given}] given.");
+        }
+
+        return $plugin;
     }
 }

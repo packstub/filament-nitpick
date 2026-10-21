@@ -2,12 +2,16 @@
 
 namespace Packstub\Nitpick;
 
+use Filament\Panel;
 use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use InvalidArgumentException;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Support\PluginCapture;
+use Throwable;
 
 /**
  * The theme registry. Themes register here (the bundled ones from this
@@ -93,6 +97,42 @@ class ThemeManager
         }
 
         return $resolved;
+    }
+
+    /**
+     * Whether the theme configures the panel while active (ConfiguresPanel), so
+     * switching to or from it needs a page load rather than a live preview.
+     */
+    public function configuresPanel(Theme $theme): bool
+    {
+        if ($theme instanceof FluentTheme) {
+            return $theme->configuresPanel();
+        }
+
+        return $theme instanceof ConfiguresPanel;
+    }
+
+    /**
+     * Registers the assets each theme that configures the panel would add
+     * to it (its plugin's stylesheets, scripts, fonts and Filament theme),
+     * loaded on request only, so `php artisan filament:assets` publishes
+     * them: such a plugin joins the panel only while its theme is active,
+     * never while that command runs. Read from a scratch panel; a theme
+     * that cannot configure one outside a request is reported.
+     */
+    public function registerPanelAssets(): void
+    {
+        foreach ($this->themes as $theme) {
+            if (! $theme instanceof ConfiguresPanel || ! $this->configuresPanel($theme)) {
+                continue;
+            }
+
+            try {
+                PluginCapture::publishAssetsFrom(fn (Panel $panel) => $theme->configurePanel($panel));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
     }
 
     public function has(string|Theme $theme): bool

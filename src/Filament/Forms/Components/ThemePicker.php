@@ -7,6 +7,7 @@ use Filament\Forms\Components\Field;
 use Filament\Notifications\Notification;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\ThemeManager;
 
 /**
  * A card-per-theme radio for the themes the current panel offers. It fills
@@ -21,6 +22,10 @@ class ThemePicker extends Field
     protected bool|Closure $shouldPersist = true;
 
     protected bool|Closure $shouldNotify = false;
+
+    protected bool|Closure $hasDescriptions = false;
+
+    protected bool|Closure $hasSwatches = true;
 
     public static function make(?string $name = 'theme'): static
     {
@@ -40,12 +45,17 @@ class ThemePicker extends Field
             $component->state($component->getPlugin()->getActiveTheme()->getId());
         });
 
-        $this->afterStateUpdated(function (ThemePicker $component, ?string $state): void {
+        $this->afterStateUpdated(function (ThemePicker $component, ?string $state, ?string $old): void {
             if (! $component->shouldPersist()) {
                 return;
             }
 
             $component->getPlugin()->setUserTheme($state);
+
+            // A theme that configures the panel (top navigation, plugins) shows only after a page load.
+            if ($component->needsReload($old) || $component->needsReload($state)) {
+                $component->getLivewire()->js('window.location.reload()');
+            }
 
             if ($component->shouldNotify()) {
                 Notification::make()
@@ -79,6 +89,39 @@ class ThemePicker extends Field
         return $this;
     }
 
+    /**
+     * Show each theme's description under its name. Off by default: the
+     * name and swatches tell themes apart, and short cards scan faster; the
+     * description is still the card's tooltip.
+     */
+    public function descriptions(bool|Closure $condition = true): static
+    {
+        $this->hasDescriptions = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Show each theme's swatches above its name. On by default; a theme
+     * whose colours are unknown shows empty ones, so the cards line up.
+     */
+    public function swatches(bool|Closure $condition = true): static
+    {
+        $this->hasSwatches = $condition;
+
+        return $this;
+    }
+
+    public function hasDescriptions(): bool
+    {
+        return (bool) $this->evaluate($this->hasDescriptions);
+    }
+
+    public function hasSwatches(): bool
+    {
+        return (bool) $this->evaluate($this->hasSwatches);
+    }
+
     public function shouldPersist(): bool
     {
         return (bool) $this->evaluate($this->shouldPersist);
@@ -87,6 +130,13 @@ class ThemePicker extends Field
     public function shouldNotify(): bool
     {
         return (bool) $this->evaluate($this->shouldNotify);
+    }
+
+    protected function needsReload(?string $theme): bool
+    {
+        $theme = $theme === null ? null : app(ThemeManager::class)->find($theme);
+
+        return $theme !== null && app(ThemeManager::class)->configuresPanel($theme);
     }
 
     public function getPlugin(): NitpickPlugin

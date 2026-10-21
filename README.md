@@ -37,7 +37,7 @@ Themes::register(
 - **[Themes from the plugin directory](#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker. Ready-made CSS and Vite-built themes alike.
 - **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
 - **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
-- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
+- **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline, and `->panel()` lets it configure the panel (top navigation, fonts) while it is active.
 - **[Fits your brand](#colour-overrides-and-custom-css)**: your colours and CSS on top of any theme.
 - **Dark mode and translations**: both bundled themes have a dark variant; every string lives in a language file.
 
@@ -91,7 +91,7 @@ A theme's preferred mode becomes the panel's default mode while the theme is act
 
 ## Themes from the Filament plugin directory
 
-The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. A theme plugin that styles a panel with a palette and CSS files can sit in your picker beside the bundled ones, so a panel offers as many looks as you care to install.
+The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. Any of them can sit in your picker beside the bundled ones, so a panel offers as many looks as you care to install.
 
 Install the theme's package the way its own docs describe, then hand its plugin to a theme:
 
@@ -106,7 +106,7 @@ Themes::register(
 );
 ```
 
-Run `php artisan filament:assets` and it is one more card on the Appearance page: a panel default, a per-user choice, previewed live like any other theme. The palette and every stylesheet the plugin would give a panel are read from it, so there is nothing to copy or merge, and the theme's own plugin stays off the panel. Configure it the way its docs say (`NoreviqThemePlugin::make()->corners(...)`) and the theme follows.
+Run `php artisan filament:assets` and it is one more card on the Appearance page: a panel default, a per-user choice. The plugin joins the panel while its theme is active, and only then, so it styles the panel exactly as its own docs describe (palette, stylesheets, fonts, render hooks, layout) and leaves no trace while another theme is picked. Configure it the way its docs say (`NoreviqThemePlugin::make()->corners(...)`) and the theme follows. Picking it reloads the page.
 
 The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad, in three steps:
 
@@ -124,7 +124,9 @@ Themes::register(
 );
 ```
 
-Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-nitpick/themes) walks through each kind of theme: ready-made CSS, a Vite theme, Tailwind source you compile ([Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme)), and a palette without a plugin ([Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme)).
+Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-nitpick/themes) walks through each kind of theme: ready-made CSS, a Vite theme, Tailwind source you compile ([Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme)), a palette without a plugin ([Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme)), and a theme that changes the layout ([Press](https://filamentphp.com/plugins/elemind-press-filament-theme)).
+
+Writing a theme plugin? [For theme authors](https://packstub.dev/docs/filament-nitpick/theme-authors) covers the habits that make it work well in Nitpick, and in any app with more than one panel.
 
 ## A theme per panel
 
@@ -160,7 +162,7 @@ Turning this on:
 
 - registers an **Appearance** page (`/appearance`) and links it from the user menu;
 - saves each user's choice for this panel in the `theme_preferences` table (or the session, see [Configuration](#configuration));
-- lets the picker preview a theme the moment it is clicked, no reload.
+- lets the picker preview a theme the moment it is clicked, no reload (a theme that changes the layout reloads the page).
 
 ![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/user-menu.png)
 
@@ -172,7 +174,7 @@ use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 ThemePicker::make(),
 ```
 
-Use `->persist(false)` to handle the value yourself on submit, and `NitpickPlugin::get()->setUserTheme($id)` to save it. Reading and writing a choice from code:
+Each card shows the theme's swatches and name, with its description as the tooltip; `->descriptions()` shows it under the name, and `->picker(fn (ThemePicker $picker) => $picker->descriptions())` on the plugin does the same on the Appearance page. Use `->persist(false)` to handle the value yourself on submit, and `NitpickPlugin::get()->setUserTheme($id)` to save it. Reading and writing a choice from code:
 
 ```php
 $plugin = NitpickPlugin::get();
@@ -255,6 +257,14 @@ Themes::register(
 An anonymous class (`new class extends Theme { ... }`) works too.
 
 A theme plugin from the Filament plugin directory joins the picker with `Theme::make()->plugin()`; see [Themes from the Filament plugin directory](#themes-from-the-filament-plugin-directory).
+
+A theme can also configure the panel while it is active, with top navigation or fonts:
+
+```php
+Theme::make('newsroom')
+    ->colors(['primary' => Color::Red])
+    ->panel(fn (Panel $panel) => $panel->topNavigation()->font('Fraunces')),
+```
 
 More in [Creating a theme](https://packstub.dev/docs/filament-nitpick/creating-a-theme).
 

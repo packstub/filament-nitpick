@@ -16,9 +16,12 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
 use LogicException;
+use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Events\ThemeChanged;
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
+use Packstub\Nitpick\Support\PanelServing;
 use Throwable;
 
 class NitpickPlugin implements Plugin
@@ -44,6 +47,8 @@ class NitpickPlugin implements Plugin
     /** @var class-string<Appearance> */
     protected string $appearancePage = Appearance::class;
 
+    protected ?Closure $configurePicker = null;
+
     protected ?ThemeMode $forcedMode = null;
 
     protected bool $hasForcedMode = false;
@@ -52,6 +57,14 @@ class NitpickPlugin implements Plugin
 
     /** @var array<int | string, Theme> */
     protected array $activeThemes = [];
+
+    /**
+     * The colours the active theme set on the panel while serving this
+     * request, by theme id.
+     *
+     * @var array<string, array<string, array<int | string, string | int> | string>>
+     */
+    protected array $servingColors = [];
 
     public static function make(): static
     {
@@ -144,6 +157,28 @@ class NitpickPlugin implements Plugin
         $this->appearancePage = $page;
 
         return $this;
+    }
+
+    /**
+     * Configure the theme picker on the Appearance page, the way you would
+     * your own ThemePicker field:
+     *
+     *     ->picker(fn (ThemePicker $picker) => $picker->descriptions())
+     */
+    public function picker(?Closure $callback): static
+    {
+        $this->configurePicker = $callback;
+
+        return $this;
+    }
+
+    public function configurePicker(ThemePicker $picker): ThemePicker
+    {
+        if ($this->configurePicker !== null) {
+            ($this->configurePicker)($picker);
+        }
+
+        return $picker;
     }
 
     /**
@@ -282,7 +317,8 @@ class NitpickPlugin implements Plugin
     }
 
     /**
-     * A theme's palette with the config and plugin overrides applied.
+     * A theme's palette, with the colours it set on the panel while serving
+     * this request, then the config and plugin overrides, applied.
      *
      * @return array<string, array<int | string, string | int> | string>
      */
@@ -290,6 +326,7 @@ class NitpickPlugin implements Plugin
     {
         return [
             ...$theme->getColors(),
+            ...$this->servingColors[$theme->getId()] ?? [],
             ...(array) config('nitpick.colors', []),
             ...$this->colors,
         ];
@@ -358,7 +395,7 @@ class NitpickPlugin implements Plugin
                 return;
             }
 
-            $this->applyActiveTheme($panel);
+            $this->applyActiveTheme($panel, serving: true);
         });
 
         $panel->pages([$this->appearancePage]);
@@ -387,10 +424,20 @@ class NitpickPlugin implements Plugin
      * the guard already knows them) and again once Filament is serving the
      * request with the session started.
      */
-    protected function applyActiveTheme(Panel $panel): void
+    protected function applyActiveTheme(Panel $panel, bool $serving = false): void
     {
         $theme = $this->getActiveTheme();
         $mode = $this->getThemeMode($theme);
+
+        // A theme that configures the panel does it once the user is known:
+        // while Filament serves the request, never on the earlier boot pass.
+        if ($serving && $theme instanceof ConfiguresPanel && $this->manager()->configuresPanel($theme)) {
+            $this->servingColors = [$theme->getId() => PanelServing::run($theme, $panel)];
+
+            app()->terminating(function (): void {
+                $this->servingColors = [];
+            });
+        }
 
         if ($mode !== null) {
             $panel->defaultThemeMode($mode);
@@ -472,7 +519,7 @@ class NitpickPlugin implements Plugin
     }
 
     /**
-     * @return array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>}
+     * @return array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null, reload: bool}>}
      */
     protected function buildManifest(): array
     {
@@ -483,6 +530,7 @@ class NitpickPlugin implements Plugin
                 'hrefs' => $this->stylesheetHrefs($theme),
                 'label' => $theme->getLabel(),
                 'mode' => $this->getThemeMode($theme)?->value,
+                'reload' => $this->manager()->configuresPanel($theme),
             ];
         }
 
@@ -492,11 +540,11 @@ class NitpickPlugin implements Plugin
     /**
      * Stamps the active theme on <html> before the body paints and, when
      * users may switch, exposes window.PackstubThemes.preview(id). Nothing
-     * here writes Filament's `theme` localStorage key on load: the user's
+     * here writes Filament's light/dark localStorage key on load: the user's
      * light/dark toggle is theirs. Only preview() adopts a theme's preferred
      * mode, because that is a deliberate choice.
      *
-     * @param  array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null}>} | null  $manifest
+     * @param  array{themes: array<string, array{hrefs: array<int, string>, label: string, mode: string | null, reload: bool}>} | null  $manifest
      */
     protected function renderBootstrapScript(Theme $theme, ?array $manifest): string
     {
@@ -516,11 +564,20 @@ class NitpickPlugin implements Plugin
 
                 function applyMode(mode) {
                     if (! mode) { return; }
-                    try { localStorage.setItem('theme', mode); } catch (e) {}
+                    // Filament 5.10.2 renamed its key from `theme` to `filament:theme:mode`: both are written.
+                    try { localStorage.setItem('filament:theme:mode', mode); localStorage.setItem('theme', mode); } catch (e) {}
                     var dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     html.classList.toggle('dark', dark);
                     if (window.Alpine && typeof Alpine.store === 'function' && Alpine.store('theme') !== undefined) {
                         Alpine.store('theme', dark ? 'dark' : 'light');
+                    }
+                    // The light/dark switcher in the user menu read the mode once, when the page loaded:
+                    // set its own state, as a click on it would, so it marks the mode now in use.
+                    if (window.Alpine && typeof Alpine['\$data'] === 'function') {
+                        document.querySelectorAll('.fi-theme-switcher').forEach(function (switcher) {
+                            var data = Alpine['\$data'](switcher);
+                            if (data && 'theme' in data) { data.theme = mode; }
+                        });
                     }
                 }
 
@@ -533,6 +590,13 @@ class NitpickPlugin implements Plugin
                     preview: function (slug) {
                         if (! manifest || ! manifest.themes[slug]) { return false; }
                         var theme = manifest.themes[slug];
+                        var active = manifest.themes[html.getAttribute('data-packstub-theme')];
+                        // A theme that configures the panel shows only after a page load (the picker
+                        // reloads once the pick is saved): only its light/dark mode is taken now.
+                        if (theme.reload || (active && active.reload)) {
+                            applyMode(theme.mode);
+                            return false;
+                        }
                         // The theme's stylesheets, in order: links already in the head are reused,
                         // new ones follow the last (ahead of the custom stylesheet), spare ones go.
                         var links = Array.prototype.slice.call(document.querySelectorAll('link[data-packstub-theme-stylesheet]'));

@@ -63,7 +63,18 @@ abstract class Theme implements ThemeContract
      */
     public function getSwatches(): array
     {
-        $colors = $this->getColors();
+        return $this->swatchesFrom($this->getColors());
+    }
+
+    /**
+     * The 500 shades of a palette's primary, info and success slots, the
+     * ones it has, as CSS colours.
+     *
+     * @param  array<string, array<int | string, string | int> | string>  $colors
+     * @return array<int, string>
+     */
+    protected function swatchesFrom(array $colors): array
+    {
         $swatches = [];
 
         foreach (['primary', 'info', 'success'] as $slot) {
