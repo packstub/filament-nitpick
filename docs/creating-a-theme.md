@@ -149,7 +149,7 @@ Themes::register(
 | `colors(array)` | The palette, in the shape of `Panel::colors()` |
 | `stylesheet(?string)` | A stylesheet linked while the theme is active: the absolute path to a CSS file, a URL, or `vite:<entry>` for an entry of your Vite build |
 | `stylesheets(array)` | Several stylesheets, linked in the order given |
-| `plugin(Plugin\|Closure)` | A Filament theme plugin whose palette and stylesheets become the theme's own; see [below](#a-theme-from-the-filament-plugin-directory) |
+| `plugin(Plugin\|Closure)` | A Filament theme plugin added to the panel while the theme is active; see [below](#a-theme-from-the-filament-plugin-directory) |
 | `mode(?ThemeMode)` | The light/dark mode the theme is designed for |
 | `swatches(array)` | Up to three CSS colours for the picker, instead of the ones derived from the palette |
 
@@ -202,19 +202,15 @@ Themes::register(
 
 Run `php artisan filament:assets` and the theme is in the picker. Do not add the theme's plugin to the panel as well: the theme takes its place.
 
-What is read from the plugin, without adding it to a panel:
+The plugin joins the panel while its theme is active, and only then. Everything it sets there applies as its own docs describe: the palette, its stylesheets and scripts, a Vite or prebuilt Filament theme, fonts, render hooks, layout options, and whatever its `boot()` does. While another theme is active, the plugin is not on the panel, so none of it reaches the page or your other panels.
 
-| From the plugin | Becomes |
-| --- | --- |
-| The colours it sets on its panel, and any palette it registers for the whole app | The theme's palette |
-| Its CSS assets, local files and URLs alike, however many | The theme's stylesheets, in the plugin's order |
-| A Vite theme it sets on its panel (`->viteTheme()`) | A `vite:` stylesheet, linked from your app's build |
+- `colors()`, `stylesheet()` and `stylesheets()` on the same theme apply on top, for a tweak of your own.
+- A closure (`fn () => NoreviqThemePlugin::make()`) makes a fresh plugin for each request; pass an instance only if the plugin keeps no state.
+- The picker shows the theme's swatches from the colours the plugin sets. Nitpick reads them by running the plugin's `register()` once on a panel that is never served.
+- `php artisan filament:assets`, and `filament:upgrade`, which Composer runs after an update, publish the plugin's files the same way, although it is on no panel while they run.
+- Picking the theme on the Appearance page, or leaving it, reloads the page instead of previewing it live, so the panel is built with the plugin from the start.
 
-A CSS asset that is Tailwind source (`@apply` and friends) is left out, because a browser cannot use it as it is: compile it in your Vite build and add it with `->stylesheet('vite:...')`. [Themes](themes.md#themes-that-build-with-vite) has a worked example of each case.
-
-`colors()`, `stylesheet()` and `stylesheets()` on the same theme apply on top, for a tweak of your own. A palette the plugin registers for the whole app stays with the theme: it does not reach your other panels or themes.
-
-What carries over is what a theme is made of: colours and stylesheets. Fonts, render hooks and layout options the plugin sets on its panel stay behind. A theme that depends on them can configure the panel itself while it is active: see [Configuring the panel](#configuring-the-panel).
+Everything under [Configuring the panel](#configuring-the-panel) applies to it, because `->plugin()` is a shorthand for adding the plugin there. [Themes](themes.md#themes-from-the-filament-plugin-directory) has a worked example of each kind of theme plugin.
 
 ## Configuring the panel
 
@@ -250,12 +246,14 @@ class Newsroom extends Theme implements ConfiguresPanel
 }
 ```
 
-A theme plugin that needs a real panel can be added to it here, so it works exactly as its docs describe, only while its theme is active:
+`->plugin()` and `->serving()` combine: the plugin is added first, then the callback runs, so it can adjust what the plugin set:
 
 ```php
 use Elemind\PressFilamentTheme\PressFilamentTheme;
 
-Theme::make('press')->serving(fn (Panel $panel) => $panel->plugin(PressFilamentTheme::make())),
+Theme::make('press')
+    ->plugin(fn () => PressFilamentTheme::make())
+    ->serving(fn (Panel $panel) => $panel->brandName('The Daily')),
 ```
 
 How it runs:
@@ -267,7 +265,7 @@ How it runs:
 - Picking such a theme on the Appearance page, or leaving one, reloads the page instead of previewing it live, because the layout changes.
 - The panel is put back the way it was when the request ends, so on a server that keeps the app in memory between requests (Octane), the next request starts clean, whoever makes it and whatever their theme.
 
-The picker shows a theme's swatches before any request, so Nitpick also runs the callback once on a panel that is never served and takes the colours it sets: a plugin added there gives the theme its palette in the picker too. That run has no request and no signed-in user. A callback that needs one is reported to your log, and the theme keeps the colours given to it with `->colors()`.
+The picker shows a theme's swatches before any request, so Nitpick also runs the callback once on a panel that is never served and takes the colours it sets: a plugin added there gives the theme its swatches in the picker too. Filament's asset commands (`filament:assets`, `filament:upgrade`, `filament:install`) run it the same way, to publish the files a plugin added there brings. Those runs have no request and no signed-in user. A callback that needs one is reported to your log, and the theme keeps the swatches of the colours given to it with `->colors()`.
 
 ## Shipping a theme as a package
 

@@ -81,7 +81,7 @@ it('links the custom stylesheet after the theme', function (): void {
 
 it('links every stylesheet of a theme made of several files, in order', function (): void {
     Themes::register(
-        Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
+        Theme::make('slate')->stylesheets([SlateThemePlugin::path('slate.css'), 'https://fonts.example.com/slate.css', SlateThemePlugin::path('slate-corners.css')]),
     );
 
     $head = headFor(NitpickPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
@@ -93,18 +93,18 @@ it('links every stylesheet of a theme made of several files, in order', function
         ->and($head)->toMatch('/"slate":\{"hrefs":\["[^"]+packstub-theme-slate\.css[^"]*","https:\/\/fonts\.example\.com\/slate\.css","[^"]+packstub-theme-slate--3\.css[^"]*"\]/');
 });
 
-it('links a Vite theme from the app\'s build', function (): void {
+it('links a Vite entry from the app\'s build', function (): void {
     Vite::shouldReceive('asset')->with(TideThemePlugin::ENTRY)->andReturn('https://app.test/build/assets/theme-abc123.css');
 
-    Themes::register(Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()));
+    Themes::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
 
     $head = headFor(NitpickPlugin::make()->default('tide'));
 
     expect($head)->toContain('id="packstub-theme-active" href="https://app.test/build/assets/theme-abc123.css" data-packstub-theme="tide"');
 });
 
-it('still renders when a Vite theme has not been built yet', function (): void {
-    Themes::register(Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()));
+it('still renders when a Vite entry has not been built yet', function (): void {
+    Themes::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
 
     $head = headFor(NitpickPlugin::make()->default('tide'));
 

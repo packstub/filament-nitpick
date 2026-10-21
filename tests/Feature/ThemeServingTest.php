@@ -10,6 +10,7 @@ use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Tests\Fixtures\RailThemePlugin;
+use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
 use Packstub\Nitpick\Theme;
 use Packstub\Nitpick\Theme as BaseTheme;
 
@@ -45,6 +46,36 @@ it('configures the panel while the theme is active', function (): void {
         ->assertSee('fi-body-has-top-navigation', false);
 
     expect(RailThemePlugin::$booted)->toBeTrue();
+});
+
+it('adds a theme plugin to the panel while its theme is active', function (): void {
+    SlateThemePlugin::$booted = false;
+    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    $panel = Filament::getPanel('admin');
+    pluginFor('admin')->setUserTheme('slate');
+
+    $this->get($panel->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="slate">', false)
+        ->assertSee('vendor/slate-theme/slate-theme.css', false)
+        ->assertSee('vendor/slate-theme/slate-corners.css', false)
+        ->assertSee('--primary-500:'.Color::Slate[500], false)
+        ->assertSee('"slate":{"hrefs":[],"label":"Slate","mode":null,"reload":true}', false);
+
+    expect(SlateThemePlugin::$booted)->toBeTrue()
+        ->and($panel->getPlugins())->not->toHaveKey('slate-theme');
+});
+
+it('leaves a theme plugin off the panel while another theme is active', function (): void {
+    SlateThemePlugin::$booted = false;
+    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+
+    $this->get(Filament::getPanel('admin')->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertDontSee('vendor/slate-theme/', false);
+
+    expect(SlateThemePlugin::$booted)->toBeFalse();
 });
 
 it('puts the panel back once the request ends, so the next request starts clean (Octane)', function (): void {

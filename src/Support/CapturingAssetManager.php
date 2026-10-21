@@ -6,8 +6,8 @@ use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\AssetManager;
 
 /**
- * Stands in for Filament's asset manager while PluginCapture registers a
- * plugin, so assets the plugin registers for the whole app
+ * Stands in for Filament's asset manager while PluginCapture configures a
+ * scratch panel, so assets a plugin registers for the whole app
  * (FilamentAsset::register()) are read here and never load on every panel.
  */
 class CapturingAssetManager extends AssetManager

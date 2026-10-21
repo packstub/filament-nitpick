@@ -7,10 +7,14 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 ### Added
 
 - A theme can configure the panel while it is active: `Theme::make()->serving(fn (Panel $panel) => ...)`, or a theme class implementing `ConfiguresPanel`. Top navigation, fonts, render hooks, colours, and a styling plugin added to the panel itself, so themes like Press work as their docs describe. The colours set there also give the theme its swatches in the picker. Pages, resources and widgets added there are left out and reported, since their routes exist before the request. The panel is put back when the request ends, so Octane starts the next request clean. Picking such a theme, or leaving one, reloads the page instead of previewing it half-applied. ([#2](https://github.com/packstub/filament-nitpick/issues/2))
+- [For theme authors](docs/theme-authors.md): how to write a Filament theme plugin that works well in Nitpick, and how to join the picker as soon as both packages are installed.
+
+### Changed
+
+- `Theme::make()->plugin()` adds the theme plugin to the panel while its theme is active, instead of reading its palette and stylesheets from it, so the plugin styles the panel exactly as its own docs describe: fonts, render hooks, layout options and whatever its `boot()` does now come along, and Tailwind-built plugins need nothing extra. While another theme is active, the plugin is not on the panel, so assets and render hooks it registers for the whole app no longer load on every panel and every theme. Its colours still give the theme its swatches in the picker, and `filament:assets` and `filament:upgrade` still publish its files. Picking such a theme, or leaving one, now reloads the page instead of previewing it live. A plugin's stylesheets are no longer returned by the theme's `getStylesheets()`, nor its colours by `getColors()`.
 
 ### Fixed
 
-- A theme plugin given to `Theme::make()->plugin()` that registers assets or render hooks for the whole app (`FilamentAsset::register()`, `FilamentView::registerRenderHook()`) no longer loads them on every panel and every theme. Its stylesheets become the theme's own, its other assets are still published by `filament:assets`, and its render hooks stay behind (add the plugin from `->serving()` to keep them).
 - Picking a theme keeps its preferred light/dark mode after a reload on Filament 5.10.2 and later, which stores the mode under `filament:theme:mode` instead of `theme`. Both keys are written, so earlier 5.x releases keep working.
 
 ## 1.0.0-beta.1 — 2026-10-20

@@ -27,7 +27,7 @@ A theme declares the light/dark mode it is designed for. While the theme is acti
 
 ## Themes from the Filament plugin directory
 
-The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. A theme plugin that styles a panel with a palette and CSS files can sit in the picker beside the bundled ones, so a panel offers as many looks as you care to install.
+The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. Any of them can sit in the picker beside the bundled ones, so a panel offers as many looks as you care to install.
 
 Install the theme's package the way its own docs describe, then hand its plugin to a theme:
 
@@ -42,11 +42,12 @@ Themes::register(
 );
 ```
 
-Run `php artisan filament:assets` and the theme is registered like any other: a panel can make it the default, offer it to users, and preview it live in the picker.
+Run `php artisan filament:assets` and the theme is registered like any other: a panel can make it the default and offer it to users.
 
-- The palette and every stylesheet the plugin would give a panel are read from it. There is nothing to copy or merge, and an update of the theme's package is picked up the next time assets are published or built.
-- The theme's own plugin stays off the panel: it would restyle the panel for everyone, and here it is one choice among several.
+- The plugin joins the panel while its theme is active, and only then, so it styles the panel exactly as its own docs describe: palette, stylesheets, fonts, render hooks, layout. While another theme is active, nothing of it is on the page.
+- Do not add the plugin to the panel as well: the theme takes its place.
 - Configure the plugin the way its docs say, inside the closure (`NoreviqThemePlugin::make()->corners(...)`), and the theme follows.
+- The picker shows the theme's swatches from the plugin's colours. Picking it reloads the page, so the panel is built with the plugin from the start.
 - Register as many as you like, one `Theme::make()` each, and add `->label()` or `->description()` for the text on its card.
 
 ### Example: installing an open-source theme
@@ -111,7 +112,7 @@ Themes::register(
 );
 ```
 
-The Vite theme the plugin would set on a panel is read from it along with its palette, so that is all.
+The plugin sets its Vite theme on the panel while it is active, so that is all.
 
 **A theme imported into a Filament theme file.** [Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme), by Andréia Bohner, asks for an `@import` in a custom Filament theme. Give it a file of its own, so it is compiled apart from your panel's stylesheet:
 
@@ -149,22 +150,23 @@ Themes::register(
 
 A package like this may style every panel from its service provider. To keep those rules to its own theme, save them as a CSS file, pass it to `->stylesheet()`, and list the package under `extra.laravel.dont-discover` in `composer.json`.
 
-### A theme that configures its panel
+### A theme that changes the layout
 
-Some theme plugins set more than colours and stylesheets: [Press](https://filamentphp.com/plugins/elemind-press-filament-theme), by Elemind, moves navigation into a top rail and sets a prebuilt Filament theme when its plugin boots. Add such a plugin to the panel from `->serving()`, and it does all of that while its theme is active:
+Some theme plugins set more than colours and stylesheets: [Press](https://filamentphp.com/plugins/elemind-press-filament-theme), by Elemind, moves navigation into a top rail and sets a prebuilt Filament theme when its plugin boots. `->plugin()` covers that too, since the plugin is on the panel while its theme is active:
 
 ```php
 use Elemind\PressFilamentTheme\PressFilamentTheme;
-use Filament\Panel;
 
 Themes::register(
     Theme::make('press')
         ->description('An editorial look with navigation along the top. Open source, by Elemind.')
-        ->serving(fn (Panel $panel) => $panel->plugin(PressFilamentTheme::make())),
+        ->plugin(fn () => PressFilamentTheme::make()),
 );
 ```
 
-The same works for a theme that styles the panel from render hooks, like [DaisyUI Themes](https://filamentphp.com/plugins/osama-nagi-daisyui-themes). Picking one of these themes reloads the page. [Configuring the panel](creating-a-theme.md#configuring-the-panel) has the details, and what cannot be added this way.
+The same goes for a theme that styles the panel from render hooks, like [DaisyUI Themes](https://filamentphp.com/plugins/osama-nagi-daisyui-themes). To change the panel further while the theme is active (top navigation, a font of your own), add `->serving()`; [Configuring the panel](creating-a-theme.md#configuring-the-panel) has the details, and what cannot be added this way.
+
+Building a theme plugin of your own? [For theme authors](theme-authors.md) has the habits that make it work well here.
 
 ## Offering themes on a panel
 

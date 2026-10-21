@@ -4,6 +4,8 @@ namespace Packstub\Nitpick;
 
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Support\Facades\Event;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 use Packstub\Nitpick\Stores\DatabaseThemePreferenceStore;
 use Packstub\Nitpick\Stores\SessionThemePreferenceStore;
@@ -16,6 +18,15 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 class NitpickServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'nitpick';
+
+    /**
+     * Filament's commands that publish assets: filament:upgrade (run by
+     * Composer after every update) and filament:install call filament:assets
+     * from inside, where no event marks it.
+     *
+     * @var array<int, string>
+     */
+    public const PUBLISHING_COMMANDS = ['filament:assets', 'filament:upgrade', 'filament:install'];
 
     public function configurePackage(Package $package): void
     {
@@ -53,5 +64,13 @@ class NitpickServiceProvider extends PackageServiceProvider
         FilamentAsset::register([
             Css::make('nitpick', __DIR__.'/../resources/css/nitpick.css'),
         ], package: ThemeManager::ASSET_PACKAGE);
+
+        // A theme's plugin joins the panel only while the theme is active, so its assets are
+        // handed to Filament's publishing commands here.
+        Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+            if (in_array($event->command, static::PUBLISHING_COMMANDS, true)) {
+                $this->app->make(ThemeManager::class)->registerPanelAssets();
+            }
+        });
     }
 }

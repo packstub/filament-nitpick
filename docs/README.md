@@ -37,7 +37,8 @@ Themes::register(
 | [Installation](installation.md) | Requirements, the install command, publishing assets, registering the plugin |
 | [Themes](themes.md) | The bundled themes, themes from the Filament plugin directory (a step-by-step example, Vite-built themes), offering themes per panel, the default and the tenant hook |
 | [User preferences](user-preferences.md) | The Appearance page, the `ThemePicker` field, storage, reading and writing a choice from code |
-| [Creating a theme](creating-a-theme.md) | The `Theme` contract, palettes, stylesheets, preferred mode, `Theme::make()` for a theme without a class file, themes from the Filament plugin directory, shipping a theme as a package |
+| [Creating a theme](creating-a-theme.md) | The `Theme` contract, palettes, stylesheets, preferred mode, `Theme::make()` for a theme without a class file, themes from the Filament plugin directory, configuring the panel, shipping a theme as a package |
+| [For theme authors](theme-authors.md) | Writing a Filament theme plugin that works well in Nitpick: configuring the panel you are given, colours in `register()`, publishing assets, joining the picker on install |
 | [Configuration](configuration.md) | The fluent `NitpickPlugin` API, the config file, colour overrides, custom CSS and forced mode, events |
 
 ## At a glance
