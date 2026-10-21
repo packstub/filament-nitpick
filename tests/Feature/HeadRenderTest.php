@@ -149,7 +149,7 @@ it('renders the transition cover ahead of the body, and a pick that reloads leav
         ->toContain('<style id="nitpick-cover">html[data-nitpick-cover]::after {')
         ->toContain("var note = 'nitpick:cover';")
         ->toContain('sessionStorage.setItem(note,')
-        ->toContain('pick: function (slug) {')
+        ->toContain('pick: function (slug, options) {')
         ->toContain('reload: function () {')
         // The cover's shape animates only its transform or opacity, off the main thread; nothing is
         // painted through variables on <html>, which every element would inherit on every frame.
@@ -172,7 +172,7 @@ it('holds the panel\'s own transitions while a swap runs, so the reveal shows th
     expect($head)
         ->toContain('html[data-nitpick-still] *, html[data-nitpick-still] *::before, html[data-nitpick-still] *::after { transition: none !important; }')
         // On a live pick: from the theme change until the cover is gone.
-        ->toMatch('/still\(true\);\s+var changed = apply\(slug\);/')
+        ->toMatch('/still\(true\);\s+var target = swap.slug;\s+var changed = apply\(target\);/')
         ->toContain('return animate(name, false).then(function () { still(false); });')
         // On a page a pick reloaded: from the first paint until the cover is gone.
         ->toMatch('/return reveal \? animate\(reveal, false\) : null;\s+\}\)\s+\.then\(function \(\) \{ still\(false\); \}\);/');
@@ -188,4 +188,15 @@ it('reveals the new theme only once the page has stopped changing under the cove
         ->toContain('var whole = Promise.all([started, reopened, fontsReady()]);')
         ->toContain('if (reloaded.reopen) { reopened = started.then(reopenPicker); }')
         ->toContain('.then(function () { return settled(120, 700); })');
+});
+
+it('changes the running swap\'s theme on a second pick instead of covering the panel again', function (): void {
+    expect(headFor(NitpickPlugin::make()->picker()))
+        ->toContain('if (swap) { swap.slug = slug; return true; }')
+        ->toContain('if (swap.slug !== target) { return change(); }');
+});
+
+it('covers a theme that needs a page load only when a reload follows the pick', function (): void {
+    expect(headFor(NitpickPlugin::make()->picker()))
+        ->toContain('if (needsReload(slug) && ! (options && options.reload)) { return this.preview(slug); }');
 });

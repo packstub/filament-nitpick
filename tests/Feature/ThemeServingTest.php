@@ -153,7 +153,8 @@ it('marks the themes that configure the panel in the preview manifest', function
         ->assertSee('"rail":{"hrefs":[],"label":"Rail","mode":null,"reload":true}', false)
         ->assertSee('"reload":false', false)
         // The live preview stops at the light/dark mode for such a theme, or when leaving one.
-        ->assertSee('if (theme.reload || (active && active.reload))', false);
+        ->assertSee('return !! (manifest.themes[slug].reload || (active && active.reload));', false)
+        ->assertSee('if (needsReload(slug)) {', false);
 });
 
 it('reloads the page when a pick enters or leaves such a theme', function (): void {

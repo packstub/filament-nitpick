@@ -684,13 +684,18 @@ class NitpickPlugin implements Plugin
                     }
                 }
 
+                // Whether changing to a theme takes a page load: it, or the active one, configures the panel.
+                function needsReload(slug) {
+                    var active = manifest.themes[html.getAttribute('data-packstub-theme')];
+                    return !! (manifest.themes[slug].reload || (active && active.reload));
+                }
+
                 // Points the head at a theme. Returns the stylesheet links it changed, or null for a
                 // theme that configures the panel: it shows only after a page load (the picker reloads
                 // once the pick is saved), so only its light/dark mode is taken now.
                 function apply(slug) {
                     var theme = manifest.themes[slug];
-                    var active = manifest.themes[html.getAttribute('data-packstub-theme')];
-                    if (theme.reload || (active && active.reload)) {
+                    if (needsReload(slug)) {
                         applyMode(theme.mode);
                         return null;
                     }
@@ -964,6 +969,7 @@ class NitpickPlugin implements Plugin
 
                 var covered = null;
                 var uncover = null;
+                var swap = null;
 
                 window.PackstubThemes = {
                     current: function () { return html.getAttribute('data-packstub-theme'); },
@@ -975,16 +981,30 @@ class NitpickPlugin implements Plugin
                         if (! manifest || ! manifest.themes[slug]) { return false; }
                         return apply(slug) !== null;
                     },
-                    // Changes the theme with the panel's transition: cover, change, lift.
-                    pick: function (slug) {
+                    // Changes the theme with the panel's transition: cover, change, lift. A theme that shows
+                    // only after a page load is covered only when a reload() follows ({ reload: true }, as the
+                    // picker passes when it saves the pick); otherwise only its light/dark mode is taken, as
+                    // in preview(). A pick while the cover is up changes the running swap's theme instead of
+                    // starting another cover over it.
+                    pick: function (slug, options) {
                         var name = this.transition();
                         if (! name || ! manifest || ! manifest.themes[slug]) { return this.preview(slug); }
+                        if (swap) { swap.slug = slug; return true; }
+                        if (needsReload(slug) && ! (options && options.reload)) { return this.preview(slug); }
+                        swap = { slug: slug };
                         coverColor = colorFor(manifest.themes[slug].mode);
                         covered = animate(name, true);
-                        covered.then(function () {
+                        covered.then(function change() {
                             still(true);
-                            var changed = apply(slug);
-                            var lift = function () { covered = null; return animate(name, false).then(function () { still(false); }); };
+                            var target = swap.slug;
+                            var changed = apply(target);
+                            var lift = function () {
+                                // Picked again under the cover: change to that theme before lifting.
+                                if (swap.slug !== target) { return change(); }
+                                swap = null;
+                                covered = null;
+                                return animate(name, false).then(function () { still(false); });
+                            };
                             if (changed === null) {
                                 // The picker calls reload() once the pick is saved; lift the cover if it never does.
                                 uncover = setTimeout(lift, 5000);

@@ -40,6 +40,16 @@ it('saves the theme as soon as it is picked', function (): void {
     expect(ThemePreference::query()->where('user_id', $this->user->id)->value('theme_id'))->toBe('midnight');
 });
 
+it('asks a pick for a reload only when the picker saves it', function (): void {
+    $this->get(Appearance::getUrl())
+        ->assertSee('window.PackstubThemes.pick(\'midnight\', { reload: true })', false);
+
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->persist(false));
+
+    $this->get(Appearance::getUrl())
+        ->assertSee('window.PackstubThemes.pick(\'midnight\', { reload: false })', false);
+});
+
 it('is closed when user selection is turned off', function (): void {
     config()->set('nitpick-test.selectable', false);
 

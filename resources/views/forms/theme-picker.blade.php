@@ -6,6 +6,7 @@
     $isDisabled = $isDisabled();
     $hasDescriptions = $hasDescriptions();
     $hasSwatches = $hasSwatches();
+    $shouldPersist = $shouldPersist();
 @endphp
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
@@ -29,7 +30,7 @@
                     name="{{ $statePath }}"
                     value="{{ $id }}"
                     x-model="state"
-                    x-on:change="window.PackstubThemes && window.PackstubThemes.pick(@js($id))"
+                    x-on:change="window.PackstubThemes && window.PackstubThemes.pick(@js($id), { reload: @js($shouldPersist) })"
                     @disabled($isDisabled)
                     class="pst-theme-option-input"
                 />

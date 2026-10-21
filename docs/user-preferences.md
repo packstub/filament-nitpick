@@ -119,7 +119,7 @@ NitpickPlugin::make()->picker(transition: Transition::Sweep)
 NitpickPlugin::make()->picker(transition: false)   // change the theme at once
 ```
 
-`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null` for none). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.PackstubThemes.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice).
+`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null` for none). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.PackstubThemes.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice). A theme that configures the panel shows only after a page load, so `pick()` covers the panel for it only when you pass `{ reload: true }` and call `window.PackstubThemes.reload()` once your code has saved the choice; without it, only the theme's light/dark mode changes, as with `preview()`.
 
 ## Reading and writing a choice from code
 
