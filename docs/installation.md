@@ -46,13 +46,13 @@ public function panel(Panel $panel): Panel
         ->plugin(
             NitpickPlugin::make()
                 ->default('aurora')
-                ->userSelectable(),
+                ->picker(),
         );
 }
 ```
 
 - `->default()` is the theme people see until they pick one. It falls back to the `default` config key, then to the first offered theme.
-- `->userSelectable()` adds the **Appearance** page and its user-menu link. Leave it out for a fixed look.
+- `->picker()` lets each user pick their theme, from a modal in the user menu or the **Appearance** page. Leave it out for a fixed look.
 
 Register the plugin on every panel that should be themed. Each panel keeps its own offer, default and user choices.
 

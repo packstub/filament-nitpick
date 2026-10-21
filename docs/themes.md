@@ -209,7 +209,7 @@ Each panel registers its own plugin instance, with its own offer and default:
 
 ```php
 // Admin panel
-->plugin(NitpickPlugin::make()->default(Midnight::class)->userSelectable())
+->plugin(NitpickPlugin::make()->default(Midnight::class)->picker())
 
 // Customer panel
 ->plugin(NitpickPlugin::make()->themes([Aurora::class])->default(Aurora::class))

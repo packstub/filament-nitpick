@@ -3,10 +3,28 @@
 use Filament\Enums\ThemeMode;
 use Filament\Panel;
 use Filament\Support\Colors\Color;
+use Packstub\Nitpick\Enums\Transition;
+use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
+use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\Ocean;
 use Packstub\Nitpick\Themes\Aurora;
 use Packstub\Nitpick\Themes\Midnight;
+
+class CustomAppearance extends Appearance
+{
+    protected static ?string $slug = 'my-appearance';
+}
+
+/**
+ * The user-menu items the panel was given, without building Filament's own (they need a user).
+ *
+ * @return array<string, mixed>
+ */
+function userMenuItemsOf(Panel $panel): array
+{
+    return array_merge(...(fn (): array => $this->userMenuItemGroups)->call($panel));
+}
 
 function registerOn(NitpickPlugin $plugin, string $id = 'test'): Panel
 {
@@ -123,4 +141,49 @@ it('resolves the custom stylesheet from the plugin, then config', function (): v
     expect(NitpickPlugin::make()->getCustomCss())->toBe('css/from-config.css')
         ->and(NitpickPlugin::make()->customCss('css/mine.css')->getCustomCss())->toBe('css/mine.css')
         ->and(NitpickPlugin::make()->customCss(null)->getCustomCss())->toBeNull();
+});
+
+it('turns the picker on with picker(), and keeps what an earlier call set', function (): void {
+    expect(NitpickPlugin::make()->hasPicker())->toBeFalse()
+        ->and(NitpickPlugin::make()->picker()->hasPicker())->toBeTrue()
+        ->and(NitpickPlugin::make()->picker(condition: fn (): bool => false)->hasPicker())->toBeFalse();
+
+    $plugin = NitpickPlugin::make()
+        ->picker(condition: fn (): bool => false, modal: false, page: CustomAppearance::class, transition: Transition::Sweep)
+        ->picker(fn (ThemePicker $picker) => $picker->descriptions());
+
+    expect($plugin->hasPicker())->toBeFalse()
+        ->and($plugin->hasPickerModal())->toBeFalse()
+        ->and($plugin->getPickerPage())->toBe(CustomAppearance::class)
+        ->and($plugin->getTransition())->toBe(Transition::Sweep)
+        ->and($plugin->configurePicker(ThemePicker::make('theme'))->hasDescriptions())->toBeTrue();
+});
+
+it('registers the picker page and leaves the user-menu item out on request', function (): void {
+    $panel = registerOn(NitpickPlugin::make()->picker(userMenuItem: false, page: CustomAppearance::class));
+
+    expect($panel->getPages())->toContain(CustomAppearance::class)
+        ->and(userMenuItemsOf($panel))->not->toHaveKey('nitpick-appearance')
+        ->and(userMenuItemsOf(registerOn(NitpickPlugin::make()->picker())))->toHaveKey('nitpick-appearance');
+});
+
+it('turns the transition off with false, from the picker or the config', function (): void {
+    expect(NitpickPlugin::make()->picker(transition: false)->getTransition())->toBeNull()
+        ->and(NitpickPlugin::make()->picker()->getTransition())->toBe(Transition::Fade);
+
+    config()->set('nitpick.transition', null);
+
+    expect(NitpickPlugin::make()->picker()->getTransition())->toBeNull()
+        ->and(NitpickPlugin::make()->picker(transition: 'slide')->getTransition())->toBe(Transition::Slide);
+});
+
+it('keeps the beta names working: userSelectable(), appearancePage() and their getters', function (): void {
+    $plugin = NitpickPlugin::make()->userSelectable()->appearancePage(CustomAppearance::class);
+
+    expect($plugin->isUserSelectable())->toBeTrue()
+        ->and($plugin->hasPicker())->toBeTrue()
+        ->and($plugin->getAppearancePage())->toBe(CustomAppearance::class)
+        ->and(NitpickPlugin::make()->userSelectable(false)->hasPicker())->toBeFalse();
+
+    expect(userMenuItemsOf(registerOn(NitpickPlugin::make()->userSelectable(userMenuItem: false))))->not->toHaveKey('nitpick-appearance');
 });

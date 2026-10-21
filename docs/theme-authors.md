@@ -135,7 +135,7 @@ public function packageBooted(): void
 
 ## Check it
 
-In an app with Nitpick installed and `->userSelectable()` on the panel:
+In an app with Nitpick installed and `->picker()` on the panel:
 
 1. Register your theme with `Theme::make()->plugin()` and run `php artisan filament:assets`.
 2. Open the Appearance page: your theme's card shows its swatches.

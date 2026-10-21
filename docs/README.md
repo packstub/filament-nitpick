@@ -55,7 +55,7 @@ use Packstub\Nitpick\NitpickPlugin;
 $panel->plugin(
     NitpickPlugin::make()
         ->default('aurora')
-        ->userSelectable(),
+        ->picker(),
 );
 ```
 

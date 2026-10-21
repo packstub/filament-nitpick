@@ -36,7 +36,7 @@ Themes::register(
 - **[Two bundled themes](#the-bundled-themes)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
 - **[Themes from the plugin directory](#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker. Ready-made CSS and Vite-built themes alike.
 - **[A theme per panel](#a-theme-per-panel)**: each panel picks its themes and default; the default can follow the workspace.
-- **[A theme per user](#a-theme-per-user)**: an Appearance page where each person picks their theme, previewed instantly.
+- **[A theme per user](#a-theme-per-user)**: an Appearance modal in the user menu where each person picks their theme, with a fade, slide or sweep as it changes.
 - **[Write your own](#writing-a-theme)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline, and `->panel()` lets it configure the panel (top navigation, fonts) while it is active.
 - **[Fits your brand](#colour-overrides-and-custom-css)**: your colours and CSS on top of any theme.
 - **Dark mode and translations**: both bundled themes have a dark variant; every string lives in a language file.
@@ -67,7 +67,7 @@ public function panel(Panel $panel): Panel
         ->plugin(
             NitpickPlugin::make()
                 ->default('aurora')
-                ->userSelectable(),
+                ->picker(),
         );
 }
 ```
@@ -153,16 +153,16 @@ Register the plugin on every panel that should be themed. Each has its own offer
 ## A theme per user
 
 ```php
-NitpickPlugin::make()->userSelectable()
+NitpickPlugin::make()->picker()
 ```
 
 ![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/appearance.png)
 
 Turning this on:
 
-- registers an **Appearance** page (`/appearance`) and links it from the user menu;
+- adds an **Appearance** item to the user menu that opens the picker in a modal of fixed width and columns, and registers an Appearance page (`/appearance`) with the same picker;
 - saves each user's choice for this panel in the `theme_preferences` table (or the session, see [Configuration](#configuration));
-- lets the picker preview a theme the moment it is clicked, no reload (a theme that changes the layout reloads the page).
+- changes the theme the moment a card is clicked, behind a short fade (`->picker(transition: Transition::Slide)`, `Transition::Sweep`, or `false` for none). A theme that changes the layout reloads the page under the same cover, and the modal opens again.
 
 ![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/user-menu.png)
 
