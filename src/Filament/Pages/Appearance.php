@@ -11,7 +11,7 @@ use Packstub\Nitpick\NitpickPlugin;
 
 /**
  * Where a user picks the theme they see in this panel. Registered by the
- * plugin when ->userSelectable() is on and linked from the user menu.
+ * plugin when ->picker() is on and linked from the user menu.
  */
 class Appearance extends Page
 {
@@ -43,7 +43,7 @@ class Appearance extends Page
 
     public static function canAccess(): bool
     {
-        return parent::canAccess() && NitpickPlugin::get()->isUserSelectable();
+        return parent::canAccess() && NitpickPlugin::get()->hasPicker();
     }
 
     public function mount(): void

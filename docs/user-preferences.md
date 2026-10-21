@@ -1,10 +1,10 @@
 # User preferences
 
 ```php
-NitpickPlugin::make()->userSelectable()
+NitpickPlugin::make()->picker()
 ```
 
-With user selection on, each signed-in user can choose the theme they see in that panel. The choice is theirs alone, saved for that panel, and applied on every device they sign in from (with the database store).
+With the picker on, each signed-in user can choose the theme they see in that panel. The choice is theirs alone, saved for that panel, and applied on every device they sign in from (with the database store).
 
 ## The Appearance modal and page
 
@@ -13,7 +13,7 @@ The **Appearance** item in the user menu opens the picker in a modal: one card p
 The plugin also registers an **Appearance** page at `/{panel}/appearance`, with the same picker, for a link of your own. To have the user menu link the page instead of opening the modal:
 
 ```php
-NitpickPlugin::make()->userSelectable()->appearanceModal(false)
+NitpickPlugin::make()->picker(modal: false)
 ```
 
 ![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/appearance.png)
@@ -23,7 +23,7 @@ NitpickPlugin::make()->userSelectable()->appearanceModal(false)
 Hide the menu item and link the page from somewhere else:
 
 ```php
-NitpickPlugin::make()->userSelectable(userMenuItem: false)
+NitpickPlugin::make()->picker(userMenuItem: false)
 ```
 
 Replace the page with your own subclass:
@@ -36,7 +36,7 @@ class ChooseYourLook extends Appearance
     protected static ?string $slug = 'look';
 }
 
-NitpickPlugin::make()->userSelectable()->appearancePage(ChooseYourLook::class)
+NitpickPlugin::make()->picker(page: ChooseYourLook::class)
 ```
 
 Configure the picker in the modal and on the page the way you would your own `ThemePicker` field (see [below](#cards-descriptions-and-swatches)):
@@ -44,12 +44,16 @@ Configure the picker in the modal and on the page the way you would your own `Th
 ```php
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 
-NitpickPlugin::make()
-    ->userSelectable()
-    ->picker(fn (ThemePicker $picker) => $picker->descriptions())
+NitpickPlugin::make()->picker(fn (ThemePicker $picker) => $picker->descriptions())
 ```
 
-Access follows the panel's own rules plus one more: the page returns 403 when user selection is off, so a `->userSelectable(fn () => ...)` closure can gate it per user.
+Access follows the panel's own rules plus one more: the page returns 403 when the picker is off, so a `condition` closure can gate it per user:
+
+```php
+NitpickPlugin::make()->picker(condition: fn (): bool => auth()->user()->isStaff())
+```
+
+Every argument of `picker()` is optional, and one you leave out keeps what an earlier call set, so `->picker(modal: false)` after `->picker(fn ...)` keeps the configured cards.
 
 ## The `ThemePicker` field
 
@@ -111,11 +115,11 @@ A pick runs in two steps: a cover, black or white for the light/dark mode the ne
 ```php
 use Packstub\Nitpick\Enums\Transition;
 
-NitpickPlugin::make()->userSelectable()->transition(Transition::Sweep)
-NitpickPlugin::make()->userSelectable()->transition(null)   // change the theme at once
+NitpickPlugin::make()->picker(transition: Transition::Sweep)
+NitpickPlugin::make()->picker(transition: false)   // change the theme at once
 ```
 
-`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null`). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.PackstubThemes.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice).
+`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null` for none). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.PackstubThemes.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice).
 
 ## Reading and writing a choice from code
 

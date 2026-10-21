@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugin(
                 NitpickPlugin::make()
-                    ->userSelectable(fn (): bool => config('nitpick-test.selectable', true)),
+                    ->picker(condition: fn (): bool => config('nitpick-test.selectable', true)),
             );
     }
 }

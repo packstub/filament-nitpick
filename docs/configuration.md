@@ -11,12 +11,14 @@ use Packstub\Nitpick\NitpickPlugin;
 NitpickPlugin::make()
     ->themes([...])                              // what this panel offers; ids, classes, instances or a closure
     ->default('aurora')                          // id, class, instance or a closure
-    ->userSelectable()                           // Appearance page + user-menu link; bool or closure
-    ->userSelectable(userMenuItem: false)        // page only
-    ->appearancePage(MyAppearance::class)        // your subclass of the page
-    ->appearanceModal(false)                     // the user menu links the Appearance page instead of opening the modal
-    ->picker(fn (ThemePicker $picker) => $picker->descriptions()) // configure the picker in the modal and on the page
-    ->transition(Transition::Sweep)              // the swap animation: Fade (default), Slide, Sweep, or null
+    ->picker(                                    // each user picks their theme: the Appearance modal and page
+        using: fn (ThemePicker $picker) => $picker->descriptions(), // configure the cards in the modal and on the page
+        condition: fn (): bool => true,          // bool or closure: who gets the picker
+        modal: false,                            // the user menu links the Appearance page instead of opening the modal
+        userMenuItem: false,                     // no user-menu item: the page only
+        page: MyAppearance::class,               // your subclass of the page
+        transition: Transition::Sweep,           // the swap animation: Fade (default), Slide, Sweep, or false for none
+    )
     ->colors(['primary' => Color::Indigo])       // slots applied on top of every theme
     ->customCss('css/admin-overrides.css')       // loaded after the theme's stylesheet
     ->forceMode(ThemeMode::Dark)                 // ignore the theme's preferred mode; null hands it back

@@ -113,7 +113,7 @@ it('opens the picker in a modal from the user menu, in fixed columns', function 
 });
 
 it('links the Appearance page instead when the modal is turned off', function (): void {
-    pluginFor('admin')->appearanceModal(false);
+    pluginFor('admin')->picker(modal: false);
 
     $item = collect(Filament::getPanel('admin')->getUserMenuItems())->flatten()
         ->first(fn ($item): bool => $item->getName() === 'nitpick-appearance');

@@ -50,18 +50,18 @@ class NitpickPlugin implements Plugin
 
     protected bool $hasCustomCss = false;
 
-    protected bool|Closure $userSelectable = false;
+    protected bool $hasPicker = false;
+
+    protected bool|Closure $pickerCondition = true;
 
     protected bool $userMenuItem = true;
 
-    protected bool|Closure $appearanceModal = true;
+    protected bool|Closure $pickerModal = true;
 
-    protected Transition|string|Closure|null $transition = null;
-
-    protected bool $hasTransition = false;
+    protected Transition|string|Closure|false|null $transition = null;
 
     /** @var class-string<Appearance> */
-    protected string $appearancePage = Appearance::class;
+    protected string $pickerPage = Appearance::class;
 
     protected ?Closure $configurePicker = null;
 
@@ -155,74 +155,74 @@ class NitpickPlugin implements Plugin
 
     /**
      * Let each user pick their own theme for this panel: adds the Appearance
-     * page, a user-menu link to it, and live preview in the picker.
-     */
-    public function userSelectable(bool|Closure $condition = true, bool $userMenuItem = true): static
-    {
-        $this->userSelectable = $condition;
-        $this->userMenuItem = $userMenuItem;
-
-        return $this;
-    }
-
-    /**
-     * @param  class-string<Appearance>  $page
-     */
-    public function appearancePage(string $page): static
-    {
-        $this->appearancePage = $page;
-
-        return $this;
-    }
-
-    /**
-     * Open the picker in a modal from the user menu (the default), rather
-     * than link the Appearance page. The modal has a fixed width and fixed
+     * page and a user-menu item that opens the picker in a modal. Every
+     * argument is optional, and one left out keeps what an earlier call set:
+     *
+     *     ->picker()                                                     // on
+     *     ->picker(fn (ThemePicker $picker) => $picker->descriptions())  // on, the cards configured
+     *     ->picker(condition: fn (): bool => auth()->user()->isStaff())  // on for some users
+     *     ->picker(modal: false)                                         // the menu item links to the page
+     *     ->picker(userMenuItem: false)                                  // no menu item: the page only
+     *     ->picker(page: MyAppearance::class)                            // your own page
+     *     ->picker(transition: Transition::Sweep)                        // the swap animation, or false for none
+     *
+     * $using configures the picker on the page and in the modal, the way you
+     * would your own ThemePicker field. The modal has a fixed width and fixed
      * columns, so it stays put while a theme changes the panel's layout
-     * around it; the page stays registered for direct links.
+     * around it. The transition defaults to the config's (Transition::Fade).
+     *
+     * @param  class-string<Appearance> | null  $page
      */
-    public function appearanceModal(bool|Closure $condition = true): static
-    {
-        $this->appearanceModal = $condition;
+    public function picker(
+        ?Closure $using = null,
+        bool|Closure|null $condition = null,
+        bool|Closure|null $modal = null,
+        ?bool $userMenuItem = null,
+        ?string $page = null,
+        Transition|string|Closure|false|null $transition = null,
+    ): static {
+        $this->hasPicker = true;
+        $this->configurePicker = $using ?? $this->configurePicker;
+        $this->pickerCondition = $condition ?? $this->pickerCondition;
+        $this->pickerModal = $modal ?? $this->pickerModal;
+        $this->userMenuItem = $userMenuItem ?? $this->userMenuItem;
+        $this->pickerPage = $page ?? $this->pickerPage;
+        $this->transition = $transition ?? $this->transition;
 
         return $this;
     }
 
-    public function hasAppearanceModal(): bool
+    public function hasPicker(): bool
     {
-        return (bool) value($this->appearanceModal);
+        return $this->hasPicker && (bool) value($this->pickerCondition);
+    }
+
+    public function hasPickerModal(): bool
+    {
+        return (bool) value($this->pickerModal);
     }
 
     /**
-     * The animation when someone picks a theme: Transition::Fade (the
-     * default), Transition::Slide, Transition::Sweep, or null for none.
+     * @return class-string<Appearance>
      */
-    public function transition(Transition|string|Closure|null $transition): static
+    public function getPickerPage(): string
     {
-        $this->transition = $transition;
-        $this->hasTransition = true;
-
-        return $this;
+        return $this->pickerPage;
     }
 
+    /**
+     * The swap animation: the picker's, else the config's, else
+     * Transition::Fade; null for none.
+     */
     public function getTransition(): ?Transition
     {
-        $transition = $this->hasTransition ? value($this->transition) : config('nitpick.transition', Transition::Fade->value);
+        $transition = $this->transition !== null ? value($this->transition) : config('nitpick.transition', Transition::Fade->value);
+
+        if ($transition === false || $transition === null || $transition === 'none') {
+            return null;
+        }
 
         return is_string($transition) ? Transition::from($transition) : $transition;
-    }
-
-    /**
-     * Configure the theme picker on the Appearance page and in the modal, the way you would
-     * your own ThemePicker field:
-     *
-     *     ->picker(fn (ThemePicker $picker) => $picker->descriptions())
-     */
-    public function picker(?Closure $callback): static
-    {
-        $this->configurePicker = $callback;
-
-        return $this;
     }
 
     public function configurePicker(ThemePicker $picker): ThemePicker
@@ -232,6 +232,24 @@ class NitpickPlugin implements Plugin
         }
 
         return $picker;
+    }
+
+    /**
+     * @deprecated Use picker(): userSelectable() is picker(condition: $condition, userMenuItem: $userMenuItem). Removed in 1.0.
+     */
+    public function userSelectable(bool|Closure $condition = true, bool $userMenuItem = true): static
+    {
+        return $this->picker(condition: $condition, userMenuItem: $userMenuItem);
+    }
+
+    /**
+     * @deprecated Use picker(page: $page). Removed in 1.0.
+     *
+     * @param  class-string<Appearance>  $page
+     */
+    public function appearancePage(string $page): static
+    {
+        return $this->picker(page: $page);
     }
 
     /**
@@ -321,7 +339,7 @@ class NitpickPlugin implements Plugin
 
     public function getUserTheme(?Authenticatable $user = null): ?Theme
     {
-        if (! $this->isUserSelectable()) {
+        if (! $this->hasPicker()) {
             return null;
         }
 
@@ -364,9 +382,12 @@ class NitpickPlugin implements Plugin
         event(new ThemeChanged($user, $this->getPanelId(), $resolved));
     }
 
+    /**
+     * @deprecated Use hasPicker(). Removed in 1.0.
+     */
     public function isUserSelectable(): bool
     {
-        return (bool) value($this->userSelectable);
+        return $this->hasPicker();
     }
 
     /**
@@ -417,11 +438,13 @@ class NitpickPlugin implements Plugin
     }
 
     /**
+     * @deprecated Use getPickerPage(). Removed in 1.0.
+     *
      * @return class-string<Appearance>
      */
     public function getAppearancePage(): string
     {
-        return $this->appearancePage;
+        return $this->getPickerPage();
     }
 
     public function getPanelId(): string
@@ -451,14 +474,14 @@ class NitpickPlugin implements Plugin
             $this->applyActiveTheme($panel, serving: true);
         });
 
-        $panel->pages([$this->appearancePage]);
+        $panel->pages([$this->pickerPage]);
 
         if ($this->userMenuItem) {
             $panel->userMenuItems([
                 'nitpick-appearance' => Action::make('nitpick-appearance')
                     ->label(fn (): string => __('nitpick::themes.appearance.title'))
                     ->icon(Heroicon::OutlinedSwatch)
-                    ->url(fn (): ?string => $this->hasAppearanceModal() ? null : $this->appearancePage::getUrl())
+                    ->url(fn (): ?string => $this->hasPickerModal() ? null : $this->pickerPage::getUrl())
                     ->modalHeading(fn (): string => __('nitpick::themes.appearance.title'))
                     ->modalDescription(fn (): string => __('nitpick::themes.appearance.subheading'))
                     ->modalWidth(Width::FiveExtraLarge)
@@ -467,7 +490,7 @@ class NitpickPlugin implements Plugin
                     ])
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel(fn (): string => __('nitpick::themes.appearance.close'))
-                    ->visible(fn (): bool => $this->isUserSelectable()),
+                    ->visible(fn (): bool => $this->hasPicker()),
             ]);
         }
 
@@ -514,7 +537,7 @@ class NitpickPlugin implements Plugin
     public function renderHead(): string
     {
         $theme = $this->getActiveTheme();
-        $selectable = $this->isUserSelectable();
+        $selectable = $this->hasPicker();
 
         $tags = [
             sprintf('<meta name="packstub-theme" content="%s">', e($theme->getId())),

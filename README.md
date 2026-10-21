@@ -67,7 +67,7 @@ public function panel(Panel $panel): Panel
         ->plugin(
             NitpickPlugin::make()
                 ->default('aurora')
-                ->userSelectable(),
+                ->picker(),
         );
 }
 ```
@@ -153,7 +153,7 @@ Register the plugin on every panel that should be themed. Each has its own offer
 ## A theme per user
 
 ```php
-NitpickPlugin::make()->userSelectable()
+NitpickPlugin::make()->picker()
 ```
 
 ![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/appearance.png)
@@ -162,7 +162,7 @@ Turning this on:
 
 - adds an **Appearance** item to the user menu that opens the picker in a modal of fixed width and columns, and registers an Appearance page (`/appearance`) with the same picker;
 - saves each user's choice for this panel in the `theme_preferences` table (or the session, see [Configuration](#configuration));
-- changes the theme the moment a card is clicked, behind a short fade (`->transition(Transition::Slide)`, `Transition::Sweep`, or `null` for none). A theme that changes the layout reloads the page under the same cover, and the modal opens again.
+- changes the theme the moment a card is clicked, behind a short fade (`->picker(transition: Transition::Slide)`, `Transition::Sweep`, or `false` for none). A theme that changes the layout reloads the page under the same cover, and the modal opens again.
 
 ![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/user-menu.png)
 

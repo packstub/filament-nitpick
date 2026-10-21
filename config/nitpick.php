@@ -71,7 +71,8 @@ return [
 
     /*
     | The animation when someone picks a theme: "fade", "slide", "sweep" or
-    | null for none. Skipped for visitors who prefer reduced motion.
+    | null for none; ->picker(transition: ...) sets it per panel. Skipped
+    | for visitors who prefer reduced motion.
     */
 
     'transition' => 'fade',

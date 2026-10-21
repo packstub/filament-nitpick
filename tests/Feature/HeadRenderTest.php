@@ -39,7 +39,7 @@ it('renders no stylesheet link for a palette-only theme', function (): void {
 });
 
 it('never writes a fixed light or dark mode on page load', function (): void {
-    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->userSelectable());
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
 
     // The user's toggle is theirs. The only write is inside preview(), with
     // the previewed theme's mode as a variable.
@@ -51,7 +51,7 @@ it('never writes a fixed light or dark mode on page load', function (): void {
 });
 
 it('points the user menu\'s light/dark switcher at the mode a preview applies', function (): void {
-    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->userSelectable());
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
 
     expect($head)
         ->toContain("document.querySelectorAll('.fi-theme-switcher')")
@@ -67,7 +67,7 @@ it('omits the palettes and manifest unless users may switch', function (): void 
 });
 
 it('renders every offered palette and a manifest when users may switch', function (): void {
-    $head = headFor(NitpickPlugin::make()->themes([Midnight::class, Ocean::class])->userSelectable());
+    $head = headFor(NitpickPlugin::make()->themes([Midnight::class, Ocean::class])->picker());
 
     expect($head)
         ->toContain('<style id="nitpick-palettes">')
@@ -93,7 +93,7 @@ it('links every stylesheet of a theme made of several files, in order', function
         Theme::make('slate')->stylesheets([SlateThemePlugin::path('slate.css'), 'https://fonts.example.com/slate.css', SlateThemePlugin::path('slate-corners.css')]),
     );
 
-    $head = headFor(NitpickPlugin::make()->themes(['slate', Ocean::class])->userSelectable());
+    $head = headFor(NitpickPlugin::make()->themes(['slate', Ocean::class])->picker());
 
     expect(substr_count($head, 'data-packstub-theme-stylesheet data-navigate-track'))->toBe(3)
         ->and(substr_count($head, 'id="packstub-theme-active"'))->toBe(1)
@@ -123,25 +123,27 @@ it('still renders when a Vite entry has not been built yet', function (): void {
 });
 
 it('renders the palettes ahead of the theme stylesheets, at the weight of Filament\'s own', function (): void {
-    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->userSelectable());
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
 
     expect(strpos($head, 'nitpick-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
         ->and($head)->not->toContain('html[data-packstub-theme=');
 });
 
 it('fades a pick by default, and takes another transition or none', function (): void {
-    expect(headFor(NitpickPlugin::make()->userSelectable()))->toContain('"transition":"fade"')
-        ->and(headFor(NitpickPlugin::make()->userSelectable()->transition(Transition::Sweep)))->toContain('"transition":"sweep"')
-        ->and(headFor(NitpickPlugin::make()->userSelectable()->transition('slide')))->toContain('"transition":"slide"')
-        ->and(headFor(NitpickPlugin::make()->userSelectable()->transition(null)))->toContain('"transition":null');
+    expect(headFor(NitpickPlugin::make()->picker()))->toContain('"transition":"fade"')
+        ->and(headFor(NitpickPlugin::make()->picker(transition: Transition::Sweep)))->toContain('"transition":"sweep"')
+        ->and(headFor(NitpickPlugin::make()->picker(transition: 'slide')))->toContain('"transition":"slide"')
+        ->and(headFor(NitpickPlugin::make()->picker(transition: false)))->toContain('"transition":null')
+        // A later call that leaves the transition out keeps it.
+        ->and(headFor(NitpickPlugin::make()->picker(transition: false)->picker(modal: false)))->toContain('"transition":null');
 
     config()->set('nitpick.transition', 'sweep');
 
-    expect(headFor(NitpickPlugin::make()->userSelectable()))->toContain('"transition":"sweep"');
+    expect(headFor(NitpickPlugin::make()->picker()))->toContain('"transition":"sweep"');
 });
 
 it('renders the transition cover ahead of the body, and a pick that reloads leaves a note for the next page', function (): void {
-    $head = headFor(NitpickPlugin::make()->userSelectable());
+    $head = headFor(NitpickPlugin::make()->picker());
 
     expect($head)
         ->toContain('<style id="nitpick-cover">html[data-nitpick-cover]::after {')
@@ -165,7 +167,7 @@ it('renders the transition cover ahead of the body, and a pick that reloads leav
 });
 
 it('holds the panel\'s own transitions while a swap runs, so the reveal shows the new theme settled', function (): void {
-    $head = headFor(NitpickPlugin::make()->userSelectable());
+    $head = headFor(NitpickPlugin::make()->picker());
 
     expect($head)
         ->toContain('html[data-nitpick-still] *, html[data-nitpick-still] *::before, html[data-nitpick-still] *::after { transition: none !important; }')
@@ -177,7 +179,7 @@ it('holds the panel\'s own transitions while a swap runs, so the reveal shows th
 });
 
 it('reveals the new theme only once the page has stopped changing under the cover', function (): void {
-    expect(headFor(NitpickPlugin::make()->userSelectable()))
+    expect(headFor(NitpickPlugin::make()->picker()))
         ->toContain('function settled(quietFor, cap) {')
         // A live pick waits for its stylesheets, its fonts and the saved pick's response.
         ->toContain('loaded(changed).then(fontsReady).then(function () { return settled(80, 900); }).then(lift);')
