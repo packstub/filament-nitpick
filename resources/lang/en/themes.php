@@ -5,6 +5,7 @@ return [
     'appearance' => [
         'title' => 'Appearance',
         'subheading' => 'Choose how this panel looks for you. Your choice is saved to your account and applies on every device.',
+        'close' => 'Close',
     ],
 
     'picker' => [

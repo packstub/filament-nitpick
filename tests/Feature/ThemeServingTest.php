@@ -161,7 +161,7 @@ it('reloads the page when a pick enters or leaves such a theme', function (): vo
 
     livewire(Appearance::class)
         ->set('data.theme', 'rail')
-        ->tap(fn ($component) => expect(json_encode($component->effects))->toContain('window.location.reload()'));
+        ->tap(fn ($component) => expect(json_encode($component->effects))->toContain('window.PackstubThemes.reload()'));
 
     livewire(Appearance::class)
         ->set('data.theme', 'midnight')

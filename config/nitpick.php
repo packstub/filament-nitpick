@@ -69,4 +69,11 @@ return [
 
     'force_mode' => null,
 
+    /*
+    | The animation when someone picks a theme: "fade", "slide", "sweep" or
+    | null for none. Skipped for visitors who prefer reduced motion.
+    */
+
+    'transition' => 'fade',
+
 ];

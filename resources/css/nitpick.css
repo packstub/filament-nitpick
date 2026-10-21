@@ -3,6 +3,10 @@
 .pst-theme-picker {
     display: grid;
     gap: 0.75rem;
+}
+
+/* Columns follow the space unless the field sets them (->columns(), Filament's fi-grid). */
+.pst-theme-picker:not(.fi-grid) {
     grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
 }
 
@@ -110,4 +114,26 @@
 
 .dark .pst-theme-option-description {
     color: var(--gray-400);
+}
+
+/*
+ * Filament renders a modal opened from the user menu (the Appearance modal among them) inside the topbar
+ * or the sidebar. A theme that gives either a backdrop-filter, a filter or a transform makes it the box
+ * that modal is fixed to, so the modal is clipped to the bar's height. While one is open, the bar keeps
+ * its look but not those properties.
+ */
+html .fi-topbar-ctn:has(.fi-modal-open),
+html .fi-topbar:has(.fi-modal-open),
+html .fi-sidebar:has(.fi-modal-open) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+    contain: none !important;
+    perspective: none !important;
+    will-change: auto !important;
+}
+
+html .fi-topbar-ctn:has(.fi-modal-open),
+html .fi-topbar:has(.fi-modal-open) {
+    transform: none !important;
 }

@@ -14,6 +14,10 @@ use Packstub\Nitpick\ThemeManager;
  * itself with the user's current theme and, by default, saves the choice
  * the moment it changes (quietly: the new look is the confirmation), so it works on the bundled Appearance page and
  * dropped into your own profile form alike.
+ *
+ * The cards fill the space they have unless ->columns() fixes them, in the
+ * shape of Radio::columns(): ['default' => 1, 'sm' => 2, 'lg' => 4]. Fixed
+ * columns keep the cards in place while a theme changes the layout.
  */
 class ThemePicker extends Field
 {
@@ -52,9 +56,10 @@ class ThemePicker extends Field
 
             $component->getPlugin()->setUserTheme($state);
 
-            // A theme that configures the panel (top navigation, plugins) shows only after a page load.
+            // A theme that configures the panel (top navigation, plugins) shows only after a page load,
+            // which waits for the transition's cover.
             if ($component->needsReload($old) || $component->needsReload($state)) {
-                $component->getLivewire()->js('window.location.reload()');
+                $component->getLivewire()->js('window.PackstubThemes ? window.PackstubThemes.reload() : window.location.reload()');
             }
 
             if ($component->shouldNotify()) {

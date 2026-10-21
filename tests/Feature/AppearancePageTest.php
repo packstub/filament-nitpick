@@ -1,10 +1,12 @@
 <?php
 
 use Filament\Facades\Filament;
+use Filament\Livewire\Topbar;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Models\ThemePreference;
+use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Theme;
 
 use function Pest\Livewire\livewire;
@@ -96,4 +98,37 @@ it('can leave the swatches out', function (): void {
         ->assertOk()
         ->assertSee('Midnight')
         ->assertDontSee('pst-theme-swatches', false);
+});
+
+it('opens the picker in a modal from the user menu, in fixed columns', function (): void {
+    $item = collect(Filament::getPanel('admin')->getUserMenuItems())->flatten()
+        ->first(fn ($item): bool => $item->getName() === 'nitpick-appearance');
+
+    expect($item->getUrl())->toBeNull();
+
+    livewire(Topbar::class)
+        ->mountAction('nitpick-appearance')
+        ->assertActionMounted('nitpick-appearance')
+        ->assertSchemaComponentExists('theme', checkComponentUsing: fn (ThemePicker $picker): bool => $picker->getColumns() === NitpickPlugin::MODAL_COLUMNS);
+});
+
+it('links the Appearance page instead when the modal is turned off', function (): void {
+    pluginFor('admin')->appearanceModal(false);
+
+    $item = collect(Filament::getPanel('admin')->getUserMenuItems())->flatten()
+        ->first(fn ($item): bool => $item->getName() === 'nitpick-appearance');
+
+    expect($item->getUrl())->toBe(Appearance::getUrl());
+});
+
+it('lets the cards fill the page unless columns are set', function (): void {
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertDontSee('fi-grid-cols pst-theme-picker', false);
+
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->columns(3));
+
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertSee('--cols-lg: repeat(3, minmax(0, 1fr))', false);
 });

@@ -6,9 +6,15 @@ NitpickPlugin::make()->userSelectable()
 
 With user selection on, each signed-in user can choose the theme they see in that panel. The choice is theirs alone, saved for that panel, and applied on every device they sign in from (with the database store).
 
-## The Appearance page
+## The Appearance modal and page
 
-The plugin registers an **Appearance** page at `/{panel}/appearance` and links it from the user menu. It shows one card per offered theme with a swatch strip and the label; the description is the card's tooltip. Clicking a card previews the theme immediately and saves the choice. A theme that changes the panel's layout reloads the page instead.
+The **Appearance** item in the user menu opens the picker in a modal: one card per offered theme with a swatch strip and the label, the description as the card's tooltip. Clicking a card changes the theme and saves the choice. The modal has a fixed width and four columns (two on a tablet, one on a phone), so the cards stay where they are while a theme moves the navigation to the top or changes the sidebar's width around it. A theme that changes the panel's layout reloads the page, and the modal opens again after the reload, so someone trying a few themes keeps their place.
+
+The plugin also registers an **Appearance** page at `/{panel}/appearance`, with the same picker, for a link of your own. To have the user menu link the page instead of opening the modal:
+
+```php
+NitpickPlugin::make()->userSelectable()->appearanceModal(false)
+```
 
 ![The Appearance page: a card per theme with its swatches, label and description, the current one marked](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/appearance.png)
 
@@ -33,7 +39,7 @@ class ChooseYourLook extends Appearance
 NitpickPlugin::make()->userSelectable()->appearancePage(ChooseYourLook::class)
 ```
 
-Configure the picker on the page the way you would your own `ThemePicker` field (see [below](#cards-descriptions-and-swatches)):
+Configure the picker in the modal and on the page the way you would your own `ThemePicker` field (see [below](#cards-descriptions-and-swatches)):
 
 ```php
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
@@ -85,6 +91,31 @@ ThemePicker::make()->swatches(false)
 ```
 
 Both take a closure, evaluated when the form renders.
+
+The cards fill the width they have. Fix the number of columns, in the shape of Filament's `Radio::columns()`:
+
+```php
+ThemePicker::make()->columns(['default' => 1, 'sm' => 2, 'lg' => 3])
+```
+
+## Swap animations
+
+A pick runs in two steps: a cover, black or white for the light/dark mode the new theme uses, comes over the panel, the theme changes underneath, and the cover lifts to show it. A theme that reloads the page waits for the cover, and the next page starts under it; the cover lifts once that page is whole (the modal back, lazy widgets loaded, at most 2.5 s), so nobody sees a layout arriving in pieces. The panel's own CSS transitions are held while it runs, so the cover lifts on the new theme already in place, not on colours still easing over. Three come with the plugin:
+
+| Transition | What it does |
+| --- | --- |
+| `Transition::Fade` | The cover fades in, then out. The default |
+| `Transition::Slide` | The cover slides in from the left and out to the right, like a curtain |
+| `Transition::Sweep` | The cover sweeps in behind an edge turning about a point below the panel's right corner, then sweeps on past |
+
+```php
+use Packstub\Nitpick\Enums\Transition;
+
+NitpickPlugin::make()->userSelectable()->transition(Transition::Sweep)
+NitpickPlugin::make()->userSelectable()->transition(null)   // change the theme at once
+```
+
+`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null`). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.PackstubThemes.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice).
 
 ## Reading and writing a choice from code
 

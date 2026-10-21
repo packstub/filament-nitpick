@@ -7,6 +7,8 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 ### Added
 
 - A theme can configure the panel while it is active: `Theme::make()->panel(fn (Panel $panel) => ...)`, or a theme class implementing `ConfiguresPanel`. Top navigation, fonts, render hooks, colours, and a styling plugin added to the panel itself, so themes like Press work as their docs describe. The colours set there also give the theme its swatches in the picker. Pages, resources and widgets added there are left out and reported, since their routes exist before the request. The panel is put back when the request ends, so Octane starts the next request clean. Picking such a theme, or leaving one, reloads the page instead of previewing it half-applied. ([#2](https://github.com/packstub/filament-nitpick/issues/2))
+- The Appearance item in the user menu opens the picker in a modal of fixed width and columns, so the cards stay put while a theme changes the panel's layout; a pick that reloads the page opens it again after the reload. The Appearance page stays; `->appearanceModal(false)` links it instead. `ThemePicker::make()->columns([...])` fixes the columns anywhere. ([#4](https://github.com/packstub/filament-nitpick/issues/4))
+- A pick animates in two steps: a black or white cover comes over the panel, the theme changes underneath (live or by a reload, which the next page starts under), and the cover lifts. `->transition(Transition::Fade)` (the default), `Transition::Slide`, `Transition::Sweep` or `null`, also as `transition` in the config; skipped for visitors who prefer reduced motion. The cover lifts only once the page has stopped changing under it (a reloaded page waits for Livewire, the reopened modal and lazy widgets, at most 2.5 s), and the panel's own CSS transitions are held meanwhile, so nothing fades or pops in during the reveal. `window.PackstubThemes.pick()` changes a theme with the transition from your own scripts. ([#4](https://github.com/packstub/filament-nitpick/issues/4))
 - Theme cards in the picker are shorter: the description is the card's tooltip unless `ThemePicker::make()->descriptions()` shows it under the name, and `->swatches(false)` leaves the swatch strip out. A theme whose colours are unknown shows three empty swatches, so the cards line up. On the Appearance page, configure the picker with `NitpickPlugin::make()->picker(fn (ThemePicker $picker) => $picker->descriptions())`.
 - [For theme authors](docs/theme-authors.md): how to write a Filament theme plugin that works well in Nitpick, and how to join the picker as soon as both packages are installed.
 
@@ -16,6 +18,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ### Fixed
 
+- A modal opened from the user menu is no longer clipped to the topbar under a theme that gives the topbar a `backdrop-filter`, `filter` or `transform` (Mia): while one is open, the bar drops those properties.
 - The light/dark switcher in the user menu marks the mode a picked theme applies (Midnight's dark, say), instead of the mode the page loaded with.
 - Picking a theme keeps its preferred light/dark mode after a reload on Filament 5.10.2 and later, which stores the mode under `filament:theme:mode` instead of `theme`. Both keys are written, so earlier 5.x releases keep working.
 

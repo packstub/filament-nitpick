@@ -5,6 +5,7 @@
 ```php
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
+use Packstub\Nitpick\Enums\Transition;
 use Packstub\Nitpick\NitpickPlugin;
 
 NitpickPlugin::make()
@@ -13,7 +14,9 @@ NitpickPlugin::make()
     ->userSelectable()                           // Appearance page + user-menu link; bool or closure
     ->userSelectable(userMenuItem: false)        // page only
     ->appearancePage(MyAppearance::class)        // your subclass of the page
-    ->picker(fn (ThemePicker $picker) => $picker->descriptions()) // configure the page's picker
+    ->appearanceModal(false)                     // the user menu links the Appearance page instead of opening the modal
+    ->picker(fn (ThemePicker $picker) => $picker->descriptions()) // configure the picker in the modal and on the page
+    ->transition(Transition::Sweep)              // the swap animation: Fade (default), Slide, Sweep, or null
     ->colors(['primary' => Color::Indigo])       // slots applied on top of every theme
     ->customCss('css/admin-overrides.css')       // loaded after the theme's stylesheet
     ->forceMode(ThemeMode::Dark)                 // ignore the theme's preferred mode; null hands it back
@@ -37,6 +40,7 @@ php artisan vendor:publish --tag="nitpick-config"
 | `colors` | `[]` | App-wide colour overrides, same shape as `->colors()` |
 | `custom_css` | `null` | App-wide extra stylesheet, path relative to `public/` or a URL |
 | `force_mode` | `null` | `'light'`, `'dark'` or `'system'` |
+| `transition` | `'fade'` | The swap animation: `'fade'`, `'slide'`, `'sweep'` or `null`; see [User preferences](user-preferences.md#swap-animations) |
 
 The plugin call always wins over the config key.
 

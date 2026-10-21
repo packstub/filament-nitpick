@@ -31,3 +31,18 @@ it('leaves the stat chart strip without a background', function (string $id): vo
 
     expect(array_filter($rules, fn (array $rule): bool => str_contains($rule[2], 'background')))->toBeEmpty();
 })->with(['aurora', 'midnight']);
+
+// A theme that puts a backdrop-filter, filter or transform on the topbar makes it the box a modal
+// opened from the user menu is fixed to, and the modal is clipped to the bar (Mia does this).
+it('keeps a modal opened from the topbar or sidebar from being clipped to the bar', function (): void {
+    $css = file_get_contents(__DIR__.'/../../resources/css/nitpick.css');
+
+    preg_match('/html \.fi-topbar-ctn:has\(\.fi-modal-open\),\s*html \.fi-topbar:has\(\.fi-modal-open\),\s*html \.fi-sidebar:has\(\.fi-modal-open\) \{([^}]*)\}/', $css, $rule);
+
+    expect($rule[1] ?? '')
+        ->toContain('backdrop-filter: none !important;')
+        ->toContain('filter: none !important;')
+        ->toContain('contain: none !important;')
+        ->toContain('will-change: auto !important;')
+        ->and($css)->toMatch('/html \.fi-topbar:has\(\.fi-modal-open\) \{\s*transform: none !important;/');
+});

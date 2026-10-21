@@ -1,4 +1,6 @@
 @php
+    use Filament\Support\View\ComponentAttributeBag;
+
     $themes = $getThemes();
     $statePath = $getStatePath();
     $isDisabled = $isDisabled();
@@ -9,7 +11,7 @@
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
     <div
         x-data="{ state: $wire.$entangle('{{ $statePath }}', true) }"
-        class="pst-theme-picker"
+        {{ ($hasCustomColumns() ? (new ComponentAttributeBag)->grid($getColumns()) : new ComponentAttributeBag)->class(['pst-theme-picker']) }}
         role="radiogroup"
     >
         @foreach ($themes as $id => $theme)
@@ -27,7 +29,7 @@
                     name="{{ $statePath }}"
                     value="{{ $id }}"
                     x-model="state"
-                    x-on:change="window.PackstubThemes && window.PackstubThemes.preview(@js($id))"
+                    x-on:change="window.PackstubThemes && window.PackstubThemes.pick(@js($id))"
                     @disabled($isDisabled)
                     class="pst-theme-option-input"
                 />

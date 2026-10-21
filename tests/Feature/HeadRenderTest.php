@@ -2,6 +2,7 @@
 
 use Filament\Panel;
 use Illuminate\Support\Facades\Vite;
+use Packstub\Nitpick\Enums\Transition;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\Ocean;
@@ -126,4 +127,63 @@ it('renders the palettes ahead of the theme stylesheets, at the weight of Filame
 
     expect(strpos($head, 'nitpick-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
         ->and($head)->not->toContain('html[data-packstub-theme=');
+});
+
+it('fades a pick by default, and takes another transition or none', function (): void {
+    expect(headFor(NitpickPlugin::make()->userSelectable()))->toContain('"transition":"fade"')
+        ->and(headFor(NitpickPlugin::make()->userSelectable()->transition(Transition::Sweep)))->toContain('"transition":"sweep"')
+        ->and(headFor(NitpickPlugin::make()->userSelectable()->transition('slide')))->toContain('"transition":"slide"')
+        ->and(headFor(NitpickPlugin::make()->userSelectable()->transition(null)))->toContain('"transition":null');
+
+    config()->set('nitpick.transition', 'sweep');
+
+    expect(headFor(NitpickPlugin::make()->userSelectable()))->toContain('"transition":"sweep"');
+});
+
+it('renders the transition cover ahead of the body, and a pick that reloads leaves a note for the next page', function (): void {
+    $head = headFor(NitpickPlugin::make()->userSelectable());
+
+    expect($head)
+        ->toContain('<style id="nitpick-cover">html[data-nitpick-cover]::after {')
+        ->toContain("var note = 'nitpick:cover';")
+        ->toContain('sessionStorage.setItem(note,')
+        ->toContain('pick: function (slug) {')
+        ->toContain('reload: function () {')
+        // The cover's shape animates only its transform or opacity, off the main thread; nothing is
+        // painted through variables on <html>, which every element would inherit on every frame.
+        ->toContain('shape.animate(transition.keyframes(coming)')
+        ->toContain('sweep: { in: 400, out: 520, shape: sweep, keyframes: function () { return sweepKeyframes(); } }')
+        // The sweep turns only through the angles where its edge crosses the panel, keyed by the
+        // share of the panel it has passed, so it never leaps where it is far from its pivot.
+        ->toContain('var from = Math.atan2(p[1] - h, p[0]) * degrees - 1, to = Math.atan2(p[1], p[0] - w) * degrees + 1;')
+        ->toContain('if (sweptShare(mid) < i / steps) { lo = mid; } else { hi = mid; }')
+        ->not->toContain('--nitpick-cover-clip')
+        ->not->toContain('--nitpick-cover-opacity')
+        // Skipped for visitors who prefer reduced motion.
+        ->toContain("matchMedia('(prefers-reduced-motion: reduce)')")
+        ->and(headFor(NitpickPlugin::make()))->not->toContain('nitpick-cover"');
+});
+
+it('holds the panel\'s own transitions while a swap runs, so the reveal shows the new theme settled', function (): void {
+    $head = headFor(NitpickPlugin::make()->userSelectable());
+
+    expect($head)
+        ->toContain('html[data-nitpick-still] *, html[data-nitpick-still] *::before, html[data-nitpick-still] *::after { transition: none !important; }')
+        // On a live pick: from the theme change until the cover is gone.
+        ->toMatch('/still\(true\);\s+var changed = apply\(slug\);/')
+        ->toContain('return animate(name, false).then(function () { still(false); });')
+        // On a page a pick reloaded: from the first paint until the cover is gone.
+        ->toMatch('/return reveal \? animate\(reveal, false\) : null;\s+\}\)\s+\.then\(function \(\) \{ still\(false\); \}\);/');
+});
+
+it('reveals the new theme only once the page has stopped changing under the cover', function (): void {
+    expect(headFor(NitpickPlugin::make()->userSelectable()))
+        ->toContain('function settled(quietFor, cap) {')
+        // A live pick waits for its stylesheets, its fonts and the saved pick's response.
+        ->toContain('loaded(changed).then(fontsReady).then(function () { return settled(80, 900); }).then(lift);')
+        // A reloaded page waits for Livewire, the reopened modal and its fonts, then for lazy
+        // widgets: never longer than 1.8 s, then 0.7 s.
+        ->toContain('var whole = Promise.all([started, reopened, fontsReady()]);')
+        ->toContain('if (reloaded.reopen) { reopened = started.then(reopenPicker); }')
+        ->toContain('.then(function () { return settled(120, 700); })');
 });
