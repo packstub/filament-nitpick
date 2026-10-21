@@ -10,7 +10,7 @@ use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
 
 /**
- * Runs a theme's servingPanel() on a panel Filament has already booted. What
+ * Runs a theme's configurePanel() on a panel Filament has already booted. What
  * the panel reads while rendering (top navigation, navigation items, fonts)
  * needs nothing more; what Filament registers when it boots a panel is
  * registered here for whatever the theme added: render hooks and assets,
@@ -38,7 +38,7 @@ class PanelServing
 
         app()->terminating(fn () => static::restore($panel, $snapshot));
 
-        $theme->servingPanel($panel);
+        $theme->configurePanel($panel);
 
         $after = static::state($panel);
 

@@ -164,7 +164,7 @@ Themes::register(
 );
 ```
 
-The same goes for a theme that styles the panel from render hooks, like [DaisyUI Themes](https://filamentphp.com/plugins/osama-nagi-daisyui-themes). To change the panel further while the theme is active (top navigation, a font of your own), add `->serving()`; [Configuring the panel](creating-a-theme.md#configuring-the-panel) has the details, and what cannot be added this way.
+The same goes for a theme that styles the panel from render hooks, like [DaisyUI Themes](https://filamentphp.com/plugins/osama-nagi-daisyui-themes). To change the panel further while the theme is active (top navigation, a font of your own), add `->panel()`; [Configuring the panel](creating-a-theme.md#configuring-the-panel) has the details, and what cannot be added this way.
 
 Building a theme plugin of your own? [For theme authors](theme-authors.md) has the habits that make it work well here.
 

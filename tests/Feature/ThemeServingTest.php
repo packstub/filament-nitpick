@@ -22,7 +22,7 @@ beforeEach(function (): void {
     Themes::register(
         Theme::make('rail')
             ->colors(['primary' => Color::Lime])
-            ->serving(fn (Panel $panel) => $panel
+            ->panel(fn (Panel $panel) => $panel
                 ->topNavigation()
                 ->renderHook(PanelsRenderHook::BODY_END, fn (): string => '<div id="rail-hook"></div>')
                 ->colors(['danger' => Color::Pink])
@@ -116,7 +116,7 @@ it('previews the colours a theme class sets while serving in its palette', funct
             return ['primary' => Color::Red];
         }
 
-        public function servingPanel(Panel $panel): void
+        public function configurePanel(Panel $panel): void
         {
             $panel->colors(['danger' => Color::Pink]);
         }
@@ -175,7 +175,7 @@ it('reloads the page when a pick enters or leaves such a theme', function (): vo
 it('leaves out pages a theme adds while serving, and reports it, so the panel still renders', function (): void {
     Exceptions::fake();
 
-    Themes::register(Theme::make('paged')->serving(fn (Panel $panel) => $panel->pages([Appearance::class, PagedSettings::class])));
+    Themes::register(Theme::make('paged')->panel(fn (Panel $panel) => $panel->pages([Appearance::class, PagedSettings::class])));
     pluginFor('admin')->setUserTheme('paged');
 
     $this->get(Filament::getPanel('admin')->getUrl())

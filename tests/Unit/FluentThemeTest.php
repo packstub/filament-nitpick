@@ -120,7 +120,7 @@ it('adds its plugin to the panel while active, and reads only its swatches from 
         ->and(SlateThemePlugin::$booted)->toBeFalse();
 
     $panel = Panel::make()->id('plugin-test');
-    $theme->servingPanel($panel);
+    $theme->configurePanel($panel);
 
     expect($panel->getPlugin('slate-theme'))->toBeInstanceOf(SlateThemePlugin::class)
         ->and($panel->getColors())->toBe(['primary' => Color::Slate, 'gray' => Color::Zinc]);
@@ -146,7 +146,7 @@ it('keeps a wrapped plugin off the panels until its theme is active', function (
 });
 
 it('rejects a plugin that is not a Filament plugin', function (): void {
-    Theme::make('broken')->plugin(fn (): stdClass => new stdClass)->servingPanel(Panel::make()->id('broken'));
+    Theme::make('broken')->plugin(fn (): stdClass => new stdClass)->configurePanel(Panel::make()->id('broken'));
 })->throws(InvalidArgumentException::class, 'expects a Filament plugin');
 
 it('publishes files only: a URL or a Vite entry is linked where it is', function (): void {
@@ -161,11 +161,11 @@ it('publishes files only: a URL or a Vite entry is linked where it is', function
     expect($ids)->toContain('packstub-theme-mixed--3')->not->toContain('packstub-theme-mixed', 'packstub-theme-mixed--2');
 });
 
-it('configures the panel through serving()', function (): void {
+it('configures the panel through panel()', function (): void {
     $panel = Panel::make()->id('serving-test');
-    $theme = Theme::make('rail')->serving(fn (Panel $panel, ThemeContract $theme) => $panel->brandName($theme->getLabel()));
+    $theme = Theme::make('rail')->panel(fn (Panel $panel, ThemeContract $theme) => $panel->brandName($theme->getLabel()));
 
-    $theme->servingPanel($panel);
+    $theme->configurePanel($panel);
 
     expect($theme->configuresPanel())->toBeTrue()
         ->and(app(ThemeManager::class)->configuresPanel($theme))->toBeTrue()
@@ -185,15 +185,15 @@ it('reads the swatches from the colours a plugin sets, without touching the app 
     expect(FilamentColor::getColor('gray'))->not->toBe(Color::Stone);
 })->with([
     'plugin()' => fn (): FluentTheme => Theme::make('tide')->plugin(fn (): TideThemePlugin => TideThemePlugin::make()),
-    'serving()' => fn (): FluentTheme => Theme::make('tide')->serving(fn (Panel $panel) => $panel->plugin(TideThemePlugin::make())),
+    'panel()' => fn (): FluentTheme => Theme::make('tide')->panel(fn (Panel $panel) => $panel->plugin(TideThemePlugin::make())),
 ]);
 
-it('keeps its own colours when a serving() callback cannot run outside a request', function (): void {
+it('keeps its own colours when a panel() callback cannot run outside a request', function (): void {
     Exceptions::fake();
 
     $theme = Theme::make('needs-user')
         ->colors(['primary' => Color::Lime])
-        ->serving(fn (Panel $panel) => $panel->brandName(auth()->user()->name));
+        ->panel(fn (Panel $panel) => $panel->brandName(auth()->user()->name));
 
     expect($theme->getSwatches())->toBe([Color::Lime[500]]);
 
@@ -224,7 +224,7 @@ it('publishes nothing for any other command', function (): void {
 
 it('keeps what a plugin registers for the whole app off the panels, and still publishes it', function (): void {
     $theme = Theme::make('global')->plugin(fn () => GlobalThemePlugin::make());
-    Themes::register($theme, Theme::make('global-serving')->serving(fn (Panel $panel) => $panel->plugin(GlobalThemePlugin::make())));
+    Themes::register($theme, Theme::make('global-serving')->panel(fn (Panel $panel) => $panel->plugin(GlobalThemePlugin::make())));
 
     // Reading the swatches registers nothing.
     $theme->getSwatches();
@@ -255,7 +255,7 @@ it('reports a theme that cannot configure a panel while assets are published, an
     Exceptions::fake();
 
     Themes::register(
-        Theme::make('needs-user')->serving(fn (Panel $panel) => $panel->brandName(auth()->user()->name)),
+        Theme::make('needs-user')->panel(fn (Panel $panel) => $panel->brandName(auth()->user()->name)),
         Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
     );
 

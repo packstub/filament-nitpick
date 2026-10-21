@@ -35,10 +35,10 @@ class FluentTheme extends Theme implements ConfiguresPanel
 
     protected Plugin|Closure|null $plugin = null;
 
-    protected ?Closure $serving = null;
+    protected ?Closure $panelCallback = null;
 
     /** @var array<string, array<int | string, string | int> | string> | null */
-    protected ?array $servingColors = null;
+    protected ?array $panelColors = null;
 
     protected ?ThemeMode $mode = null;
 
@@ -101,50 +101,51 @@ class FluentTheme extends Theme implements ConfiguresPanel
      *
      *     ->plugin(fn () => NordThemePlugin::make()->corners('round'))
      *
-     * A closure makes a fresh plugin for each request. colors() and
+     * A closure makes a fresh plugin for each request; an instance works
+     * too, and is reused for every request of the process. colors() and
      * stylesheets() set here apply on top of the plugin's; its colours give
      * the theme its swatches in the picker. Picking it reloads the page.
      */
     public function plugin(Plugin|Closure|null $plugin): static
     {
         $this->plugin = $plugin;
-        $this->servingColors = null;
+        $this->panelColors = null;
 
         return $this;
     }
 
     /**
      * Configure the panel while this is the active theme, the way a panel
-     * provider would. A styling plugin can be added here too:
+     * provider would, after the plugin given to plugin(), if any:
      *
-     *     ->serving(fn (Panel $panel) => $panel->font('Fraunces')->plugin(PressFilamentTheme::make()))
+     *     ->panel(fn (Panel $panel) => $panel->topNavigation()->font('Fraunces'))
      *
      * See ConfiguresPanel for what runs when; picking such a theme reloads the page.
      * The callback also runs once on a scratch panel that is never served,
      * so the colours it sets give the theme its swatches in the picker.
      */
-    public function serving(?Closure $callback): static
+    public function panel(?Closure $callback): static
     {
-        $this->serving = $callback;
-        $this->servingColors = null;
+        $this->panelCallback = $callback;
+        $this->panelColors = null;
 
         return $this;
     }
 
-    public function servingPanel(Panel $panel): void
+    public function configurePanel(Panel $panel): void
     {
         if ($this->plugin !== null) {
             $panel->plugin($this->resolvePlugin());
         }
 
-        if ($this->serving !== null) {
-            ($this->serving)($panel, $this);
+        if ($this->panelCallback !== null) {
+            ($this->panelCallback)($panel, $this);
         }
     }
 
     public function configuresPanel(): bool
     {
-        return $this->plugin !== null || $this->serving !== null;
+        return $this->plugin !== null || $this->panelCallback !== null;
     }
 
     /**
@@ -206,17 +207,17 @@ class FluentTheme extends Theme implements ConfiguresPanel
 
     public function getSwatches(): array
     {
-        return $this->swatches ?? $this->swatchesFrom([...$this->servingColors(), ...$this->colors]);
+        return $this->swatches ?? $this->swatchesFrom([...$this->panelColors(), ...$this->colors]);
     }
 
     /**
-     * The colours the theme's plugin and serving() callback set, read from a
+     * The colours the theme's plugin and panel() callback set, read from a
      * scratch panel: only the picker's swatches use them, the real panel gets
      * them from the plugin itself.
      *
      * @return array<string, array<int | string, string | int> | string>
      */
-    protected function servingColors(): array
+    protected function panelColors(): array
     {
         if (! $this->configuresPanel()) {
             return [];
@@ -225,11 +226,11 @@ class FluentTheme extends Theme implements ConfiguresPanel
         // Read without a request or a user: a callback that needs one is reported, and the theme
         // keeps the colours given to it directly.
         try {
-            return $this->servingColors ??= PluginCapture::colorsFrom(fn (Panel $panel) => $this->servingPanel($panel));
+            return $this->panelColors ??= PluginCapture::colorsFrom(fn (Panel $panel) => $this->configurePanel($panel));
         } catch (Throwable $exception) {
             report($exception);
 
-            return $this->servingColors = [];
+            return $this->panelColors = [];
         }
     }
 

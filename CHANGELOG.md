@@ -6,7 +6,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ### Added
 
-- A theme can configure the panel while it is active: `Theme::make()->serving(fn (Panel $panel) => ...)`, or a theme class implementing `ConfiguresPanel`. Top navigation, fonts, render hooks, colours, and a styling plugin added to the panel itself, so themes like Press work as their docs describe. The colours set there also give the theme its swatches in the picker. Pages, resources and widgets added there are left out and reported, since their routes exist before the request. The panel is put back when the request ends, so Octane starts the next request clean. Picking such a theme, or leaving one, reloads the page instead of previewing it half-applied. ([#2](https://github.com/packstub/filament-nitpick/issues/2))
+- A theme can configure the panel while it is active: `Theme::make()->panel(fn (Panel $panel) => ...)`, or a theme class implementing `ConfiguresPanel`. Top navigation, fonts, render hooks, colours, and a styling plugin added to the panel itself, so themes like Press work as their docs describe. The colours set there also give the theme its swatches in the picker. Pages, resources and widgets added there are left out and reported, since their routes exist before the request. The panel is put back when the request ends, so Octane starts the next request clean. Picking such a theme, or leaving one, reloads the page instead of previewing it half-applied. ([#2](https://github.com/packstub/filament-nitpick/issues/2))
 - [For theme authors](docs/theme-authors.md): how to write a Filament theme plugin that works well in Nitpick, and how to join the picker as soon as both packages are installed.
 
 ### Changed

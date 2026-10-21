@@ -214,7 +214,7 @@ Everything under [Configuring the panel](#configuring-the-panel) applies to it, 
 
 ## Configuring the panel
 
-Some looks are more than colours and CSS: navigation along the top, a narrower sidebar, other fonts, a render hook. `->serving()` configures the panel while the theme is active, the way a panel provider would:
+Some looks are more than colours and CSS: navigation along the top, a narrower sidebar, other fonts, a render hook. `->panel()` configures the panel while the theme is active, the way a panel provider would:
 
 ```php
 use Filament\Panel;
@@ -223,7 +223,7 @@ Themes::register(
     Theme::make('newsroom')
         ->colors(['primary' => Color::Red])
         ->stylesheet(resource_path('css/themes/newsroom.css'))
-        ->serving(fn (Panel $panel) => $panel
+        ->panel(fn (Panel $panel) => $panel
             ->topNavigation()
             ->font('Fraunces')),
 );
@@ -239,21 +239,21 @@ class Newsroom extends Theme implements ConfiguresPanel
 {
     // getId(), getLabel(), getColors() ...
 
-    public function servingPanel(Panel $panel): void
+    public function configurePanel(Panel $panel): void
     {
         $panel->topNavigation()->font('Fraunces');
     }
 }
 ```
 
-`->plugin()` and `->serving()` combine: the plugin is added first, then the callback runs, so it can adjust what the plugin set:
+`->plugin()` and `->panel()` combine: the plugin is added first, then the callback runs, so it can adjust what the plugin set:
 
 ```php
 use Elemind\PressFilamentTheme\PressFilamentTheme;
 
 Theme::make('press')
     ->plugin(fn () => PressFilamentTheme::make())
-    ->serving(fn (Panel $panel) => $panel->brandName('The Daily')),
+    ->panel(fn (Panel $panel) => $panel->brandName('The Daily')),
 ```
 
 How it runs:

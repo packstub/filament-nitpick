@@ -128,7 +128,7 @@ class ThemeManager
             }
 
             try {
-                PluginCapture::publishAssetsFrom(fn (Panel $panel) => $theme->servingPanel($panel));
+                PluginCapture::publishAssetsFrom(fn (Panel $panel) => $theme->configurePanel($panel));
             } catch (Throwable $exception) {
                 report($exception);
             }
