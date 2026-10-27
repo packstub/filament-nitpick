@@ -87,6 +87,29 @@ $panel->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn (): string => view('ha
 
 If `register()` throws in a scratch run, Nitpick reports it to the app's log and carries on, without your theme's swatches, or without its files published when it happens in the publishing run.
 
+## Keep view overrides to your panels
+
+A theme that replaces Filament's topbar, sidebar or layout with views of its own usually does it with `View::prependNamespace('filament-panels', ...)`. From a service provider that applies to every panel in the app, and to every theme in the picker, as soon as the package is installed: an app cannot offer your theme as one choice among others, and a second panel cannot opt out. Prepend the namespace from the plugin instead, where it runs only on the panels that use your theme:
+
+```php
+use Illuminate\Support\Facades\View;
+
+public function register(Panel $panel): void
+{
+    View::prependNamespace('filament-panels', __DIR__.'/../resources/views/filament-panels');
+}
+```
+
+That runs while your theme is active, and only then, so another theme on the same panel gets Filament's views back.
+
+## Ship the files your assets point to
+
+`Css::make('harbor-theme', __DIR__.'/../resources/dist/harbor.css')` is read by `php artisan filament:assets`, which Composer also runs after every update through `filament:upgrade`. If the file is not in the package (a `dist/` folder left out of the release), the command stops for the whole app, with every plugin's assets unpublished, not just yours. Commit the built file, or build it in a release step, and check the tag on Packagist once.
+
+## A custom topbar keeps the action modals
+
+Filament's own topbar view ends with `<x-filament-actions::modals />`. The user menu needs it for any item that opens a modal: Nitpick's Appearance item, and any user-menu action an app adds. If your theme ships its own topbar view, keep that line at the end, and if it ships its own sidebar, keep the sidebar's `z-index` below Filament's modal container (`.fi-modal > .fi-modal-window-ctn` sits at 40), or a modal opened from the user menu is painted under it.
+
 ## Leave pages and resources to the panel provider
 
 A theme plugin is added mid-request, after Filament has registered the panel's routes and Livewire components, so pages, resources and widgets cannot join that way. Nitpick takes any that a theme adds back out and reports it. If your plugin also ships a page (a theme settings screen, say), offer a switch to turn it off, and mention it in your docs:

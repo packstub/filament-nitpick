@@ -16,6 +16,10 @@ return [
 
     'notifications' => [
         'saved' => 'Theme updated',
+        'unavailable' => [
+            'title' => ':theme is unavailable right now',
+            'body' => 'This panel is shown in :default instead. You can pick another theme from Appearance.',
+        ],
     ],
 
     'themes' => [

@@ -1,6 +1,7 @@
 <?php
 
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Filament\Support\Colors\Color;
@@ -192,3 +193,73 @@ class PagedSettings extends Page
 {
     protected static ?string $slug = 'paged-settings';
 }
+
+it('serves the default theme and tells the user when their theme fails to configure the panel', function (): void {
+    Exceptions::fake();
+
+    Themes::register(
+        Theme::make('broken')
+            ->label('Broken')
+            ->panel(fn (Panel $panel) => $panel
+                ->topNavigation()
+                ->renderHook(PanelsRenderHook::BODY_END, fn (): string => '<div id="broken-hook"></div>')
+                ->plugin(new class extends RailThemePlugin
+                {
+                    public function getId(): string
+                    {
+                        return 'broken-theme';
+                    }
+
+                    public function boot(Panel $panel): void
+                    {
+                        throw new RuntimeException('Broken needs a custom theme on the panel.');
+                    }
+                })),
+    );
+    $panel = Filament::getPanel('admin');
+    pluginFor('admin')->setUserTheme('broken');
+
+    $this->get($panel->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertDontSee('id="broken-hook"', false)
+        ->assertDontSee('fi-body-has-top-navigation', false);
+
+    Notification::assertNotified(
+        Notification::make()
+            ->warning()
+            ->title('Broken is unavailable right now')
+            ->body('This panel is shown in Aurora instead. You can pick another theme from Appearance.'),
+    );
+
+    expect($panel->hasTopNavigation())->toBeFalse()
+        ->and($panel->getPlugins())->not->toHaveKey('broken-theme')
+        // The choice is kept: the theme comes back once it works.
+        ->and(pluginFor('admin')->getUserTheme($this->user)?->getId())->toBe('broken');
+
+    Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), 'The theme [broken] failed to configure the [admin] panel, so the default theme [aurora] was served instead: Broken needs a custom theme')
+        && $e->getPrevious()?->getMessage() === 'Broken needs a custom theme on the panel.');
+});
+
+it('falls back to a default theme that configures the panel itself', function (): void {
+    Exceptions::fake();
+
+    Themes::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('Nope')));
+    pluginFor('admin')->default('rail')->setUserTheme('broken');
+
+    $this->get(Filament::getPanel('admin')->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="rail">', false)
+        ->assertSee('id="rail-hook"', false)
+        ->assertSee('fi-body-has-top-navigation', false);
+
+    expect(RailThemePlugin::$booted)->toBeTrue();
+});
+
+it('throws when the default theme itself fails to configure the panel', function (): void {
+    Themes::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('The panel default is broken.')));
+    pluginFor('admin')->default('broken');
+
+    $this->withoutExceptionHandling()
+        ->get(Filament::getPanel('admin')->getUrl());
+})->throws(RuntimeException::class, 'The panel default is broken.');

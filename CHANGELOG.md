@@ -2,6 +2,22 @@
 
 All notable changes to `packstub/filament-nitpick` are documented here.
 
+## Unreleased
+
+### Added
+
+- A theme that fails to configure the panel (its plugin throws in `register()` or `boot()`, as Kinetics does without its Vite theme, or its `->panel()` callback throws) no longer locks the user who picked it out of the panel. The failure is reported to the log, the panel is put back as it was, the panel's default theme is served for that request, and the user sees a notice that their theme is unavailable, with the picker one click away. Their choice is kept, so the theme comes back once it works. A default theme that fails still throws. ([#6](https://github.com/packstub/filament-nitpick/issues/6))
+- [Tested themes](docs/tested-themes.md): 33 free community themes run through the picker on Filament 5.11, with the setup each one takes, and 8 colour switchers and branding tools that work beside Nitpick. The app that runs them is public at [packstub/nitpick-theme-compat](https://github.com/packstub/nitpick-theme-compat).
+
+### Changed
+
+- While a theme configures the panel, the plugins it added boot before its render hooks and assets are registered with Filament, so a plugin that fails in `boot()` leaves nothing behind.
+
+### Docs
+
+- [Themes](docs/themes.md): a theme whose plugin needs the panel's `->viteTheme()` (`->panel()`, not `->stylesheet()`), a theme file without Filament's import (a two-line wrapper), install commands that edit the panel's theme file, packages that style every panel from their service provider (`dont-discover` and `->stylesheet()`; view overrides cannot be scoped from outside), `->colors()` and `->label()` for empty swatches and raw labels, and what happens when a theme cannot be served.
+- [For theme authors](docs/theme-authors.md): prepend view overrides from the plugin, ship the files your assets point to, keep `<x-filament-actions::modals />` in a custom topbar and a custom sidebar below Filament's modal.
+
 ## 1.0.0-beta.2 — 2026-10-21
 
 ### Added

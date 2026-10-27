@@ -8,6 +8,7 @@ use Filament\Support\Facades\FilamentView;
 use LogicException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
+use Throwable;
 
 /**
  * Runs a theme's configurePanel() on a panel Filament has already booted. What
@@ -15,7 +16,9 @@ use Packstub\Nitpick\Contracts\Theme;
  * needs nothing more; what Filament registers when it boots a panel is
  * registered here for whatever the theme added: render hooks and assets,
  * and an added plugin is booted. The colours it set are returned, for the
- * caller to register in their place among the panel's palettes.
+ * caller to register in their place among the panel's palettes. A theme
+ * that fails while configuring the panel leaves it as it was, and the
+ * exception reaches the caller.
  *
  * Pages, resources and widgets cannot join a panel mid-request (their
  * routes and Livewire components are registered before it): any the theme
@@ -38,7 +41,22 @@ class PanelServing
 
         app()->terminating(fn () => static::restore($panel, $snapshot));
 
-        $theme->configurePanel($panel);
+        // The theme configures the panel and its plugins boot before anything
+        // is registered with Filament's services, so a theme that fails here
+        // (a plugin that stops in boot() without a Vite theme, say) leaves
+        // nothing behind: the panel is put back and the exception goes to
+        // the caller, which serves another theme.
+        try {
+            $theme->configurePanel($panel);
+
+            foreach (array_diff_key($panel->getPlugins(), $before['plugins']) as $plugin) {
+                $plugin->boot($panel);
+            }
+        } catch (Throwable $exception) {
+            static::restore($panel, $snapshot);
+
+            throw $exception;
+        }
 
         $after = static::state($panel);
 
@@ -58,10 +76,6 @@ class PanelServing
             if ($added !== []) {
                 FilamentAsset::register($added, $package);
             }
-        }
-
-        foreach (array_diff_key($panel->getPlugins(), $before['plugins']) as $plugin) {
-            $plugin->boot($panel);
         }
 
         $colors = [];
