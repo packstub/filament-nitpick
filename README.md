@@ -124,7 +124,7 @@ Themes::register(
 );
 ```
 
-Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-nitpick/themes) walks through each kind of theme: ready-made CSS, a Vite theme, Tailwind source you compile ([Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme)), a palette without a plugin ([Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme)), and a theme that changes the layout ([Press](https://filamentphp.com/plugins/elemind-press-filament-theme)).
+Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-nitpick/themes) walks through each kind of theme: ready-made CSS, a Vite theme, Tailwind source you compile ([Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme)), a palette without a plugin ([Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme)), and a theme that changes the layout ([Press](https://filamentphp.com/plugins/elemind-press-filament-theme)). [Tested themes](https://packstub.dev/docs/filament-nitpick/tested-themes) lists the 30+ community themes run through the picker, with the setup each one takes.
 
 Writing a theme plugin? [For theme authors](https://packstub.dev/docs/filament-nitpick/theme-authors) covers the habits that make it work well in Nitpick, and in any app with more than one panel.
 

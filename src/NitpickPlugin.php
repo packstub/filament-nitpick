@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Contracts\Plugin;
 use Filament\Enums\ThemeMode;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
@@ -24,6 +25,7 @@ use Packstub\Nitpick\Events\ThemeChanged;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Support\PanelServing;
+use RuntimeException;
 use Throwable;
 
 class NitpickPlugin implements Plugin
@@ -511,23 +513,63 @@ class NitpickPlugin implements Plugin
     protected function applyActiveTheme(Panel $panel, bool $serving = false): void
     {
         $theme = $this->getActiveTheme();
-        $mode = $this->getThemeMode($theme);
 
         // A theme that configures the panel does it once the user is known:
         // while Filament serves the request, never on the earlier boot pass.
         if ($serving && $theme instanceof ConfiguresPanel && $this->manager()->configuresPanel($theme)) {
-            $this->servingColors = [$theme->getId() => PanelServing::run($theme, $panel)];
+            try {
+                $this->servingColors = [$theme->getId() => PanelServing::run($theme, $panel)];
+            } catch (Throwable $exception) {
+                $this->fallBack($theme, $exception);
+                $this->applyActiveTheme($panel, serving: true);
+
+                return;
+            }
 
             app()->terminating(function (): void {
                 $this->servingColors = [];
             });
         }
 
+        $mode = $this->getThemeMode($theme);
+
         if ($mode !== null) {
             $panel->defaultThemeMode($mode);
         }
 
         FilamentColor::register($this->getColorsFor($theme));
+    }
+
+    /**
+     * A user's theme that fails to configure the panel (its plugin throws in
+     * register() or boot(), its panel() callback does) would turn every page
+     * into an error, the picker's included, and lock the user into it. The
+     * failure is reported and the panel's default theme is served for this
+     * request instead, with a notice to the user; their choice is kept, so
+     * the theme comes back once it works. The default theme has nothing to
+     * fall back to, so its failure is the panel's own and is thrown.
+     */
+    protected function fallBack(Theme $failed, Throwable $exception): void
+    {
+        $default = $this->getDefaultTheme();
+        $user = $this->currentUser();
+
+        if ($user === null || $default->getId() === $failed->getId()) {
+            throw $exception;
+        }
+
+        $this->activeThemes[$user->getAuthIdentifier()] = $default;
+
+        report(new RuntimeException(
+            "The theme [{$failed->getId()}] failed to configure the [{$this->getPanelId()}] panel, so the default theme [{$default->getId()}] was served instead: {$exception->getMessage()}",
+            previous: $exception,
+        ));
+
+        Notification::make()
+            ->warning()
+            ->title(__('nitpick::themes.notifications.unavailable.title', ['theme' => $failed->getLabel()]))
+            ->body(__('nitpick::themes.notifications.unavailable.body', ['default' => $default->getLabel()]))
+            ->send();
     }
 
     // ------------------------------------------------------------------

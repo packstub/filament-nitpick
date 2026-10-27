@@ -50,6 +50,8 @@ Run `php artisan filament:assets` and the theme is registered like any other: a 
 - The picker shows the theme's swatches from the plugin's colours. Picking it reloads the page, so the panel is built with the plugin from the start.
 - Register as many as you like, one `Theme::make()` each, and add `->label()` or `->description()` for the text on its card.
 
+[Tested themes](tested-themes.md) lists the community themes that have been run through the picker, with the setup each one takes.
+
 ### Example: installing an open-source theme
 
 [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), a teal and graphite theme by Yousef Al-Jallad, ships ready-made CSS, so it takes three steps.
@@ -136,6 +138,48 @@ Themes::register(
 
 The plugin supplies the palette; the compiled file supplies the look. A `vite:` stylesheet works for your own Tailwind-built theme too.
 
+**A theme whose install command edits the panel's theme file.** Some themes come with an install command that imports their CSS into the panel's own theme file (`resources/css/filament/admin/theme.css`), so the theme would be compiled into every page of the panel. Skip that step and give the theme a file of its own, as for Nord above: Filament's theme first, then the theme's CSS, listed in `vite.config.js` and named on the theme with the `vite:` prefix. Edinburgh, Inverness, Aberdeen and Rail take this shape.
+
+**A theme whose CSS has no Filament import.** A theme file that starts with `@apply` rules and no `@import` of Filament's theme stops the build with `Cannot apply unknown utility class`, because Tailwind has not seen Filament's utilities yet. The same wrapper file solves it:
+
+```css
+/* resources/css/themes/sleek.css */
+@import '../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../vendor/hansenmakangiras/filament-sleek-theme/resources/css/theme.css';
+```
+
+Pass the wrapper wherever the theme's docs ask for its own file: `->stylesheet('vite:resources/css/themes/sleek.css')`, or the plugin's own option when it has one (`FilamentSleekTheme::make()->theme('resources/css/themes/sleek.css')`).
+
+### A theme whose plugin needs a Vite theme on the panel
+
+A few plugins expect the panel to carry their compiled theme as its `->viteTheme()`, and say so when it is missing: [Kinetics](https://filamentphp.com/plugins/otatechie-kinetics) stops in `boot()` with directions, Arasy lays out the page around it. A stylesheet on the theme is not what they look for; set the Vite theme on the panel with `->panel()`, which runs while the theme is active:
+
+```php
+use Filament\Panel;
+use Otatechie\Kinetics\KineticsPlugin;
+
+Themes::register(
+    Theme::make('kinetics')
+        ->plugin(fn () => KineticsPlugin::make()->appearancePage(false))
+        ->panel(fn (Panel $panel) => $panel->viteTheme('resources/css/themes/kinetics.css')),
+);
+```
+
+`resources/css/themes/kinetics.css` is the file the theme's docs tell you to create (its layers, Filament's theme, its CSS), listed in `vite.config.js` as usual. Kinetics also ships an Appearance page of its own, which is turned off here: a page cannot join the panel while a theme is served, and Nitpick's picker is the one users see. A theme that applies itself with a static method instead of a plugin (`FilamentItaliaTheme::applyTo($panel)`) goes in `->panel()` the same way.
+
+### Swatches and labels
+
+The picker shows three swatches per theme, taken from the colours its plugin sets in `register()`. A theme that is CSS only, or that sets its colours in `boot()`, shows three empty swatches, and a theme's label defaults to its id in headline case (`Meui`). Both are a line each:
+
+```php
+Theme::make('meui')
+    ->label('MeUI')
+    ->colors(['primary' => Color::Teal, 'gray' => Color::Slate])
+    ->plugin(fn () => MeUiPlugin::make()),
+```
+
+`->colors()` applies on top of the plugin's palette, so pick the colours the theme's CSS is designed around.
+
 ### A theme without a plugin class
 
 A theme that is a palette, or a palette and a few rules, needs no plugin to read from. [Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme), by Openplain, is a set of colour constants:
@@ -148,7 +192,32 @@ Themes::register(
 );
 ```
 
-A package like this may style every panel from its service provider. To keep those rules to its own theme, save them as a CSS file, pass it to `->stylesheet()`, and list the package under `extra.laravel.dont-discover` in `composer.json`.
+### Packages that style every panel from their service provider
+
+Most theme packages do everything from their plugin, which Nitpick puts on the panel only while the theme is active. A few register their stylesheet from the service provider instead, as a Filament asset for the whole app, so it loads on every panel and under every theme the moment the package is installed; Openplain's Shadcn and Tailscale are two. The treatment is the same for both: keep the service provider out of package discovery, and give the theme the stylesheet yourself, so it is linked only while the theme is active.
+
+```json
+// composer.json
+"extra": {
+    "laravel": {
+        "dont-discover": ["vlados/filament-tailscale-theme"]
+    }
+}
+```
+
+```php
+use Vlados\FilamentTailscaleTheme\FilamentTailscaleTheme;
+
+Themes::register(
+    Theme::make('tailscale')
+        ->plugin(fn () => FilamentTailscaleTheme::make())
+        ->stylesheet(base_path('vendor/vlados/filament-tailscale-theme/resources/dist/filament-tailscale-theme.css')),
+);
+```
+
+Run `composer dump-autoload` after the change. For a package without a plugin class (Shadcn), the theme is `->colors()` and the stylesheet alone.
+
+A package that replaces Filament's views from its service provider (`View::prependNamespace('filament-panels', ...)`, for its own topbar or sidebar) reaches every panel too, and a stylesheet cannot undo that: it works as the one theme of a panel, not as one choice among several. The package can scope it by prepending its views from the plugin instead; [For theme authors](theme-authors.md#keep-view-overrides-to-your-panels) says how.
 
 ### A theme that changes the layout
 
@@ -167,6 +236,12 @@ Themes::register(
 The same goes for a theme that styles the panel from render hooks, like [DaisyUI Themes](https://filamentphp.com/plugins/osama-nagi-daisyui-themes). To change the panel further while the theme is active (top navigation, a font of your own), add `->panel()`; [Configuring the panel](creating-a-theme.md#configuring-the-panel) has the details, and what cannot be added this way.
 
 Building a theme plugin of your own? [For theme authors](theme-authors.md) has the habits that make it work well here.
+
+### When a theme cannot be served
+
+A theme that configures the panel can fail while doing it: its plugin stops in `boot()` because a step of its setup is missing (Kinetics without its Vite theme), or a `->panel()` callback throws. Rather than turn every page into an error for the person who picked it, the picker's page included, Nitpick reports the failure to your log, serves the panel's default theme for that request, and shows the user a notice that their theme is unavailable, with the picker one click away. Their choice is kept, so the theme comes back on its own once the setup is complete. A default theme that fails still throws: that is the panel's own configuration, and you want to see it.
+
+A theme can also turn on a feature the app is not ready for: Rail's plugin enables database notifications, which need a `notifications` table (`php artisan make:notifications-table`, then `migrate`). That fails later, while the page renders, exactly as it would with the plugin on the panel directly, so run the theme's setup steps before offering it.
 
 ## Offering themes on a panel
 
