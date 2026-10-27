@@ -46,3 +46,12 @@ it('keeps a modal opened from the topbar or sidebar from being clipped to the ba
         ->toContain('will-change: auto !important;')
         ->and($css)->toMatch('/html \.fi-topbar:has\(\.fi-modal-open\) \{\s*transform: none !important;/');
 });
+
+// A theme that gives its sidebar the modal's z-index (MeUI: 40) paints it over a modal opened from the
+// user menu, which comes earlier in the DOM. The Appearance modal takes the z-index Filament gives a
+// stacked modal, overlay and window both.
+it('keeps the Appearance modal above a sidebar that shares the modal z-index', function (): void {
+    $css = file_get_contents(__DIR__.'/../../resources/css/nitpick.css');
+
+    expect($css)->toMatch('/html \.fi-modal:has\(\.pst-theme-picker\) > \.fi-modal-close-overlay,\s*html \.fi-modal:has\(\.pst-theme-picker\) > \.fi-modal-window-ctn \{\s*z-index: 50;\s*\}/');
+});
