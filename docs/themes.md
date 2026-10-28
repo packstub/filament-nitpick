@@ -38,7 +38,7 @@ use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->label('Noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
@@ -71,7 +71,6 @@ Run `php artisan filament:assets` and the theme is registered like any other: a 
 
     Themes::register(
         Theme::make('noreviq')
-            ->label('Noreviq')
             ->description('Teal and graphite with sharp corners.')
             ->plugin(fn () => NoreviqThemePlugin::make()),
     );
@@ -111,7 +110,7 @@ npm run build
 use Nagi\FilamentAbyssTheme\FilamentAbyssThemePlugin;
 
 Themes::register(
-    Theme::make('abyss')->label('Abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
+    Theme::make('abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
 );
 ```
 
@@ -132,7 +131,6 @@ use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
 
 Themes::register(
     Theme::make('nord')
-        ->label('Nord')
         ->plugin(fn () => FilamentNordThemePlugin::make())
         ->stylesheet('vite:resources/css/themes/nord.css'),
 );
@@ -162,7 +160,6 @@ use Otatechie\Kinetics\KineticsPlugin;
 
 Themes::register(
     Theme::make('kinetics')
-        ->label('Kinetics')
         ->plugin(fn () => KineticsPlugin::make()->appearancePage(false))
         ->panel(fn (Panel $panel) => $panel->viteTheme('resources/css/themes/kinetics.css')),
 );
@@ -172,7 +169,7 @@ Themes::register(
 
 ### Swatches and labels
 
-The picker shows three swatches per theme, taken from the colours its plugin sets in `register()`. A theme that is CSS only, or that sets its colours in `boot()`, shows no swatches (its card keeps the row's height, so the names line up), and a theme's label defaults to its id in headline case (`Meui`). Give each theme a label when you register it, and colours when it has none of its own; both are a line each:
+The picker shows three swatches per theme, taken from the colours its plugin sets in `register()`. A theme that is CSS only, or that sets its colours in `boot()`, shows no swatches (its card keeps the row's height, so the names line up), and `->colors()` gives it some. The label is optional: left out, it is the id in headline case (`newsroom` reads "Newsroom", `deep-forest` "Deep Forest"), so `->label()` is only needed when that reads wrong, as `meui` does ("Meui" rather than "MeUI"):
 
 ```php
 Theme::make('meui')
@@ -191,7 +188,7 @@ A theme that is a palette, or a palette and a few rules, needs no plugin to read
 use Openplain\FilamentShadcnTheme\Color as ShadcnColor;
 
 Themes::register(
-    Theme::make('shadcn')->label('Shadcn')->colors(['primary' => ShadcnColor::Default]),
+    Theme::make('shadcn')->colors(['primary' => ShadcnColor::Default]),
 );
 ```
 
@@ -213,7 +210,6 @@ use Vlados\FilamentTailscaleTheme\FilamentTailscaleTheme;
 
 Themes::register(
     Theme::make('tailscale')
-        ->label('Tailscale')
         ->plugin(fn () => FilamentTailscaleTheme::make())
         ->stylesheet(base_path('vendor/vlados/filament-tailscale-theme/resources/dist/filament-tailscale-theme.css')),
 );
@@ -232,7 +228,6 @@ use Elemind\PressFilamentTheme\PressFilamentTheme;
 
 Themes::register(
     Theme::make('press')
-        ->label('Press')
         ->description('An editorial look with navigation along the top. Open source, by Elemind.')
         ->plugin(fn () => PressFilamentTheme::make()),
 );

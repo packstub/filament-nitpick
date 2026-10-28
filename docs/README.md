@@ -17,7 +17,7 @@ use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->label('Noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
