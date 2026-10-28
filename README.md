@@ -78,11 +78,11 @@ That is the whole setup. The panel renders in Aurora, and **Appearance** appears
 
 Two themes ship with the plugin. Each has a light and a dark mode, and prefers one of them.
 
-**Aurora** (`aurora`, prefers light): iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents. "Daybreak" in light mode, "Twilight" in dark.
+**Aurora** (prefers light): iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents. "Daybreak" in light mode, "Twilight" in dark.
 
 ![The same dashboard in Aurora, light mode ("Daybreak") on the left and dark mode ("Twilight") on the right: glass cards, a floating dock sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora-modes.png)
 
-**Midnight** (`midnight`, prefers dark): deep near-black surfaces with a violet-to-cyan accent gradient. In light mode it keeps its shapes and palette on Filament's standard surfaces.
+**Midnight** (prefers dark): deep near-black surfaces with a violet-to-cyan accent gradient. In light mode it keeps its shapes and palette on Filament's standard surfaces.
 
 ![The same dashboard in Midnight, light mode on the left and dark mode on the right: violet-to-cyan stat values, deep near-black surfaces in dark](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight-modes.png)
 
