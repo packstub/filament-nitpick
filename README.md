@@ -76,16 +76,15 @@ That is the whole setup. The panel renders in Aurora, and **Appearance** appears
 
 ## The bundled themes
 
-| Theme | Feel | Preferred mode |
-| --- | --- | --- |
-| `aurora` | Iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents. "Daybreak" in light mode, "Twilight" in dark. | Light |
-| `midnight` | Deep near-black surfaces with a violet-to-cyan accent gradient. Keeps its shapes and palette on Filament's standard surfaces in light mode. | Dark |
+Two themes ship with the plugin. Each has a light and a dark mode, and prefers one of them.
 
-![The same dashboard in the Midnight theme: deep near-black surfaces, violet-to-cyan stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight.png)
+**Aurora** (`aurora`, prefers light): iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents. "Daybreak" in light mode, "Twilight" in dark.
 
-Both themes cover light and dark mode. This is Aurora after dark:
+![The same dashboard in Aurora, light mode ("Daybreak") on the left and dark mode ("Twilight") on the right: glass cards, a floating dock sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora-modes.png)
 
-![A deals table in Aurora's dark variant, "Twilight": the same glass surfaces and dock sidebar on a deep night backdrop](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora-dark.png)
+**Midnight** (`midnight`, prefers dark): deep near-black surfaces with a violet-to-cyan accent gradient. In light mode it keeps its shapes and palette on Filament's standard surfaces.
+
+![The same dashboard in Midnight, light mode on the left and dark mode on the right: violet-to-cyan stat values, deep near-black surfaces in dark](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight-modes.png)
 
 A theme's preferred mode becomes the panel's default mode while the theme is active. A user who has toggled light or dark keeps their choice.
 

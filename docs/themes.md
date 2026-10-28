@@ -7,15 +7,13 @@
 | `aurora` | Aurora | Iridescent glass surfaces, a floating dock-style sidebar, sky and cyan accents with a blush edge. "Daybreak" in light mode, "Twilight" in dark. | Light |
 | `midnight` | Midnight | Deep near-black surfaces with a violet-to-cyan accent gradient on primary actions and stat values. In light mode it keeps the palette and shapes on Filament's standard surfaces. | Dark |
 
-![A Filament dashboard in the Aurora theme: glass cards over a soft sky-to-blush backdrop, a floating dock-style sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora.png)
+![The same dashboard in Aurora, light mode ("Daybreak") on the left and dark mode ("Twilight") on the right: glass cards, a floating dock sidebar, gradient stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora-modes.png)
 
-![The same dashboard in the Midnight theme: deep near-black surfaces, violet-to-cyan stat values](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight.png)
+![The same dashboard in Midnight, light mode on the left and dark mode on the right: violet-to-cyan stat values, deep near-black surfaces in dark](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight-modes.png)
 
 Both are ordinary theme classes, `Packstub\Nitpick\Themes\Aurora` and `Packstub\Nitpick\Themes\Midnight`, and can be referenced by class or id.
 
-Each covers both modes. Aurora in dark mode, and Midnight on a form:
-
-![A deals table in Aurora's dark variant, "Twilight": the same glass surfaces and dock sidebar on a deep night backdrop](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/aurora-dark.png)
+Midnight on a form:
 
 ![An edit form in the Midnight theme: dark inputs and a violet-to-cyan gradient on the primary button](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/midnight-form.png)
 
