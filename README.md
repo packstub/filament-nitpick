@@ -19,13 +19,13 @@ A theme is a colour palette plus a stylesheet that restyles the panel. This plug
 It is also a home for the themes you already like. Install a theme plugin from the [Filament plugin directory](https://filamentphp.com/plugins), free or paid, and one line puts it in the picker beside the others:
 
 ```php
-use Noreviq\FilamentTheme\NoreviqThemePlugin;
+use Caresome\FilamentNeobrutalism\NeobrutalismeTheme;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('neobrutalism')->plugin(fn () => NeobrutalismeTheme::make()),
 );
 ```
 
@@ -92,38 +92,42 @@ A theme's preferred mode becomes the panel's default mode while the theme is act
 
 The [Filament plugin directory](https://filamentphp.com/plugins) has a growing shelf of themes, free and paid, each with a character of its own. Any of them can sit in your picker beside the bundled ones, so a panel offers as many looks as you care to install.
 
-Install the theme's package the way its own docs describe, then hand its plugin to a theme:
+Install the theme's package the way its own docs describe, then hand its plugin to a theme. Here is [Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme), Andréia Bohner's polar-night palette and one of the most installed themes in the directory:
+
+```bash
+composer require andreia/filament-nord-theme
+```
+
+Nord's docs ask for its CSS to be imported into a Filament theme file. Give it a file of its own, so it is compiled apart from your panel's stylesheet, and add the file to the `input` array in `vite.config.js`:
+
+```css
+/* resources/css/themes/nord.css */
+@import '../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../vendor/andreia/filament-nord-theme/resources/css/theme.css';
+```
+
+Then register the theme, naming the compiled file with the `vite:` prefix, and run `npm run build`:
 
 ```php
-use Noreviq\FilamentTheme\NoreviqThemePlugin;
+use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('nord')
+        ->plugin(fn () => FilamentNordThemePlugin::make())
+        ->stylesheet('vite:resources/css/themes/nord.css'),
 );
 ```
 
-Run `php artisan filament:assets` and it is one more card on the Appearance page: a panel default, a per-user choice. The plugin joins the panel while its theme is active, and only then, so it styles the panel exactly as its own docs describe (palette, stylesheets, fonts, render hooks, layout) and leaves no trace while another theme is picked. Configure it the way its docs say (`NoreviqThemePlugin::make()->corners(...)`) and the theme follows. Picking it reloads the page.
+Nord is now one more card in the picker: a panel default, a per-user choice. The plugin joins the panel while its theme is active, and only then, so it styles the panel exactly as its own docs describe (palette, stylesheets, fonts, render hooks, layout) and leaves no trace while another theme is picked. Configure it the way its docs say and the theme follows. Picking it reloads the page.
 
-The example is [Noreviq](https://filamentphp.com/plugins/yousef-al-jallad-noreviq-theme), an open-source teal and graphite theme by Yousef Al-Jallad, in three steps:
+A theme that ships ready-made CSS needs no build: [Neobrutalism](https://filamentphp.com/plugins/caresome-neobrutalism-theme), by Caresome, with its bold borders and hard shadows, is `composer require caresome/filament-neobrutalism-theme`, the one line at the top of this page, and `php artisan filament:assets`.
 
-```bash
-composer require noreviq/filament-theme   # 1. the theme's package
-#                                           2. the Themes::register() call above
-php artisan filament:assets               # 3. publish its CSS
-```
+A theme can be a palette, too. [Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme), by Openplain, the most installed theme in the directory, puts its colours in the picker with `Theme::make('shadcn')->colors(['primary' => ShadcnColor::Default])`.
 
-Themes that build with Vite work the same way. For [Abyss](https://filamentphp.com/plugins/osama-nagi-abyss-theme), by Osama Nagi, add its stylesheet to `vite.config.js` as its docs ask, run `npm run build`, and register it:
-
-```php
-Themes::register(
-    Theme::make('abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
-);
-```
-
-Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-nitpick/themes) walks through each kind of theme: ready-made CSS, a Vite theme, Tailwind source you compile ([Nord](https://filamentphp.com/plugins/andreia-bohner-nord-theme)), a palette without a plugin ([Shadcn](https://filamentphp.com/plugins/openplain-shadcn-theme)), and a theme that changes the layout ([Press](https://filamentphp.com/plugins/elemind-press-filament-theme)). [Tested themes](https://packstub.dev/docs/filament-nitpick/tested-themes) lists the 30+ community themes run through the picker, with the setup each one takes.
+Register as many as you like, one `Theme::make()` each. [Themes](https://packstub.dev/docs/filament-nitpick/themes) walks through each kind of theme: ready-made CSS, a Vite theme, a palette and its stylesheet (Shadcn), and a theme that changes the layout ([Press](https://filamentphp.com/plugins/elemind-press-filament-theme)). [Tested themes](https://packstub.dev/docs/filament-nitpick/tested-themes) lists the 30+ community themes run through the picker, with the setup each one takes.
 
 Writing a theme plugin? [For theme authors](https://packstub.dev/docs/filament-nitpick/theme-authors) covers the habits that make it work well in Nitpick, and in any app with more than one panel.
 
