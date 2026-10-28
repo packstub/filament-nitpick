@@ -5,7 +5,9 @@
     $statePath = $getStatePath();
     $isDisabled = $isDisabled();
     $hasDescriptions = $hasDescriptions();
-    $hasSwatches = $hasSwatches();
+    $swatches = $hasSwatches() ? array_map(fn ($theme): array => array_slice($theme->getSwatches(), 0, 3), $themes) : [];
+    // No theme with known colours: leave the row out instead of a blank strip on every card.
+    $hasSwatches = filled(array_filter($swatches));
     $shouldPersist = $shouldPersist();
 @endphp
 
@@ -36,15 +38,11 @@
                 />
 
                 @if ($hasSwatches)
+                    {{-- Colours unknown (set in a plugin's boot(), say): the row stays empty, so the names line up. --}}
                     <span class="pst-theme-swatches" aria-hidden="true">
-                        @forelse (array_slice($theme->getSwatches(), 0, 3) as $swatch)
+                        @foreach ($swatches[$id] as $swatch)
                             <span class="pst-theme-swatch" style="background: {{ $swatch }}"></span>
-                        @empty
-                            {{-- Colours unknown (set in a plugin's boot(), say): empty swatches keep the cards in line. --}}
-                            @for ($i = 0; $i < 3; $i++)
-                                <span class="pst-theme-swatch pst-theme-swatch-empty"></span>
-                            @endfor
-                        @endforelse
+                        @endforeach
                     </span>
                 @endif
 

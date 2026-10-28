@@ -93,12 +93,25 @@ it('shows descriptions when the panel asks for them', function (): void {
         ->assertDontSee('title="'.e(__('nitpick::themes.themes.midnight.description')).'"', false);
 });
 
-it('shows empty swatches for a theme whose colours are unknown', function (): void {
-    Themes::register(Theme::make('blank'));
+it('leaves the swatch row empty for a theme whose colours are unknown', function (): void {
+    Themes::register(Theme::make('blank')->label('Blank'));
 
     $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
 
-    expect(substr_count($html, 'pst-theme-swatch pst-theme-swatch-empty'))->toBe(3);
+    expect($html)
+        ->toMatch('/<span class="pst-theme-swatches" aria-hidden="true">(\s|<!--.*?-->)*<\/span>(\s|<!--.*?-->)*<span class="pst-theme-option-label">\s*Blank/')
+        ->not->toContain('pst-theme-swatch-empty');
+});
+
+it('leaves the swatch row out when no theme has known colours', function (): void {
+    Themes::register(Theme::make('blank'));
+    Themes::register(Theme::make('plain'));
+    pluginFor('admin')->themes(['blank', 'plain']);
+
+    $this->get(Appearance::getUrl())
+        ->assertOk()
+        ->assertSee('Plain')
+        ->assertDontSee('pst-theme-swatches', false);
 });
 
 it('can leave the swatches out', function (): void {
