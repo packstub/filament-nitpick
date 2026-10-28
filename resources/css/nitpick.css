@@ -137,3 +137,14 @@ html .fi-topbar-ctn:has(.fi-modal-open),
 html .fi-topbar:has(.fi-modal-open) {
     transform: none !important;
 }
+
+/*
+ * A modal opened from the user menu comes before the sidebar in the DOM, so a theme that gives its
+ * sidebar the modal's z-index (40, Filament's sidebar has 30) paints the sidebar over the modal and
+ * hides its left part (MeUI). The Appearance modal takes the z-index Filament gives a modal stacked
+ * on another one, overlay and window both, so it stays on top of any bar.
+ */
+html .fi-modal:has(.pst-theme-picker) > .fi-modal-close-overlay,
+html .fi-modal:has(.pst-theme-picker) > .fi-modal-window-ctn {
+    z-index: 50;
+}

@@ -13,6 +13,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 - While a theme configures the panel, the plugins it added boot before its render hooks and assets are registered with Filament, so a plugin that fails in `boot()` leaves nothing behind.
 
+### Fixed
+
+- The Appearance modal is no longer hidden under a theme's sidebar: a sidebar given the modal's z-index (MeUI, 40 where Filament's has 30) paints over a modal opened from the user menu, which comes earlier in the DOM. The modal's overlay and window now take the z-index Filament gives a modal stacked on another one.
+
 ### Docs
 
 - [Themes](docs/themes.md): a theme whose plugin needs the panel's `->viteTheme()` (`->panel()`, not `->stylesheet()`), a theme file without Filament's import (a two-line wrapper), install commands that edit the panel's theme file, packages that style every panel from their service provider (`dont-discover` and `->stylesheet()`; view overrides cannot be scoped from outside), `->colors()` and `->label()` for empty swatches and raw labels, and what happens when a theme cannot be served.
