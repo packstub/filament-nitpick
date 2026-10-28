@@ -15,6 +15,10 @@ use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Http\Events\RequestHandled;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
 use LogicException;
@@ -83,6 +87,22 @@ class NitpickPlugin implements Plugin
      * @var array<string, array<string, array<int | string, string | int> | string>>
      */
     protected array $servingColors = [];
+
+    /**
+     * The user (auth identifier) and the theme of theirs that configured the
+     * panel for this request, so a request that ends in a server error can be
+     * put down to the theme.
+     *
+     * @var array{0: int | string, 1: string}|null
+     */
+    protected ?array $servedUserTheme = null;
+
+    /**
+     * How long, in seconds, a user's theme is set aside after a request
+     * under it ended in a server error: the default theme is served to them
+     * until then, or until they pick a theme again.
+     */
+    public const FAILED_THEME_TTL = 600;
 
     public static function make(): static
     {
@@ -380,6 +400,7 @@ class NitpickPlugin implements Plugin
 
         $this->manager()->store()->set($user, $this->getPanelId(), $resolved?->getId());
         $this->activeThemes = [];
+        Cache::forget($this->failedThemeKey($user->getAuthIdentifier()));
 
         event(new ThemeChanged($user, $this->getPanelId(), $resolved));
     }
@@ -497,6 +518,8 @@ class NitpickPlugin implements Plugin
         }
 
         $panel->renderHook(PanelsRenderHook::HEAD_END, fn (): string => $this->renderHead());
+
+        Event::listen(RequestHandled::class, fn (RequestHandled $event) => $this->rememberFailedTheme($event));
     }
 
     public function boot(Panel $panel): void
@@ -517,6 +540,13 @@ class NitpickPlugin implements Plugin
         // A theme that configures the panel does it once the user is known:
         // while Filament serves the request, never on the earlier boot pass.
         if ($serving && $theme instanceof ConfiguresPanel && $this->manager()->configuresPanel($theme)) {
+            if ($this->failedRecently($theme)) {
+                $this->fallBack($theme);
+                $this->applyActiveTheme($panel, serving: true);
+
+                return;
+            }
+
             try {
                 $this->servingColors = [$theme->getId() => PanelServing::run($theme, $panel)];
             } catch (Throwable $exception) {
@@ -526,8 +556,15 @@ class NitpickPlugin implements Plugin
                 return;
             }
 
+            $user = $this->currentUser();
+
+            if ($user !== null && $theme->getId() !== $this->getDefaultTheme()->getId()) {
+                $this->servedUserTheme = [$user->getAuthIdentifier(), $theme->getId()];
+            }
+
             app()->terminating(function (): void {
                 $this->servingColors = [];
+                $this->servedUserTheme = null;
             });
         }
 
@@ -547,29 +584,83 @@ class NitpickPlugin implements Plugin
      * failure is reported and the panel's default theme is served for this
      * request instead, with a notice to the user; their choice is kept, so
      * the theme comes back once it works. The default theme has nothing to
-     * fall back to, so its failure is the panel's own and is thrown.
+     * fall back to, so its failure is the panel's own and is thrown. Without
+     * an exception, the theme failed on an earlier request, while the page
+     * rendered (failedRecently()), and that failure was reported then.
      */
-    protected function fallBack(Theme $failed, Throwable $exception): void
+    protected function fallBack(Theme $failed, ?Throwable $exception = null): void
     {
         $default = $this->getDefaultTheme();
         $user = $this->currentUser();
 
         if ($user === null || $default->getId() === $failed->getId()) {
-            throw $exception;
+            throw $exception ?? new LogicException("The default theme [{$failed->getId()}] has nothing to fall back to.");
         }
 
-        $this->activeThemes[$user->getAuthIdentifier()] = $default;
+        $key = $user->getAuthIdentifier();
+        $this->activeThemes[$key] = $default;
 
-        report(new RuntimeException(
-            "The theme [{$failed->getId()}] failed to configure the [{$this->getPanelId()}] panel, so the default theme [{$default->getId()}] was served instead: {$exception->getMessage()}",
-            previous: $exception,
-        ));
+        app()->terminating(function () use ($key): void {
+            unset($this->activeThemes[$key]);
+        });
+
+        if ($exception !== null) {
+            report(new RuntimeException(
+                "The theme [{$failed->getId()}] failed to configure the [{$this->getPanelId()}] panel, so the default theme [{$default->getId()}] was served instead: {$exception->getMessage()}",
+                previous: $exception,
+            ));
+        }
 
         Notification::make()
             ->warning()
             ->title(__('nitpick::themes.notifications.unavailable.title', ['theme' => $failed->getLabel()]))
             ->body(__('nitpick::themes.notifications.unavailable.body', ['default' => $default->getLabel()]))
             ->send();
+    }
+
+    /**
+     * A theme can configure the panel without a fault and still fail later,
+     * while the page renders: its plugin turns on a feature the app is not
+     * ready for (Rail's database notifications without a `notifications`
+     * table). Every page is then an error for the user who picked it, the
+     * picker's included. So a request that ends in a server error while a
+     * user's own theme configured the panel sets that theme aside for them
+     * for FAILED_THEME_TTL seconds: the default is served meanwhile, with the
+     * notice (fallBack()). The error itself was reported by the app's handler.
+     * An unrelated error sets the theme aside too, which costs the user their
+     * theme for a while, never the panel; picking a theme again clears it.
+     */
+    protected function rememberFailedTheme(RequestHandled $event): void
+    {
+        if ($this->servedUserTheme === null || $event->response->getStatusCode() < 500) {
+            return;
+        }
+
+        [$user, $theme] = $this->servedUserTheme;
+        $this->servedUserTheme = null;
+
+        Cache::put($this->failedThemeKey($user), $theme, static::FAILED_THEME_TTL);
+
+        Log::warning("A request on the [{$this->getPanelId()}] panel ended in a server error while the theme [{$theme}] configured it, so the panel's default theme is served to this user for the next ".intdiv(static::FAILED_THEME_TTL, 60).' minutes, or until they pick a theme. If the error comes from the theme, complete its setup or stop offering it.', [
+            'theme' => $theme,
+            'panel' => $this->getPanelId(),
+            'user' => $user,
+            'status' => $event->response->getStatusCode(),
+        ]);
+    }
+
+    protected function failedRecently(Theme $theme): bool
+    {
+        $user = $this->currentUser();
+
+        return $user !== null
+            && $theme->getId() !== $this->getDefaultTheme()->getId()
+            && Cache::get($this->failedThemeKey($user->getAuthIdentifier())) === $theme->getId();
+    }
+
+    protected function failedThemeKey(int|string $user): string
+    {
+        return "nitpick:failed-theme:{$this->getPanelId()}:{$user}";
     }
 
     // ------------------------------------------------------------------

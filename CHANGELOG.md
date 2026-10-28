@@ -7,12 +7,12 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 ### Added
 
 - A theme that fails to configure the panel (its plugin throws in `register()` or `boot()`, as Kinetics does without its Vite theme, or its `->panel()` callback throws) no longer locks the user who picked it out of the panel. The failure is reported to the log, the panel is put back as it was, the panel's default theme is served for that request, and the user sees a notice that their theme is unavailable, with the picker one click away. Their choice is kept, so the theme comes back once it works. A default theme that fails still throws. ([#6](https://github.com/packstub/filament-nitpick/issues/6))
+- A theme that fails while the page renders no longer locks the user who picked it out of the panel either: Rail's plugin turns on database notifications, and without a `notifications` table every page was an error for them, the picker's included. When a request ends in a server error while a user's own theme configured the panel, a warning is logged and that user is served the panel's default theme for the next 10 minutes, with the same notice. Picking a theme tries it again at once. ([#10](https://github.com/packstub/filament-nitpick/issues/10))
 - [Tested themes](docs/tested-themes.md): 33 free community themes run through the picker on Filament 5.11, with the setup each one takes, and 8 colour switchers and branding tools that work beside Nitpick. The app that runs them is public at [packstub/nitpick-theme-compat](https://github.com/packstub/nitpick-theme-compat).
 
 ### Changed
 
 - While a theme configures the panel, the plugins it added boot before its render hooks and assets are registered with Filament, so a plugin that fails in `boot()` leaves nothing behind.
-
 - A theme whose colours are unknown (CSS only, or a plugin that sets them in `boot()`) shows no swatches in the picker, instead of three empty circles; its card keeps the row's height, so the names still line up, and a picker where no theme has known colours leaves the row out. ([#11](https://github.com/packstub/filament-nitpick/issues/11))
 
 ### Fixed

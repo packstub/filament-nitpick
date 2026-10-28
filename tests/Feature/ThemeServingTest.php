@@ -6,10 +6,13 @@ use Filament\Pages\Page;
 use Filament\Panel;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Log;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Facades\Themes;
 use Packstub\Nitpick\Filament\Pages\Appearance;
+use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\RailThemePlugin;
 use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
 use Packstub\Nitpick\Theme;
@@ -263,3 +266,113 @@ it('throws when the default theme itself fails to configure the panel', function
     $this->withoutExceptionHandling()
         ->get(Filament::getPanel('admin')->getUrl());
 })->throws(RuntimeException::class, 'The panel default is broken.');
+
+function registerRenderFailingTheme(): void
+{
+    Themes::register(
+        Theme::make('fragile')
+            ->panel(fn (Panel $panel) => $panel
+                // Fails while the page renders, and only while this theme is served (Filament's
+                // render hooks outlive a request in a test, never in an app).
+                ->renderHook(PanelsRenderHook::BODY_END, fn (): string => pluginFor('admin')->getActiveTheme()->getId() === 'fragile'
+                    ? throw new RuntimeException('The notifications table is missing.')
+                    : '')),
+    );
+}
+
+it('serves the default theme after the user\'s theme made a page fail while rendering', function (): void {
+    Exceptions::fake();
+    Log::spy();
+
+    registerRenderFailingTheme();
+    $panel = Filament::getPanel('admin');
+    pluginFor('admin')->setUserTheme('fragile');
+
+    $this->get($panel->getUrl())->assertServerError();
+
+    Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message, array $context): bool => str_contains($message, 'the theme [fragile] configured it')
+        && $context['panel'] === 'admin'
+        && $context['status'] === 500);
+
+    $this->get($panel->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="aurora">', false);
+
+    Notification::assertNotified(
+        Notification::make()
+            ->warning()
+            ->title('Fragile is unavailable right now')
+            ->body('This panel is shown in Aurora instead. You can pick another theme from Appearance.'),
+    );
+
+    // The choice is kept, and the picker opens.
+    expect(pluginFor('admin')->getUserTheme($this->user)?->getId())->toBe('fragile');
+    $this->get(Appearance::getUrl(panel: 'admin'))->assertOk();
+});
+
+it('tries the theme again once the failure is old', function (): void {
+    Exceptions::fake();
+
+    registerRenderFailingTheme();
+    $panel = Filament::getPanel('admin');
+    pluginFor('admin')->setUserTheme('fragile');
+
+    $this->get($panel->getUrl())->assertServerError();
+
+    $this->get($panel->getUrl())->assertOk();
+
+    $this->travel(NitpickPlugin::FAILED_THEME_TTL + 1)->seconds();
+
+    $this->get($panel->getUrl())->assertServerError();
+});
+
+it('tries the theme again when the user picks a theme', function (): void {
+    Exceptions::fake();
+
+    registerRenderFailingTheme();
+    $panel = Filament::getPanel('admin');
+    pluginFor('admin')->setUserTheme('fragile');
+
+    $this->get($panel->getUrl())->assertServerError();
+
+    pluginFor('admin')->setUserTheme('fragile');
+
+    $this->get($panel->getUrl())->assertServerError();
+});
+
+it('sets aside only the user whose theme failed', function (): void {
+    Exceptions::fake();
+
+    registerRenderFailingTheme();
+    $panel = Filament::getPanel('admin');
+    pluginFor('admin')->setUserTheme('fragile');
+    $this->get($panel->getUrl())->assertServerError();
+
+    $other = createUser(['email' => 'other@example.com']);
+    $this->actingAs($other);
+    pluginFor('admin')->setUserTheme('fragile', $other);
+
+    $this->get($panel->getUrl())->assertServerError();
+});
+
+it('leaves a theme alone when the request failed under a theme that does not configure the panel', function (): void {
+    Exceptions::fake();
+
+    Themes::register(Theme::make('plain')->colors(['primary' => Color::Rose]));
+    pluginFor('admin')->setUserTheme('plain');
+    Filament::getPanel('admin')->renderHook(PanelsRenderHook::BODY_END, fn (): string => throw new RuntimeException('Unrelated.'));
+
+    $this->get(Filament::getPanel('admin')->getUrl())->assertServerError();
+
+    expect(Cache::get('nitpick:failed-theme:admin:'.$this->user->getAuthIdentifier()))->toBeNull();
+});
+
+it('never sets aside the default theme', function (): void {
+    Exceptions::fake();
+
+    registerRenderFailingTheme();
+    pluginFor('admin')->default('fragile');
+
+    $this->get(Filament::getPanel('admin')->getUrl())->assertServerError();
+    $this->get(Filament::getPanel('admin')->getUrl())->assertServerError();
+});
