@@ -244,6 +244,20 @@ it('serves the default theme and tells the user when their theme fails to config
         && $e->getPrevious()?->getMessage() === 'Broken needs a custom theme on the panel.');
 });
 
+it('tells the user once per page, not on each of its Livewire requests', function (): void {
+    Exceptions::fake();
+
+    Themes::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('Nope')));
+    pluginFor('admin')->setUserTheme('broken');
+
+    $this->withHeader('X-Livewire', 'true')
+        ->get(Filament::getPanel('admin')->getUrl())
+        ->assertOk()
+        ->assertSee('<meta name="packstub-theme" content="aurora">', false);
+
+    Notification::assertNotNotified();
+});
+
 it('falls back to a default theme that configures the panel itself', function (): void {
     Exceptions::fake();
 

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
+use Livewire\Livewire;
 use LogicException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
@@ -609,6 +610,12 @@ class NitpickPlugin implements Plugin
                 "The theme [{$failed->getId()}] failed to configure the [{$this->getPanelId()}] panel, so the default theme [{$default->getId()}] was served instead: {$exception->getMessage()}",
                 previous: $exception,
             ));
+        }
+
+        // Once per page: the Livewire requests a page makes (lazy widgets, polling) fall back too,
+        // and a notice from each would stack up on the page.
+        if (Livewire::isLivewireRequest()) {
+            return;
         }
 
         Notification::make()
