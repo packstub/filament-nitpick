@@ -4,7 +4,7 @@ Nitpick puts several themes in one panel and lets each person pick theirs. A Fil
 
 ```php
 Themes::register(
-    Theme::make('harbor')->plugin(fn () => HarborThemePlugin::make()),
+    Theme::make('harbor')->label('Harbor')->plugin(fn () => HarborThemePlugin::make()),
 );
 ```
 
@@ -72,7 +72,7 @@ The methods on the right register for the whole app. From a service provider the
 The picker shows three swatches per theme, taken from the `primary`, `info` and `success` colours. Nitpick reads them from the scratch panel, where only `register()` runs, so set the palette there rather than in `boot()`. A palette that changes with your plugin's options follows them, because the app's closure configures the plugin before `register()` is called:
 
 ```php
-Theme::make('harbor-dusk')->plugin(fn () => HarborThemePlugin::make()->variant('dusk')),
+Theme::make('harbor-dusk')->label('Harbor Dusk')->plugin(fn () => HarborThemePlugin::make()->variant('dusk')),
 ```
 
 ## Keep `register()` free of the request

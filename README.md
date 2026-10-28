@@ -25,7 +25,7 @@ use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->label('Noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
@@ -102,7 +102,7 @@ use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
+    Theme::make('noreviq')->label('Noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
 
@@ -120,7 +120,7 @@ Themes that build with Vite work the same way. For [Abyss](https://filamentphp.c
 
 ```php
 Themes::register(
-    Theme::make('abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
+    Theme::make('abyss')->label('Abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
 );
 ```
 
@@ -248,6 +248,7 @@ use Packstub\Nitpick\Theme;
 
 Themes::register(
     Theme::make('nord')
+        ->label('Nord')
         ->colors(['primary' => Color::Sky, 'gray' => Color::Slate])
         ->stylesheet(resource_path('css/themes/nord.css'))
         ->mode(ThemeMode::Dark),
@@ -262,6 +263,7 @@ A theme can also configure the panel while it is active, with top navigation or 
 
 ```php
 Theme::make('newsroom')
+    ->label('Newsroom')
     ->colors(['primary' => Color::Red])
     ->panel(fn (Panel $panel) => $panel->topNavigation()->font('Fraunces')),
 ```

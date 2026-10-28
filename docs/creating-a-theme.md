@@ -131,7 +131,7 @@ use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
 Themes::register(
-    Theme::make('ocean')->colors(['primary' => Color::Teal]),
+    Theme::make('ocean')->label('Ocean')->colors(['primary' => Color::Teal]),
 
     Theme::make('nord')
         ->label('Nord')
@@ -195,6 +195,7 @@ use Packstub\Nitpick\Theme;
 // AppServiceProvider::boot()
 Themes::register(
     Theme::make('noreviq')
+        ->label('Noreviq')
         ->description('Teal and graphite with sharp corners.')
         ->plugin(fn () => NoreviqThemePlugin::make()),
 );
@@ -221,6 +222,7 @@ use Filament\Panel;
 
 Themes::register(
     Theme::make('newsroom')
+        ->label('Newsroom')
         ->colors(['primary' => Color::Red])
         ->stylesheet(resource_path('css/themes/newsroom.css'))
         ->panel(fn (Panel $panel) => $panel
@@ -252,6 +254,7 @@ class Newsroom extends Theme implements ConfiguresPanel
 use Elemind\PressFilamentTheme\PressFilamentTheme;
 
 Theme::make('press')
+    ->label('Press')
     ->plugin(fn () => PressFilamentTheme::make())
     ->panel(fn (Panel $panel) => $panel->brandName('The Daily')),
 ```
