@@ -48,10 +48,27 @@ it('keeps a modal opened from the topbar or sidebar from being clipped to the ba
 });
 
 // A theme that gives its sidebar the modal's z-index (MeUI: 40) paints it over a modal opened from the
-// user menu, which comes earlier in the DOM. The Appearance modal takes the z-index Filament gives a
-// stacked modal, overlay and window both.
+// user menu, which comes earlier in the DOM. The Appearance modal's overlay and window take the z-index
+// Filament gives a modal stacked on another one, read from Filament's own modal stylesheet, so the two
+// stay in step when Filament changes its stacking.
 it('keeps the Appearance modal above a sidebar that shares the modal z-index', function (): void {
-    $css = file_get_contents(__DIR__.'/../../resources/css/nitpick.css');
+    $filament = file_get_contents(__DIR__.'/../../vendor/filament/support/resources/css/components/modal.css');
 
-    expect($css)->toMatch('/html \.fi-modal:has\(\.pst-theme-picker\) > \.fi-modal-close-overlay,\s*html \.fi-modal:has\(\.pst-theme-picker\) > \.fi-modal-window-ctn \{\s*z-index: 50;\s*\}/');
+    preg_match('/\.fi-modal-open ~ \.fi-modal\.fi-modal-open \{\s*& > \.fi-modal-close-overlay,\s*& > \.fi-modal-window-ctn \{\s*@apply z-(\d+);/', $filament, $stacked);
+
+    expect($stacked[1] ?? null)->not->toBeNull('Filament no longer raises a stacked modal with z-<n> on its overlay and window');
+
+    $css = preg_replace('#/\*.*?\*/#s', '', file_get_contents(__DIR__.'/../../resources/css/nitpick.css'));
+
+    preg_match_all('/([^{}]*\.fi-modal:has\(\.pst-theme-picker\)[^{]*)\{([^}]*)\}/', $css, $rules, PREG_SET_ORDER);
+
+    $raised = array_filter($rules, fn (array $rule): bool => (bool) preg_match('/z-index:\s*'.$stacked[1].'\s*(;|$)/', $rule[2]));
+
+    expect($raised)->toHaveCount(1);
+
+    $selectors = array_map(trim(...), explode(',', reset($raised)[1]));
+
+    expect($selectors)
+        ->toContain('html .fi-modal:has(.pst-theme-picker) > .fi-modal-close-overlay')
+        ->toContain('html .fi-modal:has(.pst-theme-picker) > .fi-modal-window-ctn');
 });
