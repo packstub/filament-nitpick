@@ -136,7 +136,6 @@ public function packageBooted(): void
     if (class_exists(Themes::class)) {
         Themes::register(
             Theme::make('harbor')
-                ->label('Harbor')
                 ->description('Sky and slate, with a calm sidebar.')
                 ->mode(ThemeMode::Light)
                 ->plugin(fn () => HarborThemePlugin::make()),

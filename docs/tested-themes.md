@@ -33,7 +33,7 @@ The column on the right is what the theme takes beyond `->plugin()`; [Themes](th
 | Noreviq | `noreviq/filament-theme` | 1.0.7 | `->plugin()` |
 | Polder | `vtech9nl/filament-polder-theme` | 0.3.2 | `->plugin()` and a `vite:` file (Filament's theme, its `layers.css`, its `theme.css`) |
 | Press | `elemind/press-filament-theme` | 1.0.2 | `->plugin()` |
-| Qt5 | `khwr/filament-qt5-theme` | 1.1.0 | `->plugin()`; `->label('Qt5')` |
+| Qt5 | `khwr/filament-qt5-theme` | 1.1.0 | `->plugin()` |
 | Rail | `koassi/filament-rail` | 1.0.0 | `->plugin()` and a `vite:` file; its plugin turns on database notifications, so run `php artisan make:notifications-table` and migrate first |
 | Shadcn (irajul) | `irajul/filament-shadcn-theme` | 1.0.0 | `->plugin()`; nothing to build |
 | Shadcn (Openplain) | `openplain/filament-shadcn-theme` | 1.1.0 | `->colors(['primary' => ShadcnColor::Default])` and its rules as `->stylesheet()`, with the package under `dont-discover` |

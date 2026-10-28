@@ -169,7 +169,7 @@ Themes::register(
 
 ### Swatches and labels
 
-The picker shows three swatches per theme, taken from the colours its plugin sets in `register()`. A theme that is CSS only, or that sets its colours in `boot()`, shows three empty swatches, and a theme's label defaults to its id in headline case (`Meui`). Both are a line each:
+The picker shows three swatches per theme, taken from the colours its plugin sets in `register()`. A theme that is CSS only, or that sets its colours in `boot()`, shows no swatches (its card keeps the row's height, so the names line up), and `->colors()` gives it some. The label is optional: left out, it is the id in headline case (`newsroom` reads "Newsroom", `deep-forest` "Deep Forest"), so `->label()` is only needed when that reads wrong, as `meui` does ("Meui" rather than "MeUI"):
 
 ```php
 Theme::make('meui')

@@ -13,13 +13,16 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 - While a theme configures the panel, the plugins it added boot before its render hooks and assets are registered with Filament, so a plugin that fails in `boot()` leaves nothing behind.
 
+- A theme whose colours are unknown (CSS only, or a plugin that sets them in `boot()`) shows no swatches in the picker, instead of three empty circles; its card keeps the row's height, so the names still line up, and a picker where no theme has known colours leaves the row out. ([#11](https://github.com/packstub/filament-nitpick/issues/11))
+
 ### Fixed
 
 - The Appearance modal is no longer hidden under a theme's sidebar: a sidebar given the modal's z-index (MeUI, 40 where Filament's has 30) paints over a modal opened from the user menu, which comes earlier in the DOM. The modal's overlay and window now take the z-index Filament gives a modal stacked on another one.
 
 ### Docs
 
-- [Themes](docs/themes.md): a theme whose plugin needs the panel's `->viteTheme()` (`->panel()`, not `->stylesheet()`), a theme file without Filament's import (a two-line wrapper), install commands that edit the panel's theme file, packages that style every panel from their service provider (`dont-discover` and `->stylesheet()`; view overrides cannot be scoped from outside), `->colors()` and `->label()` for empty swatches and raw labels, and what happens when a theme cannot be served.
+- [Themes](docs/themes.md): a theme whose plugin needs the panel's `->viteTheme()` (`->panel()`, not `->stylesheet()`), a theme file without Filament's import (a two-line wrapper), install commands that edit the panel's theme file, packages that style every panel from their service provider (`dont-discover` and `->stylesheet()`; view overrides cannot be scoped from outside), `->colors()` and `->label()` for missing swatches and raw labels, and what happens when a theme cannot be served.
+- The label of a theme is optional and the docs say so: left out, it is the id in headline case (`newsroom` reads "Newsroom"), and `->label()` is only for an id that reads wrong that way (`meui` as "MeUI"). ([#12](https://github.com/packstub/filament-nitpick/issues/12))
 - [For theme authors](docs/theme-authors.md): prepend view overrides from the plugin, ship the files your assets point to, keep `<x-filament-actions::modals />` in a custom topbar and a custom sidebar below Filament's modal.
 
 ## 1.0.0-beta.2 — 2026-10-21

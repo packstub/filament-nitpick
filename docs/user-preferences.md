@@ -88,7 +88,7 @@ Each card shows up to three swatches and the theme's name. Short cards scan fast
 ThemePicker::make()->descriptions()
 ```
 
-The swatches come from the theme's `primary`, `info` and `success` colours, or from `->swatches([...])` on the theme. A theme whose colours are unknown (a plugin that sets them in `boot()`, say) shows three empty swatches, so the cards line up. Leave the strip out:
+The swatches come from the theme's `primary`, `info` and `success` colours, or from `->swatches([...])` on the theme. A theme whose colours are unknown (a plugin that sets them in `boot()`, say) shows no swatches, and its card keeps the row's height so the names line up; when no theme in the picker has known colours, the row is left out. Give such a theme its colours with `->colors()` (see [Swatches and labels](themes.md#swatches-and-labels)), or leave the strip out for every theme:
 
 ```php
 ThemePicker::make()->swatches(false)
