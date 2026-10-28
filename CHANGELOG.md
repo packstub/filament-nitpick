@@ -2,7 +2,7 @@
 
 All notable changes to `packstub/filament-nitpick` are documented here.
 
-## Unreleased
+## 1.0.0-beta.3 — 2026-10-28
 
 ### Added
 
