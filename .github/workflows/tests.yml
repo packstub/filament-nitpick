@@ -66,4 +66,37 @@ jobs:
         run: vendor/bin/pint --test
 
       - name: Run tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest --testsuite=Unit,Feature
+
+  browser:
+    name: Browser tests (Chromium)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.4"
+          extensions: pdo_sqlite, sockets
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: vendor/bin/pest --testsuite=Browser
+
+      - name: Keep the screenshots of a failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-screenshots
+          path: tests/Browser/Screenshots

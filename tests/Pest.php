@@ -9,7 +9,7 @@ use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\User;
 use Packstub\Nitpick\Tests\TestCase;
 
-pest()->extend(TestCase::class)->in('Feature', 'Unit');
+pest()->extend(TestCase::class)->in('Feature', 'Unit', 'Browser');
 
 /**
  * @param  array<string, mixed>  $attributes

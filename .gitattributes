@@ -20,6 +20,7 @@
 /phpunit.xml        export-ignore
 /pint.json          export-ignore
 /package.json       export-ignore
+/package-lock.json  export-ignore
 /.prettierrc        export-ignore
 /AGENTS.md          export-ignore
 /CLAUDE.md          export-ignore
