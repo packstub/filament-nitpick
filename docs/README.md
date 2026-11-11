@@ -12,11 +12,11 @@ Two designed themes ship with the plugin, and a theme plugin from the [Filament 
 
 ```php
 use Noreviq\FilamentTheme\NoreviqThemePlugin;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
-Themes::register(
+Nitpick::register(
     Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
@@ -41,6 +41,7 @@ Themes::register(
 | [Tested themes](tested-themes.md) | The community themes run through the picker, with the setup each takes, and the colour switchers and branding tools that work beside Nitpick |
 | [For theme authors](theme-authors.md) | Writing a Filament theme plugin that works well in Nitpick: configuring the panel you are given, colours in `register()`, view overrides, publishing assets, joining the picker on install |
 | [Configuration](configuration.md) | The fluent `NitpickPlugin` API, the config file, colour overrides, custom CSS and forced mode, events |
+| [Upgrading](upgrading.md) | From a 1.0 beta to 1.0: the renamed facade, selector and script, the removed beta methods, the preferences table |
 
 ## At a glance
 

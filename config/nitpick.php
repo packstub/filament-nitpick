@@ -26,7 +26,7 @@ return [
 
     'store' => 'database',
 
-    'table' => 'theme_preferences',
+    'table' => 'nitpick_theme_preferences',
 
     /*
     | The connection the preferences table lives on. Null follows the user

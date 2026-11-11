@@ -59,7 +59,7 @@ class ThemePicker extends Field
             // A theme that configures the panel (top navigation, plugins) shows only after a page load,
             // which waits for the transition's cover.
             if ($component->needsReload($old) || $component->needsReload($state)) {
-                $component->getLivewire()->js('window.PackstubThemes ? window.PackstubThemes.reload() : window.location.reload()');
+                $component->getLivewire()->js('window.Nitpick ? window.Nitpick.reload() : window.location.reload()');
             }
 
             if ($component->shouldNotify()) {

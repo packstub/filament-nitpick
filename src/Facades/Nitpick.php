@@ -16,7 +16,7 @@ use Packstub\Nitpick\ThemeManager;
  *
  * @see ThemeManager
  */
-class Themes extends Facade
+class Nitpick extends Facade
 {
     protected static function getFacadeAccessor(): string
     {

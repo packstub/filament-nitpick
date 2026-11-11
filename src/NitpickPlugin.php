@@ -258,24 +258,6 @@ class NitpickPlugin implements Plugin
     }
 
     /**
-     * @deprecated Use picker(): userSelectable() is picker(condition: $condition, userMenuItem: $userMenuItem). Removed in 1.0.
-     */
-    public function userSelectable(bool|Closure $condition = true, bool $userMenuItem = true): static
-    {
-        return $this->picker(condition: $condition, userMenuItem: $userMenuItem);
-    }
-
-    /**
-     * @deprecated Use picker(page: $page). Removed in 1.0.
-     *
-     * @param  class-string<Appearance>  $page
-     */
-    public function appearancePage(string $page): static
-    {
-        return $this->picker(page: $page);
-    }
-
-    /**
      * Force a light/dark/system default regardless of the active theme's
      * preferred mode. Null hands the choice back to the theme.
      */
@@ -313,7 +295,7 @@ class NitpickPlugin implements Plugin
         }
 
         if ($themes === []) {
-            throw new LogicException('No themes are registered. Register one with Themes::register() or keep the bundled ones.');
+            throw new LogicException('No themes are registered. Register one with Nitpick::register() or keep the bundled ones.');
         }
 
         return $themes;
@@ -407,14 +389,6 @@ class NitpickPlugin implements Plugin
     }
 
     /**
-     * @deprecated Use hasPicker(). Removed in 1.0.
-     */
-    public function isUserSelectable(): bool
-    {
-        return $this->hasPicker();
-    }
-
-    /**
      * A theme's palette, with the colours it set on the panel while serving
      * this request, then the config and plugin overrides, applied.
      *
@@ -459,16 +433,6 @@ class NitpickPlugin implements Plugin
         }
 
         return $theme->getPreferredMode();
-    }
-
-    /**
-     * @deprecated Use getPickerPage(). Removed in 1.0.
-     *
-     * @return class-string<Appearance>
-     */
-    public function getAppearancePage(): string
-    {
-        return $this->getPickerPage();
     }
 
     public function getPanelId(): string
@@ -680,7 +644,7 @@ class NitpickPlugin implements Plugin
         $selectable = $this->hasPicker();
 
         $tags = [
-            sprintf('<meta name="packstub-theme" content="%s">', e($theme->getId())),
+            sprintf('<meta name="nitpick-theme" content="%s">', e($theme->getId())),
         ];
 
         // Before the theme's stylesheets, so a stylesheet that sets a colour variable itself wins.
@@ -690,8 +654,8 @@ class NitpickPlugin implements Plugin
 
         foreach ($this->stylesheetHrefs($theme) as $index => $href) {
             $tags[] = sprintf(
-                '<link rel="stylesheet"%s href="%s" data-packstub-theme="%s" data-packstub-theme-stylesheet data-navigate-track>',
-                $index === 0 ? ' id="packstub-theme-active"' : '',
+                '<link rel="stylesheet"%s href="%s" data-nitpick-theme="%s" data-nitpick-theme-stylesheet data-navigate-track>',
+                $index === 0 ? ' id="nitpick-theme-active"' : '',
                 e($href),
                 e($theme->getId()),
             );
@@ -700,7 +664,7 @@ class NitpickPlugin implements Plugin
         if ($custom = $this->getCustomCss()) {
             $href = filter_var($custom, FILTER_VALIDATE_URL) ? $custom : asset(ltrim($custom, '/'));
 
-            $tags[] = sprintf('<link rel="stylesheet" id="packstub-theme-custom" href="%s" data-navigate-track>', e($href));
+            $tags[] = sprintf('<link rel="stylesheet" id="nitpick-theme-custom" href="%s" data-navigate-track>', e($href));
         }
 
         // The cover a transition paints over the panel, set before the body paints so a page that
@@ -738,7 +702,7 @@ class NitpickPlugin implements Plugin
                 $variables,
             ));
 
-            $blocks[] = sprintf('[data-packstub-theme="%s"] { %s }', e($id), $declarations);
+            $blocks[] = sprintf('[data-nitpick-theme="%s"] { %s }', e($id), $declarations);
         }
 
         if ($blocks === []) {
@@ -769,7 +733,7 @@ class NitpickPlugin implements Plugin
 
     /**
      * Stamps the active theme on <html> before the body paints and, when
-     * users may switch, exposes window.PackstubThemes: pick(id) changes the
+     * users may switch, exposes window.Nitpick: pick(id) changes the
      * theme with the panel's transition, preview(id) without one. Nothing
      * here writes Filament's light/dark localStorage key on load: the user's
      * light/dark toggle is theirs. Only a pick adopts a theme's preferred
@@ -796,8 +760,8 @@ class NitpickPlugin implements Plugin
                 var note = 'nitpick:cover';
 
                 function stamp() {
-                    var meta = document.querySelector('meta[name="packstub-theme"]');
-                    html.setAttribute('data-packstub-theme', meta ? meta.getAttribute('content') : {$id});
+                    var meta = document.querySelector('meta[name="nitpick-theme"]');
+                    html.setAttribute('data-nitpick-theme', meta ? meta.getAttribute('content') : {$id});
                 }
 
                 function isDark(mode) {
@@ -826,7 +790,7 @@ class NitpickPlugin implements Plugin
 
                 // Whether changing to a theme takes a page load: it, or the active one, configures the panel.
                 function needsReload(slug) {
-                    var active = manifest.themes[html.getAttribute('data-packstub-theme')];
+                    var active = manifest.themes[html.getAttribute('data-nitpick-theme')];
                     return !! (manifest.themes[slug].reload || (active && active.reload));
                 }
 
@@ -841,8 +805,8 @@ class NitpickPlugin implements Plugin
                     }
                     // The theme's stylesheets, in order: links already in the head are reused,
                     // new ones follow the last (ahead of the custom stylesheet), spare ones go.
-                    var links = Array.prototype.slice.call(document.querySelectorAll('link[data-packstub-theme-stylesheet]'));
-                    var custom = document.getElementById('packstub-theme-custom');
+                    var links = Array.prototype.slice.call(document.querySelectorAll('link[data-nitpick-theme-stylesheet]'));
+                    var custom = document.getElementById('nitpick-theme-custom');
                     var last = null;
                     var changed = [];
                     theme.hrefs.forEach(function (href, index) {
@@ -850,7 +814,7 @@ class NitpickPlugin implements Plugin
                         if (! link) {
                             link = document.createElement('link');
                             link.rel = 'stylesheet';
-                            link.setAttribute('data-packstub-theme-stylesheet', '');
+                            link.setAttribute('data-nitpick-theme-stylesheet', '');
                             if (last) {
                                 last.insertAdjacentElement('afterend', link);
                             } else if (custom) {
@@ -859,20 +823,20 @@ class NitpickPlugin implements Plugin
                                 document.head.appendChild(link);
                             }
                         }
-                        if (index === 0) { link.id = 'packstub-theme-active'; }
+                        if (index === 0) { link.id = 'nitpick-theme-active'; }
                         if (link.getAttribute('href') !== href) {
                             link.setAttribute('href', href);
                             changed.push(link);
                         }
-                        link.setAttribute('data-packstub-theme', slug);
+                        link.setAttribute('data-nitpick-theme', slug);
                         last = link;
                     });
                     links.slice(theme.hrefs.length).forEach(function (link) { link.remove(); });
-                    html.setAttribute('data-packstub-theme', slug);
-                    var meta = document.querySelector('meta[name="packstub-theme"]');
+                    html.setAttribute('data-nitpick-theme', slug);
+                    var meta = document.querySelector('meta[name="nitpick-theme"]');
                     if (meta) { meta.setAttribute('content', slug); }
                     applyMode(theme.mode);
-                    document.dispatchEvent(new CustomEvent('packstub-theme-changed', { detail: { theme: slug } }));
+                    document.dispatchEvent(new CustomEvent('nitpick:theme-changed', { detail: { theme: slug } }));
                     return changed;
                 }
 
@@ -1045,7 +1009,7 @@ class NitpickPlugin implements Plugin
                 }
 
                 function pickerInModal() {
-                    return !! document.querySelector('.fi-modal .pst-theme-picker');
+                    return !! document.querySelector('.fi-modal .nitpick-picker');
                 }
 
                 // Opens the Appearance modal from its user-menu item, and resolves once the picker
@@ -1111,8 +1075,8 @@ class NitpickPlugin implements Plugin
                 var uncover = null;
                 var swap = null;
 
-                window.PackstubThemes = {
-                    current: function () { return html.getAttribute('data-packstub-theme'); },
+                window.Nitpick = {
+                    current: function () { return html.getAttribute('data-nitpick-theme'); },
                     list: function () { return manifest ? Object.keys(manifest.themes) : []; },
                     transition: function () { return transitionName(manifest && manifest.transition); },
                     // Changes the theme in the head without a transition. False for a theme that shows

@@ -3,7 +3,7 @@
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use Packstub\Nitpick\Contracts\Theme as ThemeContract;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Tests\Fixtures\Ocean;
 use Packstub\Nitpick\Theme;
 use Packstub\Nitpick\ThemeManager;
@@ -11,24 +11,24 @@ use Packstub\Nitpick\Themes\Aurora;
 use Packstub\Nitpick\Themes\Midnight;
 
 it('registers the bundled themes', function (): void {
-    expect(array_keys(Themes::all()))->toContain('aurora', 'midnight');
-    expect(Themes::find('aurora'))->toBeInstanceOf(Aurora::class);
+    expect(array_keys(Nitpick::all()))->toContain('aurora', 'midnight');
+    expect(Nitpick::find('aurora'))->toBeInstanceOf(Aurora::class);
 });
 
 it('finds a theme by id, class name or instance', function (): void {
-    expect(Themes::find(Midnight::class))->toBeInstanceOf(Midnight::class)
-        ->and(Themes::find('midnight'))->toBeInstanceOf(Midnight::class)
-        ->and(Themes::find(new Midnight)->getId())->toBe('midnight')
-        ->and(Themes::has('ocean'))->toBeTrue()
-        ->and(Themes::find('nope'))->toBeNull();
+    expect(Nitpick::find(Midnight::class))->toBeInstanceOf(Midnight::class)
+        ->and(Nitpick::find('midnight'))->toBeInstanceOf(Midnight::class)
+        ->and(Nitpick::find(new Midnight)->getId())->toBe('midnight')
+        ->and(Nitpick::has('ocean'))->toBeTrue()
+        ->and(Nitpick::find('nope'))->toBeNull();
 });
 
 it('throws when resolving an unknown theme', function (): void {
-    Themes::resolve('nope');
+    Nitpick::resolve('nope');
 })->throws(InvalidArgumentException::class, 'not registered');
 
 it('rejects a theme with an invalid id', function (): void {
-    Themes::register(new class extends Theme
+    Nitpick::register(new class extends Theme
     {
         public function getId(): string
         {
@@ -48,13 +48,13 @@ it('rejects a theme with an invalid id', function (): void {
 })->throws(InvalidArgumentException::class, 'lowercase');
 
 it('rejects a class that is not a theme', function (): void {
-    Themes::register(stdClass::class);
+    Nitpick::register(stdClass::class);
 })->throws(InvalidArgumentException::class, ThemeContract::class);
 
 it('registers a stylesheet as a Filament asset loaded on request', function (): void {
-    $href = FilamentAsset::getStyleHref('packstub-theme-aurora', package: ThemeManager::ASSET_PACKAGE);
+    $href = FilamentAsset::getStyleHref('nitpick-theme-aurora', package: ThemeManager::ASSET_PACKAGE);
 
-    expect($href)->toContain('css/packstub/filament-nitpick/packstub-theme-aurora.css');
+    expect($href)->toContain('css/packstub/filament-nitpick/nitpick-theme-aurora.css');
 });
 
 it('does not register an asset for a palette-only theme', function (): void {
@@ -63,11 +63,11 @@ it('does not register an asset for a palette-only theme', function (): void {
         FilamentAsset::getStyles([ThemeManager::ASSET_PACKAGE]),
     );
 
-    expect($ids)->toContain('packstub-theme-aurora')->not->toContain('packstub-theme-ocean');
+    expect($ids)->toContain('nitpick-theme-aurora')->not->toContain('nitpick-theme-ocean');
 });
 
 it('resolves a palette to the css variables Filament renders', function (): void {
-    $variables = Themes::cssVariables([
+    $variables = Nitpick::cssVariables([
         'primary' => Color::Sky,
         'brand' => '#0ea5e9',
         'alias' => [50 => 0, 500 => '#0ea5e9', 600 => 500],

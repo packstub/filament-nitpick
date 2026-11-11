@@ -31,11 +31,11 @@ Install the theme's package the way its own docs describe, then hand its plugin 
 
 ```php
 use Noreviq\FilamentTheme\NoreviqThemePlugin;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
-Themes::register(
+Nitpick::register(
     Theme::make('noreviq')->plugin(fn () => NoreviqThemePlugin::make()),
 );
 ```
@@ -64,10 +64,10 @@ Run `php artisan filament:assets` and the theme is registered like any other: a 
 
     ```php
     use Noreviq\FilamentTheme\NoreviqThemePlugin;
-    use Packstub\Nitpick\Facades\Themes;
+    use Packstub\Nitpick\Facades\Nitpick;
     use Packstub\Nitpick\Theme;
 
-    Themes::register(
+    Nitpick::register(
         Theme::make('noreviq')
             ->description('Teal and graphite with sharp corners.')
             ->plugin(fn () => NoreviqThemePlugin::make()),
@@ -107,7 +107,7 @@ npm run build
 ```php
 use Nagi\FilamentAbyssTheme\FilamentAbyssThemePlugin;
 
-Themes::register(
+Nitpick::register(
     Theme::make('abyss')->plugin(fn () => FilamentAbyssThemePlugin::make()),
 );
 ```
@@ -127,7 +127,7 @@ Add `resources/css/themes/nord.css` to the `input` array in `vite.config.js`, ru
 ```php
 use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
 
-Themes::register(
+Nitpick::register(
     Theme::make('nord')
         ->plugin(fn () => FilamentNordThemePlugin::make())
         ->stylesheet('vite:resources/css/themes/nord.css'),
@@ -156,7 +156,7 @@ A few plugins expect the panel to carry their compiled theme as its `->viteTheme
 use Filament\Panel;
 use Otatechie\Kinetics\KineticsPlugin;
 
-Themes::register(
+Nitpick::register(
     Theme::make('kinetics')
         ->plugin(fn () => KineticsPlugin::make()->appearancePage(false))
         ->panel(fn (Panel $panel) => $panel->viteTheme('resources/css/themes/kinetics.css')),
@@ -185,7 +185,7 @@ A theme that is a palette, or a palette and a few rules, needs no plugin to read
 ```php
 use Openplain\FilamentShadcnTheme\Color as ShadcnColor;
 
-Themes::register(
+Nitpick::register(
     Theme::make('shadcn')->colors(['primary' => ShadcnColor::Default]),
 );
 ```
@@ -206,7 +206,7 @@ Most theme packages do everything from their plugin, which Nitpick puts on the p
 ```php
 use Vlados\FilamentTailscaleTheme\FilamentTailscaleTheme;
 
-Themes::register(
+Nitpick::register(
     Theme::make('tailscale')
         ->plugin(fn () => FilamentTailscaleTheme::make())
         ->stylesheet(base_path('vendor/vlados/filament-tailscale-theme/resources/dist/filament-tailscale-theme.css')),
@@ -224,7 +224,7 @@ Some theme plugins set more than colours and stylesheets: [Press](https://filame
 ```php
 use Elemind\PressFilamentTheme\PressFilamentTheme;
 
-Themes::register(
+Nitpick::register(
     Theme::make('press')
         ->description('An editorial look with navigation along the top. Open source, by Elemind.')
         ->plugin(fn () => PressFilamentTheme::make()),

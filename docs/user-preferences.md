@@ -119,7 +119,7 @@ NitpickPlugin::make()->picker(transition: Transition::Sweep)
 NitpickPlugin::make()->picker(transition: false)   // change the theme at once
 ```
 
-`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null` for none). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.PackstubThemes.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice). A theme that configures the panel shows only after a page load, so `pick()` covers the panel for it only when you pass `{ reload: true }` and call `window.PackstubThemes.reload()` once your code has saved the choice; without it, only the theme's light/dark mode changes, as with `preview()`.
+`transition` in the config file sets it for every panel (`'fade'`, `'slide'`, `'sweep'` or `null` for none). Visitors whose system asks for reduced motion get no animation. From your own JavaScript, `window.Nitpick.pick('midnight')` changes the theme with the panel's transition, and `preview('midnight')` without it (neither saves the choice). A theme that configures the panel shows only after a page load, so `pick()` covers the panel for it only when you pass `{ reload: true }` and call `window.Nitpick.reload()` once your code has saved the choice; without it, only the theme's light/dark mode changes, as with `preview()`.
 
 ## Reading and writing a choice from code
 
@@ -144,21 +144,21 @@ A stored choice that is no longer offered, because a theme was removed from the 
 
 | `store` | What happens |
 | --- | --- |
-| `database` (default) | One row per user and panel in `theme_preferences`. Survives logout and follows the user across devices. Needs the migration. |
+| `database` (default) | One row per user and panel in `nitpick_theme_preferences`. Survives logout and follows the user across devices. Needs the migration. |
 | `session` | Kept in the session. No migration, forgotten at logout. Handy for a demo or a first try. |
 
 Bring your own store by binding `Packstub\Nitpick\Contracts\ThemePreferenceStore` in a service provider; it is two methods, `get()` and `set()`.
 
 ## Live preview
 
-When user selection is on, the page head carries every offered palette as CSS variables scoped to `[data-packstub-theme="…"]` and a tiny script exposing `window.PackstubThemes`:
+When user selection is on, the page head carries every offered palette as CSS variables scoped to `[data-nitpick-theme="…"]` and a tiny script exposing `window.Nitpick`:
 
 ```js
-window.PackstubThemes.current()          // 'aurora'
-window.PackstubThemes.list()             // ['aurora', 'midnight']
-window.PackstubThemes.preview('midnight') // swap stylesheet, palette and mode now
+window.Nitpick.current()          // 'aurora'
+window.Nitpick.list()             // ['aurora', 'midnight']
+window.Nitpick.preview('midnight') // swap stylesheet, palette and mode now
 ```
 
-`preview()` only changes the current page; the picker follows it with the save. A `packstub-theme-changed` event fires on `document` after each preview. A theme that [configures the panel](creating-a-theme.md#configuring-the-panel), or a move away from one, shows only after a page load: `preview()` then adopts the theme's light/dark mode and returns `false`, and the picker reloads the page once the choice is saved.
+`preview()` only changes the current page; the picker follows it with the save. A `nitpick:theme-changed` event fires on `document` after each preview. A theme that [configures the panel](creating-a-theme.md#configuring-the-panel), or a move away from one, shows only after a page load: `preview()` then adopts the theme's light/dark mode and returns `false`, and the picker reloads the page once the choice is saved.
 
 Continue with [Creating a theme](creating-a-theme.md).

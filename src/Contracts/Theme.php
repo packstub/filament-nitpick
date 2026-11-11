@@ -12,7 +12,7 @@ use Filament\Enums\ThemeMode;
 interface Theme
 {
     /**
-     * A slug used as the asset id, the `data-packstub-theme` value and the
+     * A slug used as the asset id, the `data-nitpick-theme` value and the
      * stored preference: lowercase letters, digits and dashes.
      */
     public function getId(): string;

@@ -3,7 +3,7 @@
 use Filament\Panel;
 use Illuminate\Support\Facades\Vite;
 use Packstub\Nitpick\Enums\Transition;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\Ocean;
 use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
@@ -22,11 +22,11 @@ it('renders the active theme meta, stylesheet link and bootstrap script', functi
     $head = headFor(NitpickPlugin::make()->default(Midnight::class));
 
     expect($head)
-        ->toContain('<meta name="packstub-theme" content="midnight">')
-        ->toContain('id="packstub-theme-active"')
-        ->toContain('packstub-theme-midnight.css')
+        ->toContain('<meta name="nitpick-theme" content="midnight">')
+        ->toContain('id="nitpick-theme-active"')
+        ->toContain('nitpick-theme-midnight.css')
         ->toContain('data-navigate-track')
-        ->toContain('window.PackstubThemes')
+        ->toContain('window.Nitpick')
         ->toContain("document.addEventListener('livewire:navigated', stamp)");
 });
 
@@ -35,7 +35,7 @@ it('renders no stylesheet link for a palette-only theme', function (): void {
 
     expect($head)
         ->toContain('content="ocean"')
-        ->not->toContain('id="packstub-theme-active"');
+        ->not->toContain('id="nitpick-theme-active"');
 });
 
 it('never writes a fixed light or dark mode on page load', function (): void {
@@ -71,62 +71,62 @@ it('renders every offered palette and a manifest when users may switch', functio
 
     expect($head)
         ->toContain('<style id="nitpick-palettes">')
-        ->toContain("\n[data-packstub-theme=\"ocean\"] {")
-        ->toContain('>[data-packstub-theme="midnight"] { --primary-50: oklch(')
+        ->toContain("\n[data-nitpick-theme=\"ocean\"] {")
+        ->toContain('>[data-nitpick-theme="midnight"] { --primary-50: oklch(')
         ->toContain('"midnight":{"hrefs":["')
         ->toContain('"ocean":{"hrefs":[]')
         ->toContain('"mode":"dark"')
-        ->not->toContain('data-packstub-theme="aurora"');
+        ->not->toContain('data-nitpick-theme="aurora"');
 });
 
 it('links the custom stylesheet after the theme', function (): void {
     $head = headFor(NitpickPlugin::make()->customCss('css/overrides.css'));
     $remote = headFor(NitpickPlugin::make()->customCss('https://cdn.example.com/x.css'));
 
-    expect(strpos($head, 'packstub-theme-custom'))->toBeGreaterThan(strpos($head, 'packstub-theme-active'))
+    expect(strpos($head, 'nitpick-theme-custom'))->toBeGreaterThan(strpos($head, 'nitpick-theme-active'))
         ->and($head)->toContain('href="http://localhost/css/overrides.css"')
         ->and($remote)->toContain('href="https://cdn.example.com/x.css"');
 });
 
 it('links every stylesheet of a theme made of several files, in order', function (): void {
-    Themes::register(
+    Nitpick::register(
         Theme::make('slate')->stylesheets([SlateThemePlugin::path('slate.css'), 'https://fonts.example.com/slate.css', SlateThemePlugin::path('slate-corners.css')]),
     );
 
     $head = headFor(NitpickPlugin::make()->themes(['slate', Ocean::class])->picker());
 
-    expect(substr_count($head, 'data-packstub-theme-stylesheet data-navigate-track'))->toBe(3)
-        ->and(substr_count($head, 'id="packstub-theme-active"'))->toBe(1)
-        ->and(strpos($head, 'href="https://fonts.example.com/slate.css"'))->toBeGreaterThan(strpos($head, 'packstub-theme-slate.css'))
-        ->and(strpos($head, 'packstub-theme-slate--3.css'))->toBeGreaterThan(strpos($head, 'href="https://fonts.example.com/slate.css"'))
-        ->and($head)->toMatch('/"slate":\{"hrefs":\["[^"]+packstub-theme-slate\.css[^"]*","https:\/\/fonts\.example\.com\/slate\.css","[^"]+packstub-theme-slate--3\.css[^"]*"\]/');
+    expect(substr_count($head, 'data-nitpick-theme-stylesheet data-navigate-track'))->toBe(3)
+        ->and(substr_count($head, 'id="nitpick-theme-active"'))->toBe(1)
+        ->and(strpos($head, 'href="https://fonts.example.com/slate.css"'))->toBeGreaterThan(strpos($head, 'nitpick-theme-slate.css'))
+        ->and(strpos($head, 'nitpick-theme-slate--3.css'))->toBeGreaterThan(strpos($head, 'href="https://fonts.example.com/slate.css"'))
+        ->and($head)->toMatch('/"slate":\{"hrefs":\["[^"]+nitpick-theme-slate\.css[^"]*","https:\/\/fonts\.example\.com\/slate\.css","[^"]+nitpick-theme-slate--3\.css[^"]*"\]/');
 });
 
 it('links a Vite entry from the app\'s build', function (): void {
     Vite::shouldReceive('asset')->with(TideThemePlugin::ENTRY)->andReturn('https://app.test/build/assets/theme-abc123.css');
 
-    Themes::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
+    Nitpick::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
 
     $head = headFor(NitpickPlugin::make()->default('tide'));
 
-    expect($head)->toContain('id="packstub-theme-active" href="https://app.test/build/assets/theme-abc123.css" data-packstub-theme="tide"');
+    expect($head)->toContain('id="nitpick-theme-active" href="https://app.test/build/assets/theme-abc123.css" data-nitpick-theme="tide"');
 });
 
 it('still renders when a Vite entry has not been built yet', function (): void {
-    Themes::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
+    Nitpick::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
 
     $head = headFor(NitpickPlugin::make()->default('tide'));
 
     expect($head)
-        ->toContain('<meta name="packstub-theme" content="tide">')
-        ->not->toContain('data-packstub-theme-stylesheet data-navigate-track');
+        ->toContain('<meta name="nitpick-theme" content="tide">')
+        ->not->toContain('data-nitpick-theme-stylesheet data-navigate-track');
 });
 
 it('renders the palettes ahead of the theme stylesheets, at the weight of Filament\'s own', function (): void {
     $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
 
-    expect(strpos($head, 'nitpick-palettes'))->toBeLessThan(strpos($head, 'id="packstub-theme-active"'))
-        ->and($head)->not->toContain('html[data-packstub-theme=');
+    expect(strpos($head, 'nitpick-palettes'))->toBeLessThan(strpos($head, 'id="nitpick-theme-active"'))
+        ->and($head)->not->toContain('html[data-nitpick-theme=');
 });
 
 it('fades a pick by default, and takes another transition or none', function (): void {

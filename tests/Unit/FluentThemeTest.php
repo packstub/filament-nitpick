@@ -12,7 +12,7 @@ use Filament\View\PanelsRenderHook;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Exceptions;
 use Packstub\Nitpick\Contracts\Theme as ThemeContract;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\FluentTheme;
 use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\GlobalThemePlugin;
@@ -32,7 +32,7 @@ it('makes a palette-only theme from an id and its colours', function (): void {
         ->and($theme->getDescription())->toBeNull()
         ->and($theme->getColors())->toBe(['primary' => Color::Emerald])
         ->and($theme->getPreferredMode())->toBeNull()
-        ->and($theme->getStylesheetPath())->toBeNull()
+        ->and($theme->getStylesheets())->toBe([])
         ->and($theme->getSwatches())->toBe([Color::Emerald[500]]);
 });
 
@@ -46,13 +46,13 @@ it('takes a label, description, stylesheet, mode and swatches', function (): voi
 
     expect($theme->getLabel())->toBe('Nord (Arctic)')
         ->and($theme->getDescription())->toBe('A north-bluish palette.')
-        ->and($theme->getStylesheetPath())->toBe('/themes/nord.css')
+        ->and($theme->getStylesheets())->toBe(['/themes/nord.css'])
         ->and($theme->getPreferredMode())->toBe(ThemeMode::Dark)
         ->and($theme->getSwatches())->toBe(['#5e81ac', '#88c0d0']);
 });
 
 it('registers like any other theme, stylesheet included', function (): void {
-    Themes::register(
+    Nitpick::register(
         Theme::make('nord')
             ->colors(['primary' => Color::Indigo])
             ->stylesheet(__DIR__.'/../../resources/css/themes/midnight.css'),
@@ -61,18 +61,18 @@ it('registers like any other theme, stylesheet included', function (): void {
     $panel = Panel::make()->id('test');
     NitpickPlugin::make()->default('nord')->register($panel);
 
-    expect(Themes::find('nord')->getLabel())->toBe('Nord')
+    expect(Nitpick::find('nord')->getLabel())->toBe('Nord')
         ->and($panel->getColors()['primary'])->toBe(Color::Indigo)
-        ->and(FilamentAsset::getStyleHref('packstub-theme-nord', package: ThemeManager::ASSET_PACKAGE))
-        ->toContain('packstub-theme-nord.css');
+        ->and(FilamentAsset::getStyleHref('nitpick-theme-nord', package: ThemeManager::ASSET_PACKAGE))
+        ->toContain('nitpick-theme-nord.css');
 });
 
 it('still validates the id on registration', function (): void {
-    Themes::register(Theme::make('Not Valid'));
+    Nitpick::register(Theme::make('Not Valid'));
 })->throws(InvalidArgumentException::class, 'lowercase');
 
 it('registers a theme written as an anonymous class', function (): void {
-    Themes::register(new class extends Theme
+    Nitpick::register(new class extends Theme
     {
         public function getId(): string
         {
@@ -90,8 +90,8 @@ it('registers a theme written as an anonymous class', function (): void {
         }
     });
 
-    expect(Themes::find('sunset')->getLabel())->toBe('Sunset')
-        ->and(Themes::find('sunset')->getSwatches())->toBe([Color::Orange[500]]);
+    expect(Nitpick::find('sunset')->getLabel())->toBe('Sunset')
+        ->and(Nitpick::find('sunset')->getSwatches())->toBe([Color::Orange[500]]);
 });
 
 it('takes several stylesheets, registered as one asset each', function (): void {
@@ -100,12 +100,12 @@ it('takes several stylesheets, registered as one asset each', function (): void 
         __DIR__.'/../../resources/css/themes/aurora.css',
     ]);
 
-    Themes::register($theme);
+    Nitpick::register($theme);
 
     expect($theme->getStylesheets())->toHaveCount(2)
-        ->and($theme->getStylesheetPath())->toEndWith('midnight.css')
-        ->and(FilamentAsset::getStyleHref('packstub-theme-duo', package: ThemeManager::ASSET_PACKAGE))->toContain('packstub-theme-duo.css')
-        ->and(FilamentAsset::getStyleHref('packstub-theme-duo--2', package: ThemeManager::ASSET_PACKAGE))->toContain('packstub-theme-duo--2.css');
+        ->and($theme->getStylesheets()[0])->toEndWith('midnight.css')
+        ->and(FilamentAsset::getStyleHref('nitpick-theme-duo', package: ThemeManager::ASSET_PACKAGE))->toContain('nitpick-theme-duo.css')
+        ->and(FilamentAsset::getStyleHref('nitpick-theme-duo--2', package: ThemeManager::ASSET_PACKAGE))->toContain('nitpick-theme-duo--2.css');
 });
 
 it('adds its plugin to the panel while active, and reads only its swatches from it before', function (): void {
@@ -138,11 +138,11 @@ it('accepts a plugin instance and layers its own colours and stylesheets on top'
 });
 
 it('keeps a wrapped plugin off the panels until its theme is active', function (): void {
-    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    Nitpick::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
 
     $ids = array_map(fn ($asset): string => $asset->getId(), FilamentAsset::getStyles());
 
-    expect($ids)->not->toContain('slate-theme', 'slate-corners', 'packstub-theme-slate');
+    expect($ids)->not->toContain('slate-theme', 'slate-corners', 'nitpick-theme-slate');
 });
 
 it('rejects a plugin that is not a Filament plugin', function (): void {
@@ -150,7 +150,7 @@ it('rejects a plugin that is not a Filament plugin', function (): void {
 })->throws(InvalidArgumentException::class, 'expects a Filament plugin');
 
 it('publishes files only: a URL or a Vite entry is linked where it is', function (): void {
-    Themes::register(Theme::make('mixed')->stylesheets([
+    Nitpick::register(Theme::make('mixed')->stylesheets([
         'vite:resources/css/themes/mixed.css',
         'https://cdn.example.com/mixed.css',
         __DIR__.'/../../resources/css/themes/midnight.css',
@@ -158,7 +158,7 @@ it('publishes files only: a URL or a Vite entry is linked where it is', function
 
     $ids = array_map(fn ($asset): string => $asset->getId(), FilamentAsset::getStyles([ThemeManager::ASSET_PACKAGE]));
 
-    expect($ids)->toContain('packstub-theme-mixed--3')->not->toContain('packstub-theme-mixed', 'packstub-theme-mixed--2');
+    expect($ids)->toContain('nitpick-theme-mixed--3')->not->toContain('nitpick-theme-mixed', 'nitpick-theme-mixed--2');
 });
 
 it('configures the panel through panel()', function (): void {
@@ -201,7 +201,7 @@ it('keeps its own colours when a panel() callback cannot run outside a request',
 });
 
 it('publishes what a theme plugin brings when Filament publishes assets', function (string $command): void {
-    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    Nitpick::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
 
     expect(FilamentAsset::getStyles(['vendor/slate-theme']))->toBe([]);
 
@@ -215,7 +215,7 @@ it('publishes what a theme plugin brings when Filament publishes assets', functi
 })->with(['filament:assets', 'filament:upgrade', 'filament:install']);
 
 it('publishes nothing for any other command', function (): void {
-    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    Nitpick::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
 
     startCommand('migrate');
 
@@ -224,7 +224,7 @@ it('publishes nothing for any other command', function (): void {
 
 it('keeps what a plugin registers for the whole app off the panels, and still publishes it', function (): void {
     $theme = Theme::make('global')->plugin(fn () => GlobalThemePlugin::make());
-    Themes::register($theme, Theme::make('global-serving')->panel(fn (Panel $panel) => $panel->plugin(GlobalThemePlugin::make())));
+    Nitpick::register($theme, Theme::make('global-serving')->panel(fn (Panel $panel) => $panel->plugin(GlobalThemePlugin::make())));
 
     // Reading the swatches registers nothing.
     $theme->getSwatches();
@@ -254,7 +254,7 @@ it('keeps what a plugin registers for the whole app off the panels, and still pu
 it('reports a theme that cannot configure a panel while assets are published, and publishes the rest', function (): void {
     Exceptions::fake();
 
-    Themes::register(
+    Nitpick::register(
         Theme::make('needs-user')->panel(fn (Panel $panel) => $panel->brandName(auth()->user()->name)),
         Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()),
     );
@@ -286,7 +286,7 @@ it('leaves a plugin its own asset objects as they were', function (): void {
         public function boot(Panel $panel): void {}
     };
 
-    Themes::register(Theme::make('kept')->plugin($plugin));
+    Nitpick::register(Theme::make('kept')->plugin($plugin));
     startCommand('filament:assets');
 
     expect($stylesheet->isLoadedOnRequest())->toBeFalse()

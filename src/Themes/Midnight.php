@@ -44,9 +44,9 @@ class Midnight extends Theme
         return ThemeMode::Dark;
     }
 
-    public function getStylesheetPath(): ?string
+    public function getStylesheets(): array
     {
-        return __DIR__.'/../../resources/css/themes/midnight.css';
+        return [__DIR__.'/../../resources/css/themes/midnight.css'];
     }
 
     public function getSwatches(): array

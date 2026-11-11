@@ -2,6 +2,18 @@
 
 All notable changes to `packstub/filament-nitpick` are documented here.
 
+## Unreleased
+
+**Upgrading:** names settle for 1.0, see [Upgrading](docs/upgrading.md): the `Nitpick` facade (was `Themes`), `html[data-nitpick-theme]` in your CSS, `window.Nitpick` in your scripts, and `'table' => 'theme_preferences'` in the config to keep your users' choices.
+
+### Changed
+
+- Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
+
+### Removed
+
+- `userSelectable()`, `appearancePage()`, `isUserSelectable()` and `getAppearancePage()`, deprecated since beta.2: `->picker(...)` and `getPickerPage()` replace them. A theme gives its CSS with `getStylesheets()` only; `getStylesheetPath()` is gone.
+
 ## 1.0.0-beta.3 — 2026-10-28
 
 A theme that breaks no longer locks anyone out of the panel.

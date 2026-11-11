@@ -44,9 +44,9 @@ class Aurora extends Theme
         return ThemeMode::Light;
     }
 
-    public function getStylesheetPath(): ?string
+    public function getStylesheets(): array
     {
-        return __DIR__.'/../../resources/css/themes/aurora.css';
+        return [__DIR__.'/../../resources/css/themes/aurora.css'];
     }
 
     public function getSwatches(): array

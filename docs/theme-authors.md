@@ -3,7 +3,7 @@
 Nitpick puts several themes in one panel and lets each person pick theirs. A Filament theme plugin joins the picker with one line in the app:
 
 ```php
-Themes::register(
+Nitpick::register(
     Theme::make('harbor')->plugin(fn () => HarborThemePlugin::make()),
 );
 ```
@@ -128,13 +128,13 @@ To offer your theme in the picker as soon as both packages are installed, regist
 
 ```php
 use Filament\Enums\ThemeMode;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 public function packageBooted(): void
 {
-    if (class_exists(Themes::class)) {
-        Themes::register(
+    if (class_exists(Nitpick::class)) {
+        Nitpick::register(
             Theme::make('harbor')
                 ->description('Sky and slate, with a calm sidebar.')
                 ->mode(ThemeMode::Light)

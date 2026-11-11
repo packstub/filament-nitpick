@@ -35,7 +35,7 @@ class NitpickServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews(static::$name)
             ->hasTranslations()
-            ->hasMigrations(['create_theme_preferences_table'])
+            ->hasMigrations(['create_nitpick_theme_preferences_table'])
             ->hasInstallCommand(function (InstallCommand $command): void {
                 $command
                     ->publishConfigFile()

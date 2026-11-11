@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\Tests\Fixtures\RailThemePlugin;
@@ -23,7 +23,7 @@ use function Pest\Livewire\livewire;
 beforeEach(function (): void {
     RailThemePlugin::$booted = false;
 
-    Themes::register(
+    Nitpick::register(
         Theme::make('rail')
             ->colors(['primary' => Color::Lime])
             ->panel(fn (Panel $panel) => $panel
@@ -42,7 +42,7 @@ it('configures the panel while the theme is active', function (): void {
 
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="rail">', false)
+        ->assertSee('<meta name="nitpick-theme" content="rail">', false)
         ->assertSee('id="rail-hook"', false)
         ->assertSee('id="rail-theme-marker"', false)
         ->assertSee('--primary-500:'.Color::Lime[500], false)
@@ -54,13 +54,13 @@ it('configures the panel while the theme is active', function (): void {
 
 it('adds a theme plugin to the panel while its theme is active', function (): void {
     SlateThemePlugin::$booted = false;
-    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    Nitpick::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
     $panel = Filament::getPanel('admin');
     pluginFor('admin')->setUserTheme('slate');
 
     $this->get($panel->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="slate">', false)
+        ->assertSee('<meta name="nitpick-theme" content="slate">', false)
         ->assertSee('vendor/slate-theme/slate-theme.css', false)
         ->assertSee('vendor/slate-theme/slate-corners.css', false)
         ->assertSee('--primary-500:'.Color::Slate[500], false)
@@ -72,11 +72,11 @@ it('adds a theme plugin to the panel while its theme is active', function (): vo
 
 it('leaves a theme plugin off the panel while another theme is active', function (): void {
     SlateThemePlugin::$booted = false;
-    Themes::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
+    Nitpick::register(Theme::make('slate')->plugin(fn (): SlateThemePlugin => SlateThemePlugin::make()));
 
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false)
         ->assertDontSee('vendor/slate-theme/', false);
 
     expect(SlateThemePlugin::$booted)->toBeFalse();
@@ -98,12 +98,12 @@ it('puts the panel back once the request ends, so the next request starts clean 
 
     $this->get($panel->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false)
         ->assertDontSee('fi-body-has-top-navigation', false);
 });
 
 it('previews the colours a theme class sets while serving in its palette', function (): void {
-    Themes::register(new class extends BaseTheme implements ConfiguresPanel
+    Nitpick::register(new class extends BaseTheme implements ConfiguresPanel
     {
         public function getId(): string
         {
@@ -129,13 +129,13 @@ it('previews the colours a theme class sets while serving in its palette', funct
 
     $html = $this->get(Filament::getPanel('admin')->getUrl())->assertOk()->getContent();
 
-    expect($html)->toMatch('/\[data-packstub-theme="newsroom"\] \{[^}]*--danger-500: '.preg_quote(Color::Pink[500], '/').';/');
+    expect($html)->toMatch('/\[data-nitpick-theme="newsroom"\] \{[^}]*--danger-500: '.preg_quote(Color::Pink[500], '/').';/');
 });
 
 it('leaves the panel alone while another theme is active', function (): void {
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false)
         ->assertDontSee('id="rail-hook"', false);
 
     expect(Filament::getPanel('admin')->hasTopNavigation())->toBeFalse()
@@ -166,7 +166,7 @@ it('reloads the page when a pick enters or leaves such a theme', function (): vo
 
     livewire(Appearance::class)
         ->set('data.theme', 'rail')
-        ->tap(fn ($component) => expect(json_encode($component->effects))->toContain('window.PackstubThemes.reload()'));
+        ->tap(fn ($component) => expect(json_encode($component->effects))->toContain('window.Nitpick.reload()'));
 
     livewire(Appearance::class)
         ->set('data.theme', 'midnight')
@@ -180,12 +180,12 @@ it('reloads the page when a pick enters or leaves such a theme', function (): vo
 it('leaves out pages a theme adds while serving, and reports it, so the panel still renders', function (): void {
     Exceptions::fake();
 
-    Themes::register(Theme::make('paged')->panel(fn (Panel $panel) => $panel->pages([Appearance::class, PagedSettings::class])));
+    Nitpick::register(Theme::make('paged')->panel(fn (Panel $panel) => $panel->pages([Appearance::class, PagedSettings::class])));
     pluginFor('admin')->setUserTheme('paged');
 
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="paged">', false);
+        ->assertSee('<meta name="nitpick-theme" content="paged">', false);
 
     expect(Filament::getPanel('admin')->getPages())->not->toContain(PagedSettings::class);
 
@@ -200,7 +200,7 @@ class PagedSettings extends Page
 it('serves the default theme and tells the user when their theme fails to configure the panel', function (): void {
     Exceptions::fake();
 
-    Themes::register(
+    Nitpick::register(
         Theme::make('broken')
             ->label('Broken')
             ->panel(fn (Panel $panel) => $panel
@@ -224,7 +224,7 @@ it('serves the default theme and tells the user when their theme fails to config
 
     $this->get($panel->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false)
         ->assertDontSee('id="broken-hook"', false)
         ->assertDontSee('fi-body-has-top-navigation', false);
 
@@ -247,13 +247,13 @@ it('serves the default theme and tells the user when their theme fails to config
 it('tells the user once per page, not on each of its Livewire requests', function (): void {
     Exceptions::fake();
 
-    Themes::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('Nope')));
+    Nitpick::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('Nope')));
     pluginFor('admin')->setUserTheme('broken');
 
     $this->withHeader('X-Livewire', 'true')
         ->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false);
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false);
 
     Notification::assertNotNotified();
 });
@@ -261,12 +261,12 @@ it('tells the user once per page, not on each of its Livewire requests', functio
 it('falls back to a default theme that configures the panel itself', function (): void {
     Exceptions::fake();
 
-    Themes::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('Nope')));
+    Nitpick::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('Nope')));
     pluginFor('admin')->default('rail')->setUserTheme('broken');
 
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="rail">', false)
+        ->assertSee('<meta name="nitpick-theme" content="rail">', false)
         ->assertSee('id="rail-hook"', false)
         ->assertSee('fi-body-has-top-navigation', false);
 
@@ -274,7 +274,7 @@ it('falls back to a default theme that configures the panel itself', function ()
 });
 
 it('throws when the default theme itself fails to configure the panel', function (): void {
-    Themes::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('The panel default is broken.')));
+    Nitpick::register(Theme::make('broken')->panel(fn (Panel $panel) => throw new RuntimeException('The panel default is broken.')));
     pluginFor('admin')->default('broken');
 
     $this->withoutExceptionHandling()
@@ -283,7 +283,7 @@ it('throws when the default theme itself fails to configure the panel', function
 
 function registerRenderFailingTheme(): void
 {
-    Themes::register(
+    Nitpick::register(
         Theme::make('fragile')
             ->panel(fn (Panel $panel) => $panel
                 // Fails while the page renders, and only while this theme is served (Filament's
@@ -310,7 +310,7 @@ it('serves the default theme after the user\'s theme made a page fail while rend
 
     $this->get($panel->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false);
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false);
 
     Notification::assertNotified(
         Notification::make()
@@ -372,7 +372,7 @@ it('sets aside only the user whose theme failed', function (): void {
 it('leaves a theme alone when the request failed under a theme that does not configure the panel', function (): void {
     Exceptions::fake();
 
-    Themes::register(Theme::make('plain')->colors(['primary' => Color::Rose]));
+    Nitpick::register(Theme::make('plain')->colors(['primary' => Color::Rose]));
     pluginFor('admin')->setUserTheme('plain');
     Filament::getPanel('admin')->renderHook(PanelsRenderHook::BODY_END, fn (): string => throw new RuntimeException('Unrelated.'));
 

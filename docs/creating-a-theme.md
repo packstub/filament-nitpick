@@ -33,7 +33,7 @@ class Ocean extends Theme
 }
 ```
 
-- The **id** is a slug: lowercase letters, digits and dashes. It becomes the stored preference, the asset id and the `data-packstub-theme` value.
+- The **id** is a slug: lowercase letters, digits and dashes. It becomes the stored preference, the asset id and the `data-nitpick-theme` value.
 - **Colours** take the same shape as `Panel::colors()`: a `Color::*` constant, a hex string, or a full shade array. Slots you leave out keep Filament's defaults.
 - Swatches for the picker are derived from `primary`, `info` and `success`; override `getSwatches()` to return up to three CSS colours of your own.
 
@@ -41,24 +41,24 @@ Register it and it is available to every panel:
 
 ```php
 use App\Themes\Ocean;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 
 // AppServiceProvider::boot()
-Themes::register(Ocean::class);
+Nitpick::register(Ocean::class);
 ```
 
 ![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/custom-theme.png)
 
 ## Adding a stylesheet
 
-A stylesheet turns a palette into a look: surfaces, radii, shadows, the sidebar, typography. Return its absolute path and, if the design leans one way, the mode it is made for:
+A stylesheet turns a palette into a look: surfaces, radii, shadows, the sidebar, typography. Return its absolute path from `getStylesheets()` and, if the design leans one way, the mode it is made for:
 
 ```php
 use Filament\Enums\ThemeMode;
 
-public function getStylesheetPath(): ?string
+public function getStylesheets(): array
 {
-    return resource_path('css/themes/ocean.css');
+    return [resource_path('css/themes/ocean.css')];
 }
 
 public function getPreferredMode(): ?ThemeMode
@@ -67,9 +67,9 @@ public function getPreferredMode(): ?ThemeMode
 }
 ```
 
-The file is registered as a Filament CSS asset loaded on request, so `php artisan filament:assets` publishes it to `public/css/packstub/filament-nitpick/packstub-theme-ocean.css` and the plugin links it only while the theme is active.
+The file is registered as a Filament CSS asset loaded on request, so `php artisan filament:assets` publishes it to `public/css/packstub/filament-nitpick/nitpick-theme-ocean.css` and the plugin links it only while the theme is active.
 
-A look split over several files returns them all from `getStylesheets()` instead, in the order they should load. An entry is the absolute path to a CSS file, a URL (linked as it is), or `vite:<entry>` for a file compiled by your Vite build (linked from the build's manifest):
+A look split over several files returns them all, in the order they should load. An entry is the absolute path to a CSS file, a URL (linked as it is), or `vite:<entry>` for a file compiled by your Vite build (linked from the build's manifest):
 
 ```php
 public function getStylesheets(): array
@@ -86,17 +86,17 @@ public function getStylesheets(): array
 Scope every rule to the theme's attribute on `<html>`. The plugin sets it before the body paints, and other panels or themes never see your rules:
 
 ```css
-[data-packstub-theme="ocean"] {
-    --pst-radius: 0.75rem;
+[data-nitpick-theme="ocean"] {
+    --nitpick-radius: 0.75rem;
 }
 
-[data-packstub-theme="ocean"] .fi-section,
-[data-packstub-theme="ocean"] .fi-ta-ctn {
-    border-radius: var(--pst-radius);
+[data-nitpick-theme="ocean"] .fi-section,
+[data-nitpick-theme="ocean"] .fi-ta-ctn {
+    border-radius: var(--nitpick-radius);
 }
 
 /* Dark mode: Filament adds .dark to <html> */
-.dark[data-packstub-theme="ocean"] .fi-body {
+.dark[data-nitpick-theme="ocean"] .fi-body {
     background: #04121a;
 }
 ```
@@ -126,11 +126,11 @@ A small theme does not need a file of its own. Define it where you register it, 
 ```php
 use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
-Themes::register(
+Nitpick::register(
     Theme::make('ocean')->colors(['primary' => Color::Teal]),
 
     Theme::make('nord')
@@ -155,14 +155,14 @@ Themes::register(
 
 ### An anonymous class
 
-`Themes::register()` accepts an instance as well as a class name, so a theme that needs logic (a palette read from config, a label that is translated) can be an anonymous class with the same methods a named class has:
+`Nitpick::register()` accepts an instance as well as a class name, so a theme that needs logic (a palette read from config, a label that is translated) can be an anonymous class with the same methods a named class has:
 
 ```php
 use Filament\Support\Colors\Color;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
-Themes::register(new class extends Theme
+Nitpick::register(new class extends Theme
 {
     public function getId(): string
     {
@@ -189,11 +189,11 @@ Many themes in the [Filament plugin directory](https://filamentphp.com/plugins) 
 
 ```php
 use Noreviq\FilamentTheme\NoreviqThemePlugin;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
-Themes::register(
+Nitpick::register(
     Theme::make('noreviq')
         ->description('Teal and graphite with sharp corners.')
         ->plugin(fn () => NoreviqThemePlugin::make()),
@@ -219,7 +219,7 @@ Some looks are more than colours and CSS: navigation along the top, a narrower s
 ```php
 use Filament\Panel;
 
-Themes::register(
+Nitpick::register(
     Theme::make('newsroom')
         ->colors(['primary' => Color::Red])
         ->stylesheet(resource_path('css/themes/newsroom.css'))
@@ -275,7 +275,7 @@ A theme package is a Composer package with the class, the stylesheet and a servi
 ```php
 namespace Vendor\OceanTheme;
 
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -288,7 +288,7 @@ class OceanThemeServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        Themes::register(Ocean::class);
+        Nitpick::register(Ocean::class);
     }
 }
 ```
