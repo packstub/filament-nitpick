@@ -3,6 +3,7 @@
 namespace Packstub\Nitpick;
 
 use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
@@ -67,6 +68,8 @@ class NitpickServiceProvider extends PackageServiceProvider
 
         FilamentAsset::register([
             Css::make('nitpick', __DIR__.'/../resources/css/nitpick.css'),
+            // Linked from the head by the plugin, on its panels only.
+            Js::make('nitpick', __DIR__.'/../resources/js/nitpick.js')->loadedOnRequest(),
         ], package: ThemeManager::ASSET_PACKAGE);
 
         // A theme's plugin joins the panel only while the theme is active, so its assets are

@@ -1,6 +1,7 @@
 <?php
 
 use Filament\Panel;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\Vite;
 use Packstub\Nitpick\Enums\Transition;
 use Packstub\Nitpick\Facades\Nitpick;
@@ -9,7 +10,16 @@ use Packstub\Nitpick\Tests\Fixtures\Ocean;
 use Packstub\Nitpick\Tests\Fixtures\SlateThemePlugin;
 use Packstub\Nitpick\Tests\Fixtures\TideThemePlugin;
 use Packstub\Nitpick\Theme;
+use Packstub\Nitpick\ThemeManager;
 use Packstub\Nitpick\Themes\Midnight;
+
+/**
+ * The picker's script, published as a Filament asset and linked from the head.
+ */
+function nitpickScript(): string
+{
+    return file_get_contents(__DIR__.'/../../resources/js/nitpick.js');
+}
 
 function headFor(NitpickPlugin $plugin): string
 {
@@ -26,7 +36,10 @@ it('renders the active theme meta, stylesheet link and bootstrap script', functi
         ->toContain('id="nitpick-theme-active"')
         ->toContain('nitpick-theme-midnight.css')
         ->toContain('data-navigate-track')
-        ->toContain('window.Nitpick')
+        ->toMatch('/<script src="[^"]+nitpick\.js[^"]*" defer data-navigate-once><\/script>/');
+
+    expect(nitpickScript())
+        ->toContain('window.Nitpick = {')
         ->toContain("document.addEventListener('livewire:navigated', stamp)");
 });
 
@@ -41,9 +54,11 @@ it('renders no stylesheet link for a palette-only theme', function (): void {
 it('never writes a fixed light or dark mode on page load', function (): void {
     $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
 
+    expect($head)->not->toContain('localStorage.setItem');
+
     // The user's toggle is theirs. The only write is inside preview(), with
     // the previewed theme's mode as a variable.
-    expect($head)
+    expect(nitpickScript())
         ->not->toContain("localStorage.setItem('theme', '")
         ->not->toContain("localStorage.setItem('filament:theme:mode', '")
         ->toContain("localStorage.setItem('filament:theme:mode', mode)")
@@ -51,9 +66,7 @@ it('never writes a fixed light or dark mode on page load', function (): void {
 });
 
 it('points the user menu\'s light/dark switcher at the mode a preview applies', function (): void {
-    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
-
-    expect($head)
+    expect(nitpickScript())
         ->toContain("document.querySelectorAll('.fi-theme-switcher')")
         ->toContain('data.theme = mode;');
 });
@@ -63,7 +76,7 @@ it('omits the palettes and manifest unless users may switch', function (): void 
 
     expect($head)
         ->not->toContain('nitpick-palettes')
-        ->toContain('var manifest = null;');
+        ->not->toContain('nitpick-manifest');
 });
 
 it('renders every offered palette and a manifest when users may switch', function (): void {
@@ -103,6 +116,7 @@ it('links every stylesheet of a theme made of several files, in order', function
 });
 
 it('links a Vite entry from the app\'s build', function (): void {
+    Vite::shouldReceive('cspNonce')->andReturn(null);
     Vite::shouldReceive('asset')->with(TideThemePlugin::ENTRY)->andReturn('https://app.test/build/assets/theme-abc123.css');
 
     Nitpick::register(Theme::make('tide')->stylesheet('vite:'.TideThemePlugin::ENTRY));
@@ -147,6 +161,12 @@ it('renders the transition cover ahead of the body, and a pick that reloads leav
 
     expect($head)
         ->toContain('<style id="nitpick-cover">html[data-nitpick-cover]::after {')
+        // A page that a pick reloaded starts under the cover before it paints, from the inline stamp.
+        ->toContain("sessionStorage.getItem('nitpick:cover')")
+        ->toContain("html.setAttribute('data-nitpick-cover', '');")
+        ->and(headFor(NitpickPlugin::make()))->not->toContain('nitpick-cover"');
+
+    expect(nitpickScript())
         ->toContain("var note = 'nitpick:cover';")
         ->toContain('sessionStorage.setItem(note,')
         ->toContain('pick: function (slug, options) {')
@@ -162,15 +182,14 @@ it('renders the transition cover ahead of the body, and a pick that reloads leav
         ->not->toContain('--nitpick-cover-clip')
         ->not->toContain('--nitpick-cover-opacity')
         // Skipped for visitors who prefer reduced motion.
-        ->toContain("matchMedia('(prefers-reduced-motion: reduce)')")
-        ->and(headFor(NitpickPlugin::make()))->not->toContain('nitpick-cover"');
+        ->toContain("matchMedia('(prefers-reduced-motion: reduce)')");
 });
 
 it('holds the panel\'s own transitions while a swap runs, so the reveal shows the new theme settled', function (): void {
-    $head = headFor(NitpickPlugin::make()->picker());
+    expect(headFor(NitpickPlugin::make()->picker()))
+        ->toContain('html[data-nitpick-still] *, html[data-nitpick-still] *::before, html[data-nitpick-still] *::after { transition: none !important; }');
 
-    expect($head)
-        ->toContain('html[data-nitpick-still] *, html[data-nitpick-still] *::before, html[data-nitpick-still] *::after { transition: none !important; }')
+    expect(nitpickScript())
         // On a live pick: from the theme change until the cover is gone.
         ->toMatch('/still\(true\);\s+var target = swap.slug;\s+var changed = apply\(target\);/')
         ->toContain('return animate(name, false).then(function () { still(false); });')
@@ -179,7 +198,7 @@ it('holds the panel\'s own transitions while a swap runs, so the reveal shows th
 });
 
 it('reveals the new theme only once the page has stopped changing under the cover', function (): void {
-    expect(headFor(NitpickPlugin::make()->picker()))
+    expect(nitpickScript())
         ->toContain('function settled(quietFor, cap) {')
         // A live pick waits for its stylesheets, its fonts and the saved pick's response.
         ->toContain('loaded(changed).then(fontsReady).then(function () { return settled(80, 900); }).then(lift);')
@@ -191,12 +210,43 @@ it('reveals the new theme only once the page has stopped changing under the cove
 });
 
 it('changes the running swap\'s theme on a second pick instead of covering the panel again', function (): void {
-    expect(headFor(NitpickPlugin::make()->picker()))
+    expect(nitpickScript())
         ->toContain('if (swap) { swap.slug = slug; return true; }')
         ->toContain('if (swap.slug !== target) { return change(); }');
 });
 
 it('covers a theme that needs a page load only when a reload follows the pick', function (): void {
-    expect(headFor(NitpickPlugin::make()->picker()))
+    expect(nitpickScript())
         ->toContain('if (needsReload(slug) && ! (options && options.reload)) { return this.preview(slug); }');
+});
+
+it('keeps the inline part small: the stamp before paint, the manifest as JSON, the rest in a cached file', function (): void {
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
+
+    preg_match_all('/<script(?![^>]*\bsrc=)(?![^>]*application\/json)[^>]*>(.*?)<\/script>/s', $head, $inline);
+
+    expect($inline[1])->toHaveCount(1)
+        ->and(strlen($inline[1][0]))->toBeLessThan(1500)
+        ->and($head)->toContain('<script type="application/json" id="nitpick-manifest">{"themes":{"aurora":')
+        ->and($head)->not->toContain('window.Nitpick = {');
+});
+
+it('registers the script as a Filament asset that filament:assets publishes', function (): void {
+    expect(FilamentAsset::getScriptSrc('nitpick', package: ThemeManager::ASSET_PACKAGE))->toContain('js/packstub/filament-nitpick/nitpick.js');
+});
+
+it('puts the app\'s CSP nonce on its inline script and styles', function (): void {
+    Vite::useCspNonce('n0nc3');
+
+    $head = headFor(NitpickPlugin::make()->default(Midnight::class)->picker());
+
+    expect($head)
+        ->toContain('<script nonce="n0nc3" data-navigate-once>')
+        ->toContain('<style id="nitpick-palettes" nonce="n0nc3">')
+        ->toContain('<style id="nitpick-cover" nonce="n0nc3">')
+        ->toMatch('/<script src="[^"]+" defer data-navigate-once nonce="n0nc3"><\/script>/');
+});
+
+it('leaves the nonce out when the app sets none', function (): void {
+    expect(headFor(NitpickPlugin::make()->picker()))->not->toContain('nonce=');
 });
