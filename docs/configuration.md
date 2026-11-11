@@ -84,7 +84,7 @@ The file is linked after the active theme's stylesheet, so your rules win on equ
 php artisan vendor:publish --tag="nitpick-translations"
 ```
 
-Strings live under `nitpick::themes`: the Appearance page title and subheading, the picker label, the saved notification, and the bundled themes' labels and descriptions.
+Nitpick ships in English, Spanish, Brazilian Portuguese, German, French, Italian, Dutch, Arabic and Romanian, and follows the app's locale. Strings live under `nitpick::themes`: the Appearance page, the picker, accents, the For everyone section, the notices, and the bundled themes' labels and descriptions. A better wording, or a new language, is welcome as a pull request: a test checks that every language has each string English has, with the same placeholders.
 
 ## Content Security Policy
 
