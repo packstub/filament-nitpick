@@ -7,6 +7,7 @@ use Filament\Forms\Components\Field;
 use Filament\Notifications\Notification;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\NitpickPlugin;
+use Packstub\Nitpick\Support\ThemePreview;
 use Packstub\Nitpick\ThemeManager;
 
 /**
@@ -39,6 +40,8 @@ class ThemePicker extends Field
     protected bool|Closure $hasSwatches = true;
 
     protected bool|Closure $hasDefaultOption = true;
+
+    protected bool|Closure $hasPreviews = true;
 
     public static function make(?string $name = 'theme'): static
     {
@@ -173,6 +176,38 @@ class ThemePicker extends Field
         }
 
         return $options;
+    }
+
+    /**
+     * Show a small preview of each theme in light and dark on its card,
+     * instead of its swatches. On by default; a theme whose colours are
+     * unknown keeps its swatches.
+     */
+    public function previews(bool|Closure $condition = true): static
+    {
+        $this->hasPreviews = $condition;
+
+        return $this;
+    }
+
+    public function hasPreviews(): bool
+    {
+        return (bool) $this->evaluate($this->hasPreviews);
+    }
+
+    /**
+     * A theme's preview on this panel, with the colours the panel would
+     * give it (its overrides included), or null without one.
+     *
+     * @return array{light: array<string, string>, dark: array<string, string>} | null
+     */
+    public function getPreview(Theme $theme): ?array
+    {
+        if (! $this->hasPreviews()) {
+            return null;
+        }
+
+        return ThemePreview::for($theme, $this->getPlugin()->getColorsFor($theme));
     }
 
     public function hasDescriptions(): bool

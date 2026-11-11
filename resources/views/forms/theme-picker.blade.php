@@ -5,6 +5,9 @@
     $statePath = $getStatePath();
     $isDisabled = $isDisabled();
     $hasDescriptions = $hasDescriptions();
+    $previews = array_map(fn (array $option): ?array => $getPreview($option['theme']), $options);
+    $hasPreviews = filled(array_filter($previews));
+    // A card without a preview shows its swatches, unless they are off.
     $swatches = $hasSwatches() ? array_map(fn (array $option): array => array_slice($option['theme']->getSwatches(), 0, 3), $options) : [];
     // No theme with known colours: leave the row out instead of a blank strip on every card.
     $hasSwatches = filled(array_filter($swatches));
@@ -39,7 +42,26 @@
                     class="nitpick-option-input"
                 />
 
-                @if ($hasSwatches)
+                @if ($previews[$index] !== null)
+                    <span class="nitpick-preview" aria-hidden="true">
+                        @foreach (['light', 'dark'] as $mode)
+                            <span class="nitpick-preview-mode" style="{{ \Packstub\Nitpick\Support\ThemePreview::style($previews[$index][$mode]) }}">
+                                <span class="nitpick-preview-sidebar"></span>
+                                <span class="nitpick-preview-surface">
+                                    <span class="nitpick-preview-line"></span>
+                                    <span class="nitpick-preview-button"></span>
+                                </span>
+                            </span>
+                        @endforeach
+                    </span>
+                @elseif ($hasPreviews)
+                    {{-- No preview for this theme (colours unknown): its swatches, in a row the previews' height, so the names line up. --}}
+                    <span class="nitpick-preview nitpick-preview-empty" aria-hidden="true">
+                        @foreach ($swatches[$index] ?? [] as $swatch)
+                            <span class="nitpick-swatch" style="background: {{ $swatch }}"></span>
+                        @endforeach
+                    </span>
+                @elseif ($hasSwatches)
                     {{-- Colours unknown (set in a plugin's boot(), say): the row stays empty, so the names line up. --}}
                     <span class="nitpick-swatches" aria-hidden="true">
                         @foreach ($swatches[$index] as $swatch)

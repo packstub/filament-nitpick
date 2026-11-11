@@ -9,6 +9,7 @@ use Filament\Panel;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
+use Packstub\Nitpick\Contracts\HasPreview;
 use Packstub\Nitpick\Support\PluginCapture;
 use Throwable;
 
@@ -21,7 +22,7 @@ use Throwable;
  *             ->stylesheet(resource_path('css/themes/nord.css')),
  *     );
  */
-class FluentTheme extends Theme implements ConfiguresPanel
+class FluentTheme extends Theme implements ConfiguresPanel, HasPreview
 {
     protected ?string $label = null;
 
@@ -44,6 +45,9 @@ class FluentTheme extends Theme implements ConfiguresPanel
 
     /** @var array<int, string> | null */
     protected ?array $swatches = null;
+
+    /** @var array{light?: array<string, string>, dark?: array<string, string>} */
+    protected array $preview = [];
 
     final public function __construct(protected string $id) {}
 
@@ -168,6 +172,26 @@ class FluentTheme extends Theme implements ConfiguresPanel
         $this->swatches = $swatches;
 
         return $this;
+    }
+
+    /**
+     * How the panel looks under this theme, for the preview on its card,
+     * where its palette alone gets it wrong (see HasPreview):
+     *
+     *     ->preview(['dark' => ['background' => '#060914', 'surface' => '#0b1020']])
+     *
+     * @param  array{light?: array<string, string>, dark?: array<string, string>}  $preview
+     */
+    public function preview(array $preview): static
+    {
+        $this->preview = $preview;
+
+        return $this;
+    }
+
+    public function getPreview(): array
+    {
+        return $this->preview;
     }
 
     public function getId(): string

@@ -14,6 +14,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ### Added
 
+- Theme cards show a small preview of each theme in light and dark (page, sidebar, a card and a button in its colours) instead of swatches. Drawn from the theme's palette, or from `Contracts\HasPreview` (`Theme::make()->preview([...])`) for a theme whose stylesheet changes the surfaces; Aurora and Midnight describe their own. `ThemePicker::make()->previews(false)` shows swatches instead. ([#24](https://github.com/packstub/filament-nitpick/issues/24))
 - A **Panel default** card, first in the picker: it says which theme the panel uses by default, and picking it clears the user's choice, so they follow the default again, including when it changes later. `ThemePicker::make()->defaultOption(false)` leaves it out. ([#23](https://github.com/packstub/filament-nitpick/issues/23))
 - Apps whose users have UUID or ULID keys can save a theme: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration. Left `null`, the column follows the app's morph key type, as before. ([#19](https://github.com/packstub/filament-nitpick/issues/19))
 

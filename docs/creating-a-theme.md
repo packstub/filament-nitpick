@@ -115,6 +115,29 @@ Useful, stable hooks in Filament 5:
 
 Prefix your own variables (`--ocean-…`) so they never collide with Filament's.
 
+## The preview on its card
+
+The picker shows each theme in light and dark, drawn from its palette the way Filament paints a panel: `gray` for the page, sidebar, cards and borders, `primary` for a button. That is right for a palette-only theme. A theme whose stylesheet changes the surfaces (glass, a tinted backdrop, gradient buttons) tells the picker what is different by implementing `Packstub\Nitpick\Contracts\HasPreview`:
+
+```php
+use Packstub\Nitpick\Contracts\HasPreview;
+
+class Ocean extends Theme implements HasPreview
+{
+    // ...
+
+    public function getPreview(): array
+    {
+        return [
+            'light' => ['background' => 'linear-gradient(135deg, #ccfbf1, #e0f2fe)'],
+            'dark' => ['background' => '#04161a', 'surface' => '#0b2429'],
+        ];
+    }
+}
+```
+
+Each mode takes any of `background` (the page), `sidebar`, `surface` (a card), `border`, `primary` (a button) and `text`, as a CSS colour or any CSS background such as a gradient; the rest still comes from the palette. With `Theme::make()`, pass the same array to `->preview([...])`.
+
 ## A theme without a class file
 
 A small theme does not need a file of its own. Define it where you register it, in either of two ways. Both give the same result as a class: the theme is offered in the picker, saved per user and previewed live.
