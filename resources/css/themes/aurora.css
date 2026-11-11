@@ -259,3 +259,15 @@
 .dark[data-nitpick-theme="aurora"] .fi-sidebar-item.fi-active::before {
     box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
 }
+
+/* A user's accent colour (->picker(accent: true)): the gradients follow it instead of Aurora's sky and cyan. */
+
+[data-nitpick-theme="aurora"]:has(#nitpick-accent:not(:empty)) {
+    --nitpick-primary-gradient: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+    --nitpick-active-bar: linear-gradient(180deg, var(--primary-400), var(--primary-500));
+}
+
+.dark[data-nitpick-theme="aurora"]:has(#nitpick-accent:not(:empty)) {
+    --nitpick-primary-gradient: linear-gradient(135deg, var(--primary-400), var(--primary-300));
+    --nitpick-active-bar: linear-gradient(180deg, var(--primary-300), var(--primary-400));
+}

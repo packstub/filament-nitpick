@@ -5,10 +5,11 @@ namespace Packstub\Nitpick\Stores;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Packstub\Nitpick\Contracts\StoresAccents;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 use Packstub\Nitpick\Models\ThemePreference;
 
-class DatabaseThemePreferenceStore implements ThemePreferenceStore
+class DatabaseThemePreferenceStore implements StoresAccents, ThemePreferenceStore
 {
     public function get(Authenticatable $user, string $panelId): ?string
     {
@@ -17,16 +18,39 @@ class DatabaseThemePreferenceStore implements ThemePreferenceStore
 
     public function set(Authenticatable $user, string $panelId, ?string $themeId): void
     {
-        if ($themeId === null) {
-            $this->query($user, $panelId)->delete();
+        $this->put($user, $panelId, ['theme_id' => $themeId]);
+    }
+
+    public function getAccent(Authenticatable $user, string $panelId): ?string
+    {
+        return $this->query($user, $panelId)->value('accent');
+    }
+
+    public function setAccent(Authenticatable $user, string $panelId, ?string $accent): void
+    {
+        $this->put($user, $panelId, ['accent' => $accent]);
+    }
+
+    /**
+     * Saves the values on the user's row for the panel, and removes the row
+     * once it holds neither a theme nor an accent.
+     *
+     * @param  array<string, string | null>  $values
+     */
+    protected function put(Authenticatable $user, string $panelId, array $values): void
+    {
+        $preference = ThemePreference::query()->firstOrNew($this->keys($user, $panelId));
+        $preference->fill($values);
+
+        if ($preference->theme_id === null && $preference->accent === null) {
+            if ($preference->exists) {
+                $preference->delete();
+            }
 
             return;
         }
 
-        ThemePreference::query()->updateOrCreate(
-            $this->keys($user, $panelId),
-            ['theme_id' => $themeId],
-        );
+        $preference->save();
     }
 
     /**

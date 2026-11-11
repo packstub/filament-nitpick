@@ -11,7 +11,8 @@ use Packstub\Nitpick\ThemeManager;
  * @property string $user_type
  * @property int | string $user_id
  * @property string $panel_id
- * @property string $theme_id
+ * @property string | null $theme_id
+ * @property string | null $accent
  */
 class ThemePreference extends Model
 {

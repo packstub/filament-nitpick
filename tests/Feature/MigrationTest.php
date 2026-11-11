@@ -78,3 +78,26 @@ it('refuses an unknown user key type', function (): void {
 
     runPreferencesMigration();
 })->throws(InvalidArgumentException::class, 'user_key_type');
+
+it('adds the accent to a table created by a beta, and lets a row hold an accent without a theme', function (): void {
+    Schema::drop('nitpick_theme_preferences');
+    Schema::create('nitpick_theme_preferences', function (Blueprint $table): void {
+        $table->id();
+        $table->morphs('user');
+        $table->string('panel_id');
+        $table->string('theme_id');
+        $table->timestamps();
+        $table->unique(['user_type', 'user_id', 'panel_id']);
+    });
+
+    $add = fn () => (include __DIR__.'/../../database/migrations/add_accent_to_nitpick_theme_preferences_table.php.stub')->up();
+    $add();
+    $add();
+
+    expect(Schema::hasColumn('nitpick_theme_preferences', 'accent'))->toBeTrue();
+
+    pluginFor('admin')->picker(accent: true)->setUserAccent('teal', createUser());
+
+    expect(DB::table('nitpick_theme_preferences')->value('accent'))->toBe('teal')
+        ->and(DB::table('nitpick_theme_preferences')->value('theme_id'))->toBeNull();
+});

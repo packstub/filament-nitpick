@@ -376,6 +376,13 @@
             });
             return true;
         },
+        // Applies an accent colour (CSS from the server: the palette as --primary-* variables), or none,
+        // in the style block the head already holds, so the app's CSP nonce still covers it.
+        accent: function (css) {
+            var style = document.getElementById('nitpick-accent');
+            if (style) { style.textContent = css || ''; }
+            document.dispatchEvent(new CustomEvent('nitpick:accent-changed', { detail: { css: css || '' } }));
+        },
         // Reloads the page once the cover is in, so the next page starts under it.
         reload: function () {
             var name = this.transition();

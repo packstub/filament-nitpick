@@ -19,7 +19,9 @@ return new class extends Migration
             $table->id();
             ThemeManager::userMorphs($table);
             $table->string('panel_id');
-            $table->string('theme_id');
+            // Null: the user follows the panel's default theme, with an accent of their own.
+            $table->string('theme_id')->nullable();
+            $table->string('accent')->nullable();
             $table->timestamps();
 
             $table->unique(['user_type', 'user_id', 'panel_id']);

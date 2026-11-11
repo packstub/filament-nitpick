@@ -24,11 +24,15 @@ use InvalidArgumentException;
 use Livewire\Livewire;
 use LogicException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
+use Packstub\Nitpick\Contracts\StoresAccents;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Enums\Transition;
+use Packstub\Nitpick\Events\AccentChanged;
 use Packstub\Nitpick\Events\ThemeChanged;
+use Packstub\Nitpick\Filament\Forms\Components\AccentPicker;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
+use Packstub\Nitpick\Support\Accent;
 use Packstub\Nitpick\Support\PanelServing;
 use Packstub\Nitpick\Support\RequestMemo;
 use RuntimeException;
@@ -67,6 +71,8 @@ class NitpickPlugin implements Plugin
     protected bool|Closure $pickerModal = true;
 
     protected Transition|string|Closure|false|null $transition = null;
+
+    protected bool|Closure $hasAccent = false;
 
     /** @var class-string<Appearance> */
     protected string $pickerPage = Appearance::class;
@@ -186,6 +192,7 @@ class NitpickPlugin implements Plugin
      *     ->picker(userMenuItem: false)                                  // no menu item: the page only
      *     ->picker(page: MyAppearance::class)                            // your own page
      *     ->picker(transition: Transition::Sweep)                        // the swap animation, or false for none
+     *     ->picker(accent: true)                                         // each user picks an accent colour too
      *
      * $using configures the picker on the page and in the modal, the way you
      * would your own ThemePicker field. The modal has a fixed width and fixed
@@ -201,6 +208,7 @@ class NitpickPlugin implements Plugin
         ?bool $userMenuItem = null,
         ?string $page = null,
         Transition|string|Closure|false|null $transition = null,
+        bool|Closure|null $accent = null,
     ): static {
         $this->hasPicker = true;
         $this->configurePicker = $using ?? $this->configurePicker;
@@ -209,6 +217,7 @@ class NitpickPlugin implements Plugin
         $this->userMenuItem = $userMenuItem ?? $this->userMenuItem;
         $this->pickerPage = $page ?? $this->pickerPage;
         $this->transition = $transition ?? $this->transition;
+        $this->hasAccent = $accent ?? $this->hasAccent;
 
         return $this;
     }
@@ -216,6 +225,17 @@ class NitpickPlugin implements Plugin
     public function hasPicker(): bool
     {
         return $this->hasPicker && (bool) value($this->pickerCondition);
+    }
+
+    /**
+     * Whether users pick an accent colour too: the picker is on, accents are
+     * turned on (->picker(accent: true)), and the store keeps them.
+     */
+    public function hasAccent(): bool
+    {
+        return $this->hasPicker()
+            && (bool) value($this->hasAccent)
+            && $this->manager()->store() instanceof StoresAccents;
     }
 
     public function hasPickerModal(): bool
@@ -390,6 +410,76 @@ class NitpickPlugin implements Plugin
     }
 
     /**
+     * The signed-in user's accent colour on this panel: a Filament colour
+     * name or a hex colour, or null for the theme's own.
+     */
+    public function getUserAccent(?Authenticatable $user = null): ?string
+    {
+        $user ??= $this->currentUser();
+
+        if ($user === null || ! $this->hasAccent()) {
+            return null;
+        }
+
+        return RequestMemo::current()->remember(
+            "nitpick:accent:{$this->getPanelId()}:{$user->getAuthIdentifier()}",
+            fn (): ?string => $this->accentStore()->getAccent($user, $this->getPanelId()),
+        );
+    }
+
+    /**
+     * Save a user's accent colour for this panel: a Filament colour name
+     * ("indigo") or a hex colour ("#4f46e5"). Null clears it. A colour that
+     * cannot be used is refused with an InvalidArgumentException whose
+     * message says why, in the user's language.
+     */
+    public function setUserAccent(?string $accent, ?Authenticatable $user = null): void
+    {
+        $user ??= $this->currentUser();
+
+        if ($user === null) {
+            throw new LogicException('There is no signed-in user to save an accent colour for.');
+        }
+
+        if (! $this->hasAccent()) {
+            throw new LogicException("Accent colours are off on the [{$this->getPanelId()}] panel: turn them on with ->picker(accent: true).");
+        }
+
+        $accent = $accent === null ? null : strtolower($accent);
+
+        if ($accent !== null && ($problem = Accent::problem($accent)) !== null) {
+            throw new InvalidArgumentException(__($problem));
+        }
+
+        $this->accentStore()->setAccent($user, $this->getPanelId(), $accent);
+        RequestMemo::current()->forget("nitpick:accent:{$this->getPanelId()}:");
+
+        event(new AccentChanged($user, $this->getPanelId(), $accent));
+    }
+
+    /**
+     * The CSS that applies the user's accent over any theme: its palette as
+     * Filament's `--primary-*` variables, at a weight above the palettes and
+     * theme stylesheets that set them. Empty without an accent.
+     */
+    public function accentCss(): string
+    {
+        $accent = $this->getUserAccent();
+
+        if ($accent === null) {
+            return '';
+        }
+
+        $variables = $this->manager()->cssVariables(['primary' => Accent::palette($accent)]);
+
+        return ':root[data-nitpick-theme] { '.implode(' ', array_map(
+            fn (string $name, string $value): string => "--{$name}: {$value};",
+            array_keys($variables),
+            $variables,
+        )).' }';
+    }
+
+    /**
      * A theme's palette, with the colours it set on the panel while serving
      * this request, then the config and plugin overrides, applied.
      *
@@ -397,11 +487,14 @@ class NitpickPlugin implements Plugin
      */
     public function getColorsFor(Theme $theme): array
     {
+        $accent = $this->getUserAccent();
+
         return [
             ...$theme->getColors(),
             ...$this->servingColors[$theme->getId()] ?? [],
             ...(array) config('nitpick.colors', []),
             ...$this->colors,
+            ...($accent === null ? [] : ['primary' => Accent::palette($accent)]),
         ];
     }
 
@@ -476,6 +569,7 @@ class NitpickPlugin implements Plugin
                     ->modalWidth(Width::FiveExtraLarge)
                     ->schema(fn (): array => [
                         $this->configurePicker(ThemePicker::make('theme')->hiddenLabel()->columns(static::MODAL_COLUMNS)),
+                        AccentPicker::make('accent')->visible(fn (): bool => $this->hasAccent()),
                     ])
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel(fn (): string => __('nitpick::themes.appearance.close'))
@@ -678,6 +772,12 @@ class NitpickPlugin implements Plugin
             $tags[] = sprintf('<link rel="stylesheet" id="nitpick-theme-custom" href="%s" data-navigate-track>', e($href));
         }
 
+        // The user's accent, after the theme's stylesheets so it wins; there even when empty, so a change
+        // made from the picker can fill it in place (with the nonce it was rendered with).
+        if ($this->hasAccent()) {
+            $tags[] = '<style id="nitpick-accent"'.$this->nonceAttribute().'>'.$this->accentCss().'</style>';
+        }
+
         // The cover a transition paints over the panel, set before the body paints so a page that
         // a pick reloaded can start under it.
         if ($selectable) {
@@ -845,6 +945,17 @@ class NitpickPlugin implements Plugin
         } catch (Throwable) {
             return null;
         }
+    }
+
+    protected function accentStore(): StoresAccents
+    {
+        $store = $this->manager()->store();
+
+        if (! $store instanceof StoresAccents) {
+            throw new LogicException($store::class.' keeps no accent colours: implement '.StoresAccents::class.'.');
+        }
+
+        return $store;
     }
 
     protected function manager(): ThemeManager
