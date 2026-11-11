@@ -26,7 +26,9 @@ Nitpick::register(
 - **[Two bundled themes](themes.md)**: *Aurora*, glass with a floating dock sidebar, and *Midnight*, dark with violet accents.
 - **[Themes from the plugin directory](themes.md#themes-from-the-filament-plugin-directory)**: install a free or paid theme plugin and register it in one line; it joins the picker. Ready-made CSS and Vite-built themes alike, [30+ community themes tested](tested-themes.md).
 - **[A theme per panel](themes.md)**: each panel picks its themes and default; the default can follow the workspace.
-- **[A theme per user](user-preferences.md)**: an Appearance page where each person picks their theme, previewed instantly.
+- **[A theme per user](user-preferences.md)**: an Appearance modal and page where each person picks their theme, previewed in light and dark on its card.
+- **[Accent colours](user-preferences.md#accent-colours)**: each person picks a colour of their own for buttons and links, checked for contrast.
+- **[The theme for everyone](user-preferences.md#the-theme-for-everyone)**: admins set the theme for the whole panel, or per tenant, and can lock it.
 - **[Write your own](creating-a-theme.md)**: a theme is a class with a palette, plus a stylesheet for a full redesign; `Theme::make()` defines one inline.
 - **[Fits your brand](configuration.md#colour-overrides)**: your colours and CSS on top of any theme.
 
@@ -46,7 +48,7 @@ Nitpick::register(
 ## At a glance
 
 ```bash
-composer require "packstub/filament-nitpick:^1.0@beta"
+composer require packstub/filament-nitpick
 php artisan nitpick:install
 php artisan filament:assets
 ```
