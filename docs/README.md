@@ -63,7 +63,7 @@ $panel->plugin(
 
 ## Requirements
 
-PHP 8.3+, Laravel 12 or 13, Filament 5.
+PHP 8.3+, Laravel 12 or 13, Filament 5.8.3 or later.
 
 ---
 

@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Tests (PHP ${{ matrix.php }}, Laravel ${{ matrix.laravel }})
+    name: Tests (PHP ${{ matrix.php }}, Laravel ${{ matrix.laravel }}, ${{ matrix.dependencies }})
     runs-on: ubuntu-latest
 
     strategy:
@@ -18,11 +18,18 @@ jobs:
       matrix:
         php: ["8.3", "8.4", "8.5"]
         laravel: ["12.*", "13.*"]
+        dependencies: ["highest"]
         include:
           - laravel: "12.*"
             testbench: "10.*"
           - laravel: "13.*"
             testbench: "11.*"
+          # The lowest versions composer.json allows (Filament 5.8.3, the first without a security advisory),
+          # so the floor it promises stays true.
+          - php: "8.3"
+            laravel: "12.*"
+            testbench: "10.*"
+            dependencies: "lowest"
         exclude:
           - php: "8.3"
             laravel: "13.*"
@@ -46,14 +53,14 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-${{ hashFiles('composer.json') }}
+          key: composer-${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
           restore-keys: |
             composer-${{ runner.os }}-php${{ matrix.php }}-
 
       - name: Install dependencies
         run: |
           composer require "illuminate/contracts:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
       - name: Check code style
         run: vendor/bin/pint --test
