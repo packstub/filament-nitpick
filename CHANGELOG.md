@@ -10,6 +10,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 - Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
 
+### Added
+
+- Apps whose users have UUID or ULID keys can save a theme: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration. Left `null`, the column follows the app's morph key type, as before. ([#19](https://github.com/packstub/filament-nitpick/issues/19))
+
 ### Removed
 
 - `userSelectable()`, `appearancePage()`, `isUserSelectable()` and `getAppearancePage()`, deprecated since beta.2: `->picker(...)` and `getPickerPage()` replace them. A theme gives its CSS with `getStylesheets()` only; `getStylesheetPath()` is gone.

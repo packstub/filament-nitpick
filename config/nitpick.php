@@ -43,6 +43,15 @@ return [
     'user_model' => null,
 
     /*
+    | The type of your users' keys, for the preferences table's user_id
+    | column: "int", "uuid" or "ulid". Null follows the app's morph key type
+    | (Schema::morphUsingUuids(), morphUsingUlids()), else int. Set it before
+    | running the migration.
+    */
+
+    'user_key_type' => null,
+
+    /*
     |--------------------------------------------------------------------------
     | Colour overrides
     |--------------------------------------------------------------------------

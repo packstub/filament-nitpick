@@ -17,7 +17,7 @@ return new class extends Migration
 
         Schema::connection(ThemeManager::connectionName())->create(ThemeManager::tableName(), function (Blueprint $table): void {
             $table->id();
-            $table->morphs('user');
+            ThemeManager::userMorphs($table);
             $table->string('panel_id');
             $table->string('theme_id');
             $table->timestamps();

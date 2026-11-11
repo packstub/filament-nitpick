@@ -21,6 +21,9 @@ php artisan vendor:publish --tag="nitpick-migrations"
 php artisan migrate
 ```
 
+> [!IMPORTANT]
+> Users with UUID or ULID keys: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration, unless your app already calls `Schema::morphUsingUuids()` or `morphUsingUlids()`. Otherwise the table's `user_id` column is an integer and a choice cannot be saved.
+
 > [!NOTE]
 > The preferences table follows your user model's connection, so under multi-database tenancy it lands in the central database next to the users. Set `connection` in the config file to pin it elsewhere.
 
