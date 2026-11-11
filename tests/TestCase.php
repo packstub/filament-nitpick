@@ -86,5 +86,6 @@ abstract class TestCase extends Orchestra
 
         (include __DIR__.'/../database/migrations/create_nitpick_theme_preferences_table.php.stub')->up();
         (include __DIR__.'/../database/migrations/add_accent_to_nitpick_theme_preferences_table.php.stub')->up();
+        (include __DIR__.'/../database/migrations/create_nitpick_panel_themes_table.php.stub')->up();
     }
 }

@@ -29,6 +29,14 @@ return [
     'table' => 'nitpick_theme_preferences',
 
     /*
+    | What a panel's managers set for everyone, in the panel or a tenant
+    | (->picker(manage: ...)): a theme, an accent and a lock. Run the
+    | migration when you turn that on.
+    */
+
+    'panel_table' => 'nitpick_panel_themes',
+
+    /*
     | The connection the preferences table lives on. Null follows the user
     | model's connection, which is the central one under multi-database tenancy.
     */

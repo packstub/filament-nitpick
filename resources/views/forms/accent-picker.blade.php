@@ -10,9 +10,9 @@
         class="nitpick-accents"
         role="radiogroup"
     >
-        <label class="nitpick-accent nitpick-accent-theme" x-bind:class="{ 'nitpick-accent-active': ! state }" title="{{ __('nitpick::themes.accent.theme') }}">
+        <label class="nitpick-accent nitpick-accent-theme" x-bind:class="{ 'nitpick-accent-active': ! state }" title="{{ $getDefaultLabel() }}">
             <input type="radio" name="{{ $statePath }}" value="" x-model="state" @disabled($isDisabled) class="nitpick-option-input" />
-            <span class="nitpick-accent-label">{{ __('nitpick::themes.accent.theme') }}</span>
+            <span class="nitpick-accent-label">{{ $getDefaultLabel() }}</span>
         </label>
 
         @foreach ($swatches as $name => $color)

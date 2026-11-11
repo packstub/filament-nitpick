@@ -20,10 +20,20 @@ return [
         'label' => 'Accent colour',
         'theme' => "Theme's colour",
         'custom' => 'Your own colour',
+        'panel' => "Panel's colour",
         'refused' => 'That colour cannot be used',
         'invalid' => 'Pick one of the colours, or a colour such as #4f46e5.',
         'too_light' => 'It is too light to stand out on a light page. Try a deeper shade.',
         'too_dark' => 'It is too dark to stand out in dark mode. Try a brighter shade.',
+    ],
+
+    'manage' => [
+        'everyone' => 'For everyone',
+        'tenant' => 'For :tenant',
+        'description' => 'What everyone sees until they pick a theme of their own.',
+        'locked_description' => 'Locked: everyone sees this theme, and only managers can change it.',
+        'lock' => 'Lock for everyone',
+        'lock_helper' => 'Set aside everyone\'s own theme and accent, and close the picker to all but managers.',
     ],
 
     'notifications' => [

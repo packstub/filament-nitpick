@@ -7,13 +7,18 @@ use Filament\Actions\Action;
 use Filament\Contracts\Plugin;
 use Filament\Enums\ThemeMode;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Panel;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Support\Facades\Cache;
@@ -28,6 +33,7 @@ use Packstub\Nitpick\Contracts\StoresAccents;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Enums\Transition;
 use Packstub\Nitpick\Events\AccentChanged;
+use Packstub\Nitpick\Events\PanelThemeChanged;
 use Packstub\Nitpick\Events\ThemeChanged;
 use Packstub\Nitpick\Filament\Forms\Components\AccentPicker;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
@@ -73,6 +79,9 @@ class NitpickPlugin implements Plugin
     protected Transition|string|Closure|false|null $transition = null;
 
     protected bool|Closure $hasAccent = false;
+
+    /** Who may set the theme for everyone; null when nobody may (the store is never read). */
+    protected bool|Closure|null $manage = null;
 
     /** @var class-string<Appearance> */
     protected string $pickerPage = Appearance::class;
@@ -193,6 +202,7 @@ class NitpickPlugin implements Plugin
      *     ->picker(page: MyAppearance::class)                            // your own page
      *     ->picker(transition: Transition::Sweep)                        // the swap animation, or false for none
      *     ->picker(accent: true)                                         // each user picks an accent colour too
+     *     ->picker(manage: fn (): bool => auth()->user()->isAdmin())     // who sets the theme for everyone
      *
      * $using configures the picker on the page and in the modal, the way you
      * would your own ThemePicker field. The modal has a fixed width and fixed
@@ -209,6 +219,7 @@ class NitpickPlugin implements Plugin
         ?string $page = null,
         Transition|string|Closure|false|null $transition = null,
         bool|Closure|null $accent = null,
+        bool|Closure|null $manage = null,
     ): static {
         $this->hasPicker = true;
         $this->configurePicker = $using ?? $this->configurePicker;
@@ -218,13 +229,142 @@ class NitpickPlugin implements Plugin
         $this->pickerPage = $page ?? $this->pickerPage;
         $this->transition = $transition ?? $this->transition;
         $this->hasAccent = $accent ?? $this->hasAccent;
+        $this->manage = $manage ?? $this->manage;
 
         return $this;
     }
 
+    /**
+     * Whether the signed-in user gets the picker: the Appearance page and its
+     * user-menu item. While a manager has locked the theme for everyone,
+     * only managers do, to change it.
+     */
     public function hasPicker(): bool
     {
+        if ($this->isLocked()) {
+            return $this->canManage();
+        }
+
         return $this->hasPicker && (bool) value($this->pickerCondition);
+    }
+
+    /**
+     * Whether the signed-in user may pick a theme (and accent) of their own:
+     * the picker is theirs and no manager has locked the theme for everyone.
+     */
+    public function hasUserChoice(): bool
+    {
+        return ! $this->isLocked() && $this->hasPicker && (bool) value($this->pickerCondition);
+    }
+
+    /**
+     * Whether the signed-in user may set the theme for everyone in the panel,
+     * or in the current tenant: ->picker(manage: ...).
+     */
+    public function canManage(): bool
+    {
+        return $this->hasPicker && $this->manage !== null && (bool) value($this->manage);
+    }
+
+    /**
+     * What managers set for everyone in the current tenant, else in the
+     * whole panel; null when nothing is set, or nobody may set it.
+     */
+    public function getPanelTheme(): ?PanelTheme
+    {
+        if ($this->manage === null) {
+            return null;
+        }
+
+        $tenant = Filament::getTenant();
+
+        return RequestMemo::current()->remember(
+            "nitpick:panel-theme:{$this->getPanelId()}:".($tenant === null ? '' : $tenant->getMorphClass().':'.$tenant->getKey()),
+            function () use ($tenant): ?PanelTheme {
+                try {
+                    $store = $this->manager()->panelStore();
+
+                    return $store->get($this->getPanelId(), $tenant) ?? ($tenant === null ? null : $store->get($this->getPanelId(), null));
+                } catch (Throwable $exception) {
+                    // No table yet (the migration not run): the panel works as if nothing were set.
+                    report($exception);
+
+                    return null;
+                }
+            },
+        );
+    }
+
+    /**
+     * Whether a manager locked the theme for everyone: users' own picks are
+     * set aside and the picker is closed to all but managers.
+     */
+    public function isLocked(): bool
+    {
+        return $this->getPanelTheme()?->locked === true;
+    }
+
+    /**
+     * Set the theme for everyone in the current tenant, or the whole panel;
+     * null goes back to the panel's default in code.
+     */
+    public function setPanelTheme(string|Theme|null $theme): void
+    {
+        $id = null;
+
+        if ($theme !== null) {
+            $id = $this->manager()->resolve($theme)->getId();
+
+            if (! isset($this->getThemes()[$id])) {
+                throw new InvalidArgumentException("Theme [{$id}] is not offered on the [{$this->getPanelId()}] panel.");
+            }
+        }
+
+        $this->updatePanelTheme(fn (PanelTheme $current): PanelTheme => $current->with(themeId: $id, clearTheme: $id === null));
+    }
+
+    /**
+     * Set the accent colour for everyone in the current tenant, or the whole
+     * panel; null goes back to the theme's own. Refused like a user's accent.
+     */
+    public function setPanelAccent(?string $accent): void
+    {
+        $accent = $accent === null ? null : strtolower($accent);
+
+        if ($accent !== null && ($problem = Accent::problem($accent)) !== null) {
+            throw new InvalidArgumentException(__($problem));
+        }
+
+        $this->updatePanelTheme(fn (PanelTheme $current): PanelTheme => $current->with(accent: $accent, clearAccent: $accent === null));
+    }
+
+    /**
+     * Lock the theme (and accent) for everyone, or unlock it.
+     */
+    public function setPanelLocked(bool $locked): void
+    {
+        $this->updatePanelTheme(fn (PanelTheme $current): PanelTheme => $current->with(locked: $locked));
+    }
+
+    /**
+     * @param  Closure(PanelTheme): PanelTheme  $change
+     */
+    protected function updatePanelTheme(Closure $change): void
+    {
+        if (! $this->canManage()) {
+            throw new AuthorizationException("Only the [{$this->getPanelId()}] panel's managers may set its theme for everyone (->picker(manage: ...)).");
+        }
+
+        $tenant = Filament::getTenant();
+        $store = $this->manager()->panelStore();
+        $theme = $change($store->get($this->getPanelId(), $tenant) ?? new PanelTheme);
+
+        $store->set($this->getPanelId(), $tenant, $theme);
+        RequestMemo::current()->forget("nitpick:panel-theme:{$this->getPanelId()}:");
+        RequestMemo::current()->forget($this->activeThemeKey());
+        RequestMemo::current()->forget("nitpick:accent:{$this->getPanelId()}:");
+
+        event(new PanelThemeChanged($this->getPanelId(), $tenant, $theme));
     }
 
     /**
@@ -233,9 +373,15 @@ class NitpickPlugin implements Plugin
      */
     public function hasAccent(): bool
     {
-        return $this->hasPicker()
-            && (bool) value($this->hasAccent)
-            && $this->manager()->store() instanceof StoresAccents;
+        return $this->accentsOn() && $this->manager()->store() instanceof StoresAccents;
+    }
+
+    /**
+     * Whether accent colours are turned on for this panel (->picker(accent: true)).
+     */
+    public function accentsOn(): bool
+    {
+        return $this->hasPicker && (bool) value($this->hasAccent);
     }
 
     public function hasPickerModal(): bool
@@ -264,6 +410,48 @@ class NitpickPlugin implements Plugin
         }
 
         return is_string($transition) ? Transition::from($transition) : $transition;
+    }
+
+    /**
+     * The Appearance modal's and page's fields: the user's theme and accent,
+     * and for managers the section that sets them for everyone. $columns
+     * fixes the theme cards' columns (the modal's).
+     *
+     * @param  array<string, int> | null  $columns
+     * @return array<int, Component | Field>
+     */
+    public function getPickerSchema(?array $columns = null): array
+    {
+        $cards = fn (ThemePicker $picker): ThemePicker => $columns === null ? $picker : $picker->columns($columns);
+        $tenant = Filament::getTenant();
+
+        return [
+            $cards($this->configurePicker(ThemePicker::make('theme')->hiddenLabel()))
+                ->visible(fn (): bool => $this->hasUserChoice()),
+            AccentPicker::make('accent')
+                ->visible(fn (): bool => $this->hasAccent() && $this->hasUserChoice()),
+            Section::make(fn (): string => $tenant === null
+                ? __('nitpick::themes.manage.everyone')
+                : __('nitpick::themes.manage.tenant', ['tenant' => Filament::getTenantName($tenant)]))
+                ->description(fn (): string => __($this->isLocked() ? 'nitpick::themes.manage.locked_description' : 'nitpick::themes.manage.description'))
+                ->visible(fn (): bool => $this->canManage())
+                ->schema([
+                    $cards($this->configurePicker(ThemePicker::make('panel_theme')->forEveryone()->hiddenLabel())),
+                    AccentPicker::make('panel_accent')->forEveryone()
+                        ->visible(fn (): bool => $this->accentsOn()),
+                    Toggle::make('panel_locked')
+                        ->label(fn (): string => __('nitpick::themes.manage.lock'))
+                        ->helperText(fn (): string => __('nitpick::themes.manage.lock_helper'))
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateHydrated(fn (Toggle $component) => $component->state($this->isLocked()))
+                        ->afterStateUpdated(function (Toggle $component, bool $state): void {
+                            $this->setPanelLocked($state);
+                            // The manager's own picker shows or hides, and their theme may change.
+                            $component->getLivewire()->js('window.Nitpick ? window.Nitpick.reload() : window.location.reload()');
+                        }),
+                ]),
+        ];
     }
 
     public function configurePicker(ThemePicker $picker): ThemePicker
@@ -319,7 +507,22 @@ class NitpickPlugin implements Plugin
         return $themes;
     }
 
+    /**
+     * The theme users see until they pick one: what a manager set for the
+     * tenant or the panel (->picker(manage: ...)), else the default in code.
+     */
     public function getDefaultTheme(): Theme
+    {
+        $id = $this->getPanelTheme()?->themeId;
+
+        return ($id === null ? null : ($this->getThemes()[$id] ?? null)) ?? $this->getCodeDefaultTheme();
+    }
+
+    /**
+     * The default set in code: ->default(), else the config's, else the
+     * first offered theme.
+     */
+    public function getCodeDefaultTheme(): Theme
     {
         $themes = $this->getThemes();
         $default = $this->default instanceof Closure ? ($this->default)() : $this->default;
@@ -365,7 +568,7 @@ class NitpickPlugin implements Plugin
 
     public function getUserTheme(?Authenticatable $user = null): ?Theme
     {
-        if (! $this->hasPicker()) {
+        if (! $this->hasUserChoice()) {
             return null;
         }
 
@@ -417,7 +620,7 @@ class NitpickPlugin implements Plugin
     {
         $user ??= $this->currentUser();
 
-        if ($user === null || ! $this->hasAccent()) {
+        if ($user === null || ! $this->hasAccent() || ! $this->hasUserChoice()) {
             return null;
         }
 
@@ -458,13 +661,26 @@ class NitpickPlugin implements Plugin
     }
 
     /**
+     * The accent the panel uses for the signed-in user: their own, else the
+     * one a manager set for everyone, else null (the theme's colour).
+     */
+    public function getAccent(): ?string
+    {
+        if (! $this->accentsOn()) {
+            return null;
+        }
+
+        return $this->getUserAccent() ?? $this->getPanelTheme()?->accent;
+    }
+
+    /**
      * The CSS that applies the user's accent over any theme: its palette as
      * Filament's `--primary-*` variables, at a weight above the palettes and
      * theme stylesheets that set them. Empty without an accent.
      */
     public function accentCss(): string
     {
-        $accent = $this->getUserAccent();
+        $accent = $this->getAccent();
 
         if ($accent === null) {
             return '';
@@ -487,7 +703,7 @@ class NitpickPlugin implements Plugin
      */
     public function getColorsFor(Theme $theme): array
     {
-        $accent = $this->getUserAccent();
+        $accent = $this->getAccent();
 
         return [
             ...$theme->getColors(),
@@ -567,10 +783,7 @@ class NitpickPlugin implements Plugin
                     ->modalHeading(fn (): string => __('nitpick::themes.appearance.title'))
                     ->modalDescription(fn (): string => __('nitpick::themes.appearance.subheading'))
                     ->modalWidth(Width::FiveExtraLarge)
-                    ->schema(fn (): array => [
-                        $this->configurePicker(ThemePicker::make('theme')->hiddenLabel()->columns(static::MODAL_COLUMNS)),
-                        AccentPicker::make('accent')->visible(fn (): bool => $this->hasAccent()),
-                    ])
+                    ->schema(fn (): array => $this->getPickerSchema(static::MODAL_COLUMNS))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel(fn (): string => __('nitpick::themes.appearance.close'))
                     ->visible(fn (): bool => $this->hasPicker()),
@@ -774,7 +987,7 @@ class NitpickPlugin implements Plugin
 
         // The user's accent, after the theme's stylesheets so it wins; there even when empty, so a change
         // made from the picker can fill it in place (with the nonce it was rendered with).
-        if ($this->hasAccent()) {
+        if ($this->accentsOn()) {
             $tags[] = '<style id="nitpick-accent"'.$this->nonceAttribute().'>'.$this->accentCss().'</style>';
         }
 

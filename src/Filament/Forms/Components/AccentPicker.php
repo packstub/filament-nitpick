@@ -21,6 +21,8 @@ class AccentPicker extends Field
 
     protected string $view = 'nitpick::forms.accent-picker';
 
+    protected bool $isForEveryone = false;
+
     public static function make(?string $name = 'accent'): static
     {
         return parent::make($name);
@@ -35,14 +37,18 @@ class AccentPicker extends Field
         $this->dehydrated(false);
 
         $this->afterStateHydrated(function (AccentPicker $component): void {
-            $component->state(NitpickPlugin::get()->getUserAccent() ?? static::THEME);
+            $plugin = NitpickPlugin::get();
+
+            $component->state(($component->isForEveryone() ? $plugin->getPanelTheme()?->accent : $plugin->getUserAccent()) ?? static::THEME);
         });
 
         $this->afterStateUpdated(function (AccentPicker $component, ?string $state, ?string $old): void {
             $plugin = NitpickPlugin::get();
 
             try {
-                $plugin->setUserAccent(blank($state) ? null : $state);
+                $component->isForEveryone()
+                    ? $plugin->setPanelAccent(blank($state) ? null : $state)
+                    : $plugin->setUserAccent(blank($state) ? null : $state);
             } catch (InvalidArgumentException $exception) {
                 $component->state($old ?? static::THEME);
 
@@ -57,6 +63,33 @@ class AccentPicker extends Field
 
             $component->getLivewire()->js('window.Nitpick && window.Nitpick.accent('.json_encode($plugin->accentCss(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT).')');
         });
+    }
+
+    /**
+     * Pick the accent for everyone in the panel (or the current tenant)
+     * instead of the user's own.
+     */
+    public function forEveryone(bool $condition = true): static
+    {
+        $this->isForEveryone = $condition;
+
+        return $this;
+    }
+
+    public function isForEveryone(): bool
+    {
+        return $this->isForEveryone;
+    }
+
+    /**
+     * The first option: the theme's own colour, or, for a user whose manager
+     * set an accent for everyone, that one.
+     */
+    public function getDefaultLabel(): string
+    {
+        return ! $this->isForEveryone() && NitpickPlugin::get()->getPanelTheme()?->accent !== null
+            ? __('nitpick::themes.accent.panel')
+            : __('nitpick::themes.accent.theme');
     }
 
     /**

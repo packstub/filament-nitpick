@@ -43,6 +43,8 @@ class ThemePicker extends Field
 
     protected bool|Closure $hasPreviews = true;
 
+    protected bool $isForEveryone = false;
+
     public static function make(?string $name = 'theme'): static
     {
         return parent::make($name);
@@ -60,6 +62,13 @@ class ThemePicker extends Field
         $this->afterStateHydrated(function (ThemePicker $component): void {
             $plugin = $component->getPlugin();
 
+            if ($component->isForEveryone()) {
+                $id = $plugin->getPanelTheme()?->themeId;
+                $component->state($id !== null && isset($component->getThemes()[$id]) ? $id : static::PANEL_DEFAULT);
+
+                return;
+            }
+
             $component->state($component->hasDefaultOption()
                 ? ($plugin->getUserTheme()?->getId() ?? static::PANEL_DEFAULT)
                 : $plugin->getActiveTheme()->getId());
@@ -67,6 +76,12 @@ class ThemePicker extends Field
 
         $this->afterStateUpdated(function (ThemePicker $component, ?string $state, ?string $old): void {
             if (! $component->shouldPersist()) {
+                return;
+            }
+
+            if ($component->isForEveryone()) {
+                $component->saveForEveryone($state);
+
                 return;
             }
 
@@ -145,6 +160,47 @@ class ThemePicker extends Field
         return $this;
     }
 
+    /**
+     * Pick the theme for everyone in the panel (or the current tenant)
+     * instead of the user's own: what managers see under "For everyone".
+     * "Panel default" then stands for the default set in code.
+     */
+    public function forEveryone(bool $condition = true): static
+    {
+        $this->isForEveryone = $condition;
+
+        return $this;
+    }
+
+    public function isForEveryone(): bool
+    {
+        return $this->isForEveryone;
+    }
+
+    /**
+     * Saves a manager's pick for everyone, and shows its effect on their own
+     * panel: none while they have a theme of their own, else a swap (or a
+     * reload, for a theme that configures the panel).
+     */
+    protected function saveForEveryone(?string $state): void
+    {
+        $plugin = $this->getPlugin();
+        $manager = app(ThemeManager::class);
+        $before = $plugin->getActiveTheme();
+
+        $plugin->setPanelTheme($state === static::PANEL_DEFAULT ? null : $state);
+
+        $after = $plugin->getActiveTheme();
+
+        if ($after->getId() === $before->getId()) {
+            return;
+        }
+
+        $this->getLivewire()->js($manager->configuresPanel($before) || $manager->configuresPanel($after)
+            ? 'window.Nitpick ? window.Nitpick.reload() : window.location.reload()'
+            : 'window.Nitpick && window.Nitpick.pick('.json_encode($after->getId()).')');
+    }
+
     public function hasDefaultOption(): bool
     {
         return (bool) $this->evaluate($this->hasDefaultOption);
@@ -160,8 +216,8 @@ class ThemePicker extends Field
     {
         $options = [];
 
-        if ($this->hasDefaultOption()) {
-            $default = $this->getPlugin()->getDefaultTheme();
+        if ($this->hasDefaultOption() || $this->isForEveryone()) {
+            $default = $this->isForEveryone() ? $this->getPlugin()->getCodeDefaultTheme() : $this->getPlugin()->getDefaultTheme();
 
             $options[] = [
                 'value' => static::PANEL_DEFAULT,
@@ -236,7 +292,7 @@ class ThemePicker extends Field
     {
         $theme = match ($theme) {
             null => null,
-            static::PANEL_DEFAULT => $this->getPlugin()->getDefaultTheme(),
+            static::PANEL_DEFAULT => $this->isForEveryone() ? $this->getPlugin()->getCodeDefaultTheme() : $this->getPlugin()->getDefaultTheme(),
             default => app(ThemeManager::class)->find($theme),
         };
 
