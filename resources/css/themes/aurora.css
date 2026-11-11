@@ -67,7 +67,8 @@
     border: 1px solid var(--nitpick-border-strong);
     border-radius: var(--nitpick-radius-dock);
     box-shadow: var(--nitpick-shadow-dock);
-    margin: 1rem 0 1rem 1rem;
+    margin-block: 1rem;
+    margin-inline: 1rem 0;
     height: calc(100dvh - 2rem);
 }
 
@@ -102,7 +103,7 @@
 [data-nitpick-theme="aurora"] .fi-sidebar-item.fi-active::before {
     content: "";
     position: absolute;
-    left: -0.75rem;
+    inset-inline-start: -0.75rem;
     top: 0.5625rem;
     bottom: 0.5625rem;
     width: 4px;

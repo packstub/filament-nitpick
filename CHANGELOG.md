@@ -23,6 +23,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ### Fixed
 
+- Right-to-left panels (Arabic, Hebrew, Persian): Aurora's floating sidebar and its active-item bar sit on the right side, and the slide and sweep transitions mirror. ([#28](https://github.com/packstub/filament-nitpick/issues/28))
 - Under Octane, a user's theme is worked out on every request: it was remembered by the worker, so after a pick the other workers kept serving the old theme, and a `->default()` closure that follows the tenant kept the first tenant's theme. ([#20](https://github.com/packstub/filament-nitpick/issues/20))
 
 ### Removed
