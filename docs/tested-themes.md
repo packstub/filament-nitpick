@@ -1,8 +1,8 @@
 # Tested themes
 
-The free Filament 5 themes that have been run through Nitpick's picker, in a Laravel 13.38 app with Filament 5.11.0: each one is installed the way its own docs describe and registered with `Theme::make()`, then picked from Aurora, screenshotted in light and dark, and left again, with a check that none of its stylesheets, scripts, colours, fonts or classes stay behind on the next theme. The app and its scripts are public at [packstub/nitpick-theme-compat](https://github.com/packstub/nitpick-theme-compat), and the run is repeated before each Nitpick release.
+The free Filament 5 themes that have been run through Nitpick's picker, in a Laravel 13.38 app with Filament 5.11.2: each one is installed the way its own docs describe and registered with `Theme::make()`, then picked from Aurora, screenshotted in light and dark, and left again, with a check that none of its stylesheets, scripts, colours, fonts or classes stay behind on the next theme. The app and its scripts are public at [packstub/nitpick-theme-compat](https://github.com/packstub/nitpick-theme-compat), and the run is repeated before each Nitpick release.
 
-The column on the right is what the theme takes beyond `->plugin()`; [Themes](themes.md#themes-from-the-filament-plugin-directory) explains each kind of setup. Versions are the ones tested on 2026-10-27.
+The column on the right is what the theme takes beyond `->plugin()`; [Themes](themes.md#themes-from-the-filament-plugin-directory) explains each kind of setup. Versions are the ones tested on 2026-10-27; the run was repeated on 2026-11-11 with Filament 5.11.2 and Nitpick 1.0, with the same results.
 
 ## Themes
 
