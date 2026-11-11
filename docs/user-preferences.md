@@ -80,6 +80,16 @@ NitpickPlugin::get()->setUserTheme($data['theme']);
 
 The field is `dehydrated(false)`, so it never lands in your model's data by accident.
 
+### The "Panel default" card
+
+The first card, **Panel default**, says which theme the panel uses by default ("Follows Aurora"). It is the selected card for anyone who never picked a theme. Picking it clears the user's choice, so they follow the panel's default again, including when it changes later (a new `->default()`, or a tenant's theme). Leave it out, and the picker marks the active theme instead:
+
+```php
+NitpickPlugin::make()->picker(fn (ThemePicker $picker) => $picker->defaultOption(false))
+```
+
+In a form of your own, the field's state is `ThemePicker::PANEL_DEFAULT` (`'_default'`) while the card is picked.
+
 ### Cards: descriptions and swatches
 
 Each card shows up to three swatches and the theme's name. Short cards scan faster, so the description is left off and shown as the card's tooltip. Show it under the name:

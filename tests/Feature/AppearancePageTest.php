@@ -33,7 +33,7 @@ it('lists the offered themes', function (): void {
 
 it('saves the theme as soon as it is picked', function (): void {
     livewire(Appearance::class)
-        ->assertSet('data.theme', 'aurora')
+        ->assertSet('data.theme', ThemePicker::PANEL_DEFAULT)
         ->set('data.theme', 'midnight')
         ->assertHasNoErrors();
 
@@ -154,4 +154,54 @@ it('lets the cards fill the page unless columns are set', function (): void {
     $this->get(Appearance::getUrl())
         ->assertOk()
         ->assertSee('--cols-lg: repeat(3, minmax(0, 1fr))', false);
+});
+
+it('offers "Panel default" first, picked for anyone who never chose, naming the theme it follows', function (): void {
+    $this->get(Appearance::getUrl())
+        ->assertSeeInOrder(['Panel default', 'Follows Aurora', 'Aurora', 'Midnight'])
+        ->assertSee('value="'.ThemePicker::PANEL_DEFAULT.'"', false)
+        // Picking it previews the theme it follows.
+        ->assertSee("window.Nitpick.pick('aurora', { reload: true })", false);
+
+    livewire(Appearance::class)->assertSet('data.theme', ThemePicker::PANEL_DEFAULT);
+});
+
+it('shows the user\'s own choice instead of "Panel default" once they picked one', function (): void {
+    pluginFor('admin')->setUserTheme('midnight');
+
+    livewire(Appearance::class)->assertSet('data.theme', 'midnight');
+});
+
+it('clears the user\'s choice when they go back to "Panel default"', function (): void {
+    pluginFor('admin')->setUserTheme('midnight');
+
+    livewire(Appearance::class)->set('data.theme', ThemePicker::PANEL_DEFAULT);
+
+    expect(ThemePreference::query()->where('user_id', $this->user->id)->exists())->toBeFalse()
+        ->and(pluginFor('admin')->getActiveTheme()->getId())->toBe('aurora');
+});
+
+it('follows the panel default when it changes later, for users on "Panel default"', function (): void {
+    livewire(Appearance::class)->set('data.theme', ThemePicker::PANEL_DEFAULT);
+
+    pluginFor('admin')->default('midnight');
+
+    expect(pluginFor('admin')->getActiveTheme()->getId())->toBe('midnight');
+});
+
+it('reloads when "Panel default" follows a theme that configures the panel', function (): void {
+    Nitpick::register(Theme::make('rail')->panel(fn ($panel) => $panel->topNavigation()));
+    pluginFor('admin')->default('rail')->setUserTheme('aurora');
+
+    livewire(Appearance::class)
+        ->set('data.theme', ThemePicker::PANEL_DEFAULT)
+        ->tap(fn ($component) => expect(json_encode($component->effects))->toContain('window.Nitpick.reload()'));
+});
+
+it('leaves "Panel default" out with ->defaultOption(false), showing the active theme as picked', function (): void {
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->defaultOption(false));
+
+    $this->get(Appearance::getUrl())->assertDontSee('Panel default');
+
+    livewire(Appearance::class)->assertSet('data.theme', 'aurora');
 });

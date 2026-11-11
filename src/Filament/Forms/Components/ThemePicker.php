@@ -21,6 +21,13 @@ use Packstub\Nitpick\ThemeManager;
  */
 class ThemePicker extends Field
 {
+    /**
+     * The value of the "Panel default" card: no choice of the user's own, so
+     * they follow the panel's default theme. A theme id never starts with an
+     * underscore, so the two never collide.
+     */
+    public const PANEL_DEFAULT = '_default';
+
     protected string $view = 'nitpick::forms.theme-picker';
 
     protected bool|Closure $shouldPersist = true;
@@ -30,6 +37,8 @@ class ThemePicker extends Field
     protected bool|Closure $hasDescriptions = false;
 
     protected bool|Closure $hasSwatches = true;
+
+    protected bool|Closure $hasDefaultOption = true;
 
     public static function make(?string $name = 'theme'): static
     {
@@ -46,7 +55,11 @@ class ThemePicker extends Field
         $this->dehydrated(false);
 
         $this->afterStateHydrated(function (ThemePicker $component): void {
-            $component->state($component->getPlugin()->getActiveTheme()->getId());
+            $plugin = $component->getPlugin();
+
+            $component->state($component->hasDefaultOption()
+                ? ($plugin->getUserTheme()?->getId() ?? static::PANEL_DEFAULT)
+                : $plugin->getActiveTheme()->getId());
         });
 
         $this->afterStateUpdated(function (ThemePicker $component, ?string $state, ?string $old): void {
@@ -54,7 +67,7 @@ class ThemePicker extends Field
                 return;
             }
 
-            $component->getPlugin()->setUserTheme($state);
+            $component->getPlugin()->setUserTheme($state === static::PANEL_DEFAULT ? null : $state);
 
             // A theme that configures the panel (top navigation, plugins) shows only after a page load,
             // which waits for the transition's cover.
@@ -117,6 +130,51 @@ class ThemePicker extends Field
         return $this;
     }
 
+    /**
+     * Offer a first card, "Panel default", that clears the user's choice, so
+     * they follow the panel's default theme again, including when it changes
+     * later. On by default.
+     */
+    public function defaultOption(bool|Closure $condition = true): static
+    {
+        $this->hasDefaultOption = $condition;
+
+        return $this;
+    }
+
+    public function hasDefaultOption(): bool
+    {
+        return (bool) $this->evaluate($this->hasDefaultOption);
+    }
+
+    /**
+     * The cards, in order: "Panel default" when it is offered, then each
+     * theme. `value` is the field's state, `theme` the theme it shows.
+     *
+     * @return array<int, array{value: string, theme: Theme, label: string, hint: string | null}>
+     */
+    public function getOptions(): array
+    {
+        $options = [];
+
+        if ($this->hasDefaultOption()) {
+            $default = $this->getPlugin()->getDefaultTheme();
+
+            $options[] = [
+                'value' => static::PANEL_DEFAULT,
+                'theme' => $default,
+                'label' => __('nitpick::themes.picker.default'),
+                'hint' => __('nitpick::themes.picker.default_hint', ['theme' => $default->getLabel()]),
+            ];
+        }
+
+        foreach ($this->getThemes() as $id => $theme) {
+            $options[] = ['value' => (string) $id, 'theme' => $theme, 'label' => $theme->getLabel(), 'hint' => null];
+        }
+
+        return $options;
+    }
+
     public function hasDescriptions(): bool
     {
         return (bool) $this->evaluate($this->hasDescriptions);
@@ -139,7 +197,11 @@ class ThemePicker extends Field
 
     protected function needsReload(?string $theme): bool
     {
-        $theme = $theme === null ? null : app(ThemeManager::class)->find($theme);
+        $theme = match ($theme) {
+            null => null,
+            static::PANEL_DEFAULT => $this->getPlugin()->getDefaultTheme(),
+            default => app(ThemeManager::class)->find($theme),
+        };
 
         return $theme !== null && app(ThemeManager::class)->configuresPanel($theme);
     }

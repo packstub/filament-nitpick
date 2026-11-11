@@ -12,6 +12,8 @@ return [
         'label' => 'Theme',
         'helper' => 'Changes apply right away.',
         'current' => 'Current',
+        'default' => 'Panel default',
+        'default_hint' => 'Follows :theme',
     ],
 
     'notifications' => [
