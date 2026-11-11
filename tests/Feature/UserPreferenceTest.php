@@ -1,8 +1,10 @@
 <?php
 
+use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Event;
 use Packstub\Nitpick\Events\ThemeChanged;
 use Packstub\Nitpick\Models\ThemePreference;
+use Packstub\Nitpick\ThemeManager;
 use Packstub\Nitpick\Themes\Midnight;
 
 it('uses the panel default until the user picks a theme', function (): void {
@@ -98,4 +100,45 @@ it('can keep the choice in the session instead of the database', function (): vo
     expect($plugin->getActiveTheme()->getId())->toBe('midnight')
         ->and(ThemePreference::query()->count())->toBe(0)
         ->and(session()->all())->toHaveKey('nitpick');
+});
+
+// Filament keeps its panels, and so the plugin, for the life of the process: under Octane, two
+// requests on one worker share them, and another worker may save the user's choice in between.
+it('works the active theme out again on every request', function (): void {
+    $user = createUser();
+    $panel = Filament::getPanel('admin');
+
+    $this->actingAs($user)->get($panel->getUrl())->assertSee('<meta name="nitpick-theme" content="aurora">', false);
+
+    app(ThemeManager::class)->store()->set($user, 'admin', 'midnight');
+
+    $this->actingAs($user)->get($panel->getUrl())->assertSee('<meta name="nitpick-theme" content="midnight">', false);
+});
+
+it('follows a default that changes between requests, such as the tenant\'s', function (): void {
+    $user = createUser();
+    $panel = Filament::getPanel('admin');
+    $default = 'aurora';
+    pluginFor('admin')->default(function () use (&$default): string {
+        return $default;
+    });
+
+    $this->actingAs($user)->get($panel->getUrl())->assertSee('<meta name="nitpick-theme" content="aurora">', false);
+
+    $default = 'midnight';
+
+    $this->actingAs($user)->get($panel->getUrl())->assertSee('<meta name="nitpick-theme" content="midnight">', false);
+});
+
+it('forgets remembered themes when Octane forgets scoped bindings', function (): void {
+    $user = createUser();
+    $plugin = pluginFor('admin');
+    $this->actingAs($user);
+
+    expect($plugin->getActiveTheme()->getId())->toBe('aurora');
+
+    app(ThemeManager::class)->store()->set($user, 'admin', 'midnight');
+    app()->forgetScopedInstances();
+
+    expect($plugin->getActiveTheme()->getId())->toBe('midnight');
 });

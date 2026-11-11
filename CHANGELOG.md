@@ -14,6 +14,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 - Apps whose users have UUID or ULID keys can save a theme: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration. Left `null`, the column follows the app's morph key type, as before. ([#19](https://github.com/packstub/filament-nitpick/issues/19))
 
+### Fixed
+
+- Under Octane, a user's theme is worked out on every request: it was remembered by the worker, so after a pick the other workers kept serving the old theme, and a `->default()` closure that follows the tenant kept the first tenant's theme. ([#20](https://github.com/packstub/filament-nitpick/issues/20))
+
 ### Removed
 
 - `userSelectable()`, `appearancePage()`, `isUserSelectable()` and `getAppearancePage()`, deprecated since beta.2: `->picker(...)` and `getPickerPage()` replace them. A theme gives its CSS with `getStylesheets()` only; `getStylesheetPath()` is gone.
