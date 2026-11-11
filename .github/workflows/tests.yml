@@ -70,7 +70,9 @@ jobs:
 
   browser:
     name: Browser tests (Chromium)
-    runs-on: ubuntu-latest
+    # Playwright's Chromium runs on the libraries GitHub's 24.04 image already has; installing them
+    # through apt (--with-deps) failed on the newer image's mirrors.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -89,7 +91,7 @@ jobs:
       - name: Install Playwright
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
 
       - name: Run browser tests
         run: vendor/bin/pest --testsuite=Browser
