@@ -68,6 +68,26 @@ jobs:
       - name: Run tests
         run: vendor/bin/pest --testsuite=Unit,Feature
 
+  phpstan:
+    name: Static analysis (Larastan)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run Larastan
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
   browser:
     name: Browser tests (Chromium)
     runs-on: ubuntu-latest

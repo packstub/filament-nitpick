@@ -12,6 +12,8 @@ use Packstub\Nitpick\NitpickPlugin;
 /**
  * Where a user picks the theme they see in this panel. Registered by the
  * plugin when ->picker() is on and linked from the user menu.
+ *
+ * @property-read Schema $form The form() schema, which Filament's page resolves by name.
  */
 class Appearance extends Page
 {

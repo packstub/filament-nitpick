@@ -48,6 +48,7 @@
         "spatie/laravel-package-tools": "^1.92"
     },
     "require-dev": {
+        "larastan/larastan": "^3.15",
         "laravel/pint": "^1.27",
         "orchestra/testbench": "^10.0 || ^11.0",
         "pestphp/pest": "^4.0 || ^5.0",
@@ -68,6 +69,7 @@
         "test": "pest --testsuite=Unit,Feature",
         "test:filter": "pest --testsuite=Unit,Feature --filter",
         "test:browser": "pest --testsuite=Browser",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
         "lint": "vendor/bin/pint",
         "lint:test": "vendor/bin/pint --test"
     },
