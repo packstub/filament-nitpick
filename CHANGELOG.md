@@ -12,6 +12,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 - Requires Filament 5.8.3 or later, the first Filament 5 release without a published security advisory, and the lowest version CI now tests on. ([#21](https://github.com/packstub/filament-nitpick/issues/21))
 - Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
 
+### Fixed
+
+- In an SPA app, the picker kept the first panel's themes after a navigation to another panel, so a theme only that panel offers could not be picked.
+
 ### Added
 
 - Theme cards show a small preview of each theme in light and dark (page, sidebar, a card and a button in its colours) instead of swatches. Drawn from the theme's palette, or from `Contracts\HasPreview` (`Theme::make()->preview([...])`) for a theme whose stylesheet changes the surfaces; Aurora and Midnight describe their own. `ThemePicker::make()->previews(false)` shows swatches instead. ([#24](https://github.com/packstub/filament-nitpick/issues/24))
