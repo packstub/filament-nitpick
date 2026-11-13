@@ -39,6 +39,7 @@ php artisan vendor:publish --tag="nitpick-config"
 | `table` | `'nitpick_theme_preferences'` | The preferences table |
 | `connection` | `null` | Its connection; null follows the user model's connection |
 | `user_model` | `null` | The user model; null uses the default auth provider's |
+| `user_key_type` | `null` | `'int'`, `'uuid'` or `'ulid'`: the type of the table's `user_id`; null follows the app's morph key type (`Schema::morphUsingUuids()`), else int. Set it before migrating |
 | `colors` | `[]` | App-wide colour overrides, same shape as `->colors()` |
 | `custom_css` | `null` | App-wide extra stylesheet, path relative to `public/` or a URL |
 | `force_mode` | `null` | `'light'`, `'dark'` or `'system'` |

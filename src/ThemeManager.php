@@ -6,6 +6,7 @@ use Filament\Panel;
 use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Database\Schema\Blueprint;
 use InvalidArgumentException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
 use Packstub\Nitpick\Contracts\Theme;
@@ -216,6 +217,22 @@ class ThemeManager
         $userModel = static::userModel();
 
         return $userModel ? (new $userModel)->getConnectionName() : null;
+    }
+
+    /**
+     * The user_type and user_id columns of a table keyed by user, with
+     * user_id of the type of the users' keys: `user_key_type` in the config,
+     * else the app's morph key type.
+     */
+    public static function userMorphs(Blueprint $table, string $name = 'user'): void
+    {
+        match (config('nitpick.user_key_type')) {
+            null, '' => $table->morphs($name),
+            'int' => $table->numericMorphs($name),
+            'uuid' => $table->uuidMorphs($name),
+            'ulid' => $table->ulidMorphs($name),
+            default => throw new InvalidArgumentException("The nitpick.user_key_type config must be null, 'int', 'uuid' or 'ulid'."),
+        };
     }
 
     public static function tableName(): string

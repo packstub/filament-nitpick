@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\GenericUser;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -32,6 +33,51 @@ it('leaves a beta install table alone when the migration is published again', fu
     expect(Schema::hasTable('theme_preferences'))->toBeTrue()
         ->and(DB::table('theme_preferences')->value('theme_id'))->toBe('midnight');
 });
+
+it('types user_id after the users\' keys', function (?string $type, string $column): void {
+    Schema::drop('nitpick_theme_preferences');
+    config()->set('nitpick.user_key_type', $type);
+
+    runPreferencesMigration();
+
+    expect(Schema::getColumnType('nitpick_theme_preferences', 'user_id'))->toBe($column);
+})->with([
+    'the app default' => [null, 'integer'],
+    'int' => ['int', 'integer'],
+    'uuid' => ['uuid', 'varchar'],
+    'ulid' => ['ulid', 'varchar'],
+]);
+
+it('follows the app\'s morph key type when none is set', function (): void {
+    Schema::drop('nitpick_theme_preferences');
+    Schema::morphUsingUuids();
+
+    try {
+        runPreferencesMigration();
+    } finally {
+        Schema::defaultMorphKeyType('int');
+    }
+
+    expect(Schema::getColumnType('nitpick_theme_preferences', 'user_id'))->toBe('varchar');
+});
+
+it('saves a choice for a user with a UUID key', function (): void {
+    Schema::drop('nitpick_theme_preferences');
+    config()->set('nitpick.user_key_type', 'uuid');
+    runPreferencesMigration();
+
+    $user = new GenericUser(['id' => '9b2f7c1e-4d3a-4f8e-9a61-2c5d8e7f1a0b']);
+    pluginFor('admin')->setUserTheme('midnight', $user);
+
+    expect(pluginFor('admin')->getUserTheme($user)?->getId())->toBe('midnight');
+});
+
+it('refuses an unknown user key type', function (): void {
+    Schema::drop('nitpick_theme_preferences');
+    config()->set('nitpick.user_key_type', 'string');
+
+    runPreferencesMigration();
+})->throws(InvalidArgumentException::class, 'user_key_type');
 
 it('leaves a beta install table alone when the migration is rolled back', function (): void {
     Schema::create('theme_preferences', function (Blueprint $table): void {
