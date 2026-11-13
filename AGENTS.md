@@ -5,8 +5,9 @@ Free Filament v5 plugin: designed themes for panels, a per-panel default, an ope
 ## Commands
 
 ```bash
-composer test               # Pest suite
+composer test               # Pest suite (Unit, Feature)
 composer test:filter <name>
+composer test:browser       # Pest browser tests (tests/Browser): once, npm install && npx playwright install chromium
 composer lint               # Pint
 ```
 

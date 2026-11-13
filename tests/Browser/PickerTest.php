@@ -1,0 +1,100 @@
+<?php
+
+use Filament\Facades\Filament;
+use Filament\Panel;
+use Illuminate\Support\Facades\Artisan;
+use Packstub\Nitpick\Facades\Nitpick;
+use Packstub\Nitpick\Theme;
+
+// The picker in a real browser: nitpick.js loaded from the published assets, the cover, the swap, a pick
+// that reloads the page and reopens the modal, SPA navigation and reduced motion. Run with
+// `composer test:browser` (Playwright: `npm install && npx playwright install chromium`).
+
+beforeEach(function (): void {
+    // The panel's stylesheets and scripts, Nitpick's among them, where the browser asks for them.
+    Artisan::call('filament:assets');
+
+    $this->user = createUser();
+    $this->actingAs($this->user);
+});
+
+function card(string $theme): string
+{
+    return 'label.nitpick-option:has(input[value="'.$theme.'"])';
+}
+
+it('changes the theme live from the Appearance page, with its light/dark mode, and saves it', function (): void {
+    $page = visit('/admin/appearance');
+
+    $page->assertScript('document.documentElement.dataset.nitpickTheme', 'aurora')
+        ->assertScript('typeof window.Nitpick.pick', 'function')
+        ->assertScript("document.documentElement.classList.contains('dark')", false)
+        ->click(card('midnight'))
+        ->wait(1.5)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight')
+        ->assertScript("document.getElementById('nitpick-theme-active').getAttribute('href').includes('nitpick-theme-midnight')", true)
+        // Midnight is made for dark mode, and a pick takes it.
+        ->assertScript("document.documentElement.classList.contains('dark')", true)
+        // The cover is gone and the panel's own transitions are back.
+        ->assertScript("document.getElementById('nitpick-cover-layer') === null", true)
+        ->assertScript("document.documentElement.hasAttribute('data-nitpick-still')", false)
+        ->assertNoJavaScriptErrors();
+
+    expect(pluginFor('admin')->getUserTheme($this->user)?->getId())->toBe('midnight');
+});
+
+it('reloads under the cover for a theme that configures the panel, and opens the picker again', function (): void {
+    Nitpick::register(Theme::make('rail')->panel(fn (Panel $panel) => $panel->topNavigation()));
+
+    $page = visit('/admin');
+
+    $page->assertScript("document.body.classList.contains('fi-body-has-top-navigation')", false)
+        ->click('.fi-user-menu-trigger')
+        ->click('Appearance')
+        ->wait(0.5)
+        ->click(card('rail'))
+        ->wait(3.5)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'rail')
+        ->assertScript("document.body.classList.contains('fi-body-has-top-navigation')", true)
+        // The modal it was picked from is open again, and the cover has lifted.
+        ->assertScript("document.querySelector('.fi-modal .nitpick-picker') !== null", true)
+        ->assertScript("document.documentElement.hasAttribute('data-nitpick-cover')", false)
+        ->assertScript("document.getElementById('nitpick-cover-layer') === null", true)
+        ->assertNoJavaScriptErrors();
+
+    expect(pluginFor('admin')->getUserTheme($this->user)?->getId())->toBe('rail');
+});
+
+it('keeps the theme and the picker working across SPA navigation', function (): void {
+    Filament::getPanel('admin')->spa();
+    pluginFor('admin')->setUserTheme('midnight', $this->user);
+
+    $page = visit('/admin/appearance');
+
+    // To the dashboard and back without a page load: Livewire swaps the body and merges the head.
+    $page->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight')
+        ->assertScript('window.__loadedOnce = true')
+        ->click('Dashboard')
+        ->wait(1)
+        ->assertScript("window.location.pathname === '/admin' && window.__loadedOnce === true", true)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight');
+
+    $page->script("Livewire.navigate('/admin/appearance')");
+
+    $page->wait(1)
+        ->assertScript("window.location.pathname === '/admin/appearance' && window.__loadedOnce === true", true)
+        ->click(card('aurora'))
+        ->wait(1.5)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'aurora')
+        ->assertNoJavaScriptErrors();
+});
+
+it('changes the theme at once, without the cover, for visitors who prefer reduced motion', function (): void {
+    $page = visit('/admin/appearance', ['reducedMotion' => 'reduce']);
+
+    $page->assertScript('window.Nitpick.transition()', null)
+        ->click(card('midnight'))
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight')
+        ->assertScript("document.getElementById('nitpick-cover-layer') === null", true)
+        ->assertNoJavaScriptErrors();
+});

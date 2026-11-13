@@ -7,4 +7,5 @@ phpstan.neon
 testbench.yaml
 vendor
 node_modules
+tests/Browser/Screenshots
 .DS_Store
