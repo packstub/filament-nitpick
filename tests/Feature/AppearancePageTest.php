@@ -2,7 +2,7 @@
 
 use Filament\Facades\Filament;
 use Filament\Livewire\Topbar;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Models\ThemePreference;
@@ -42,12 +42,12 @@ it('saves the theme as soon as it is picked', function (): void {
 
 it('asks a pick for a reload only when the picker saves it', function (): void {
     $this->get(Appearance::getUrl())
-        ->assertSee('window.PackstubThemes.pick(\'midnight\', { reload: true })', false);
+        ->assertSee('window.Nitpick.pick(\'midnight\', { reload: true })', false);
 
     pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->persist(false));
 
     $this->get(Appearance::getUrl())
-        ->assertSee('window.PackstubThemes.pick(\'midnight\', { reload: false })', false);
+        ->assertSee('window.Nitpick.pick(\'midnight\', { reload: false })', false);
 });
 
 it('is closed when user selection is turned off', function (): void {
@@ -61,8 +61,8 @@ it('stamps the panel with the active theme', function (): void {
 
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="midnight">', false)
-        ->assertSee('packstub-theme-midnight.css', false)
+        ->assertSee('<meta name="nitpick-theme" content="midnight">', false)
+        ->assertSee('nitpick-theme-midnight.css', false)
         ->assertSee('--default-theme-mode: dark', false)
         ->assertSee('nitpick-palettes', false);
 });
@@ -81,7 +81,7 @@ it('keeps descriptions off the cards by default, as their tooltip', function ():
     $this->get(Appearance::getUrl())
         ->assertOk()
         ->assertSee('title="'.e($description).'"', false)
-        ->assertDontSee('pst-theme-option-description', false);
+        ->assertDontSee('nitpick-option-description', false);
 });
 
 it('shows descriptions when the panel asks for them', function (): void {
@@ -89,29 +89,29 @@ it('shows descriptions when the panel asks for them', function (): void {
 
     $this->get(Appearance::getUrl())
         ->assertOk()
-        ->assertSee('<span class="pst-theme-option-description">'.e(__('nitpick::themes.themes.midnight.description')).'</span>', false)
+        ->assertSee('<span class="nitpick-option-description">'.e(__('nitpick::themes.themes.midnight.description')).'</span>', false)
         ->assertDontSee('title="'.e(__('nitpick::themes.themes.midnight.description')).'"', false);
 });
 
 it('leaves the swatch row empty for a theme whose colours are unknown', function (): void {
-    Themes::register(Theme::make('blank')->label('Blank'));
+    Nitpick::register(Theme::make('blank')->label('Blank'));
 
     $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
 
     expect($html)
-        ->toMatch('/<span class="pst-theme-swatches" aria-hidden="true">(\s|<!--.*?-->)*<\/span>(\s|<!--.*?-->)*<span class="pst-theme-option-label">\s*Blank/')
-        ->not->toContain('pst-theme-swatch-empty');
+        ->toMatch('/<span class="nitpick-swatches" aria-hidden="true">(\s|<!--.*?-->)*<\/span>(\s|<!--.*?-->)*<span class="nitpick-option-label">\s*Blank/')
+        ->not->toContain('nitpick-swatch-empty');
 });
 
 it('leaves the swatch row out when no theme has known colours', function (): void {
-    Themes::register(Theme::make('blank'));
-    Themes::register(Theme::make('plain'));
+    Nitpick::register(Theme::make('blank'));
+    Nitpick::register(Theme::make('plain'));
     pluginFor('admin')->themes(['blank', 'plain']);
 
     $this->get(Appearance::getUrl())
         ->assertOk()
         ->assertSee('Plain')
-        ->assertDontSee('pst-theme-swatches', false);
+        ->assertDontSee('nitpick-swatches', false);
 });
 
 it('can leave the swatches out', function (): void {
@@ -120,7 +120,7 @@ it('can leave the swatches out', function (): void {
     $this->get(Appearance::getUrl())
         ->assertOk()
         ->assertSee('Midnight')
-        ->assertDontSee('pst-theme-swatches', false);
+        ->assertDontSee('nitpick-swatches', false);
 });
 
 it('opens the picker in a modal from the user menu, in fixed columns', function (): void {
@@ -147,7 +147,7 @@ it('links the Appearance page instead when the modal is turned off', function ()
 it('lets the cards fill the page unless columns are set', function (): void {
     $this->get(Appearance::getUrl())
         ->assertOk()
-        ->assertDontSee('fi-grid-cols pst-theme-picker', false);
+        ->assertDontSee('fi-grid-cols nitpick-picker', false);
 
     pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->columns(3));
 

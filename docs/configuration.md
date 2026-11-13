@@ -36,7 +36,7 @@ php artisan vendor:publish --tag="nitpick-config"
 | --- | --- | --- |
 | `default` | `'aurora'` | The theme a panel uses when its plugin sets no `->default()` |
 | `store` | `'database'` | `database` or `session`; see [User preferences](user-preferences.md#where-the-choice-is-kept) |
-| `table` | `'theme_preferences'` | The preferences table |
+| `table` | `'nitpick_theme_preferences'` | The preferences table |
 | `connection` | `null` | Its connection; null follows the user model's connection |
 | `user_model` | `null` | The user model; null uses the default auth provider's |
 | `colors` | `[]` | App-wide colour overrides, same shape as `->colors()` |
@@ -64,7 +64,7 @@ For per-project tweaks without forking a theme:
 NitpickPlugin::make()->customCss('css/admin-overrides.css')
 ```
 
-The file is linked after the active theme's stylesheet, so your rules win on equal specificity. Scope them to `[data-packstub-theme="…"]` when a tweak should only apply to one theme.
+The file is linked after the active theme's stylesheet, so your rules win on equal specificity. Scope them to `[data-nitpick-theme="…"]` when a tweak should only apply to one theme.
 
 ## Events
 

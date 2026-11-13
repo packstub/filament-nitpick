@@ -14,7 +14,7 @@
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
     <div
         x-data="{ state: $wire.$entangle('{{ $statePath }}', true) }"
-        {{ ($hasCustomColumns() ? (new ComponentAttributeBag)->grid($getColumns()) : new ComponentAttributeBag)->class(['pst-theme-picker']) }}
+        {{ ($hasCustomColumns() ? (new ComponentAttributeBag)->grid($getColumns()) : new ComponentAttributeBag)->class(['nitpick-picker']) }}
         role="radiogroup"
     >
         @foreach ($themes as $id => $theme)
@@ -23,8 +23,8 @@
             @endphp
 
             <label
-                class="pst-theme-option"
-                x-bind:class="{ 'pst-theme-option-active': state === @js($id) }"
+                class="nitpick-option"
+                x-bind:class="{ 'nitpick-option-active': state === @js($id) }"
                 @if (! $hasDescriptions && filled($description)) title="{{ $description }}" @endif
             >
                 <input
@@ -32,29 +32,29 @@
                     name="{{ $statePath }}"
                     value="{{ $id }}"
                     x-model="state"
-                    x-on:change="window.PackstubThemes && window.PackstubThemes.pick(@js($id), { reload: @js($shouldPersist) })"
+                    x-on:change="window.Nitpick && window.Nitpick.pick(@js($id), { reload: @js($shouldPersist) })"
                     @disabled($isDisabled)
-                    class="pst-theme-option-input"
+                    class="nitpick-option-input"
                 />
 
                 @if ($hasSwatches)
                     {{-- Colours unknown (set in a plugin's boot(), say): the row stays empty, so the names line up. --}}
-                    <span class="pst-theme-swatches" aria-hidden="true">
+                    <span class="nitpick-swatches" aria-hidden="true">
                         @foreach ($swatches[$id] as $swatch)
-                            <span class="pst-theme-swatch" style="background: {{ $swatch }}"></span>
+                            <span class="nitpick-swatch" style="background: {{ $swatch }}"></span>
                         @endforeach
                     </span>
                 @endif
 
-                <span class="pst-theme-option-label">
+                <span class="nitpick-option-label">
                     {{ $theme->getLabel() }}
-                    <span class="pst-theme-option-current" x-show="state === @js($id)" x-cloak>
+                    <span class="nitpick-option-current" x-show="state === @js($id)" x-cloak>
                         {{ __('nitpick::themes.picker.current') }}
                     </span>
                 </span>
 
                 @if ($hasDescriptions && filled($description))
-                    <span class="pst-theme-option-description">{{ $description }}</span>
+                    <span class="nitpick-option-description">{{ $description }}</span>
                 @endif
             </label>
         @endforeach

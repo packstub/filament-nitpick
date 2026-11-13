@@ -13,7 +13,7 @@ composer require "packstub/filament-nitpick:^1.0@beta"
 php artisan nitpick:install
 ```
 
-The install command publishes the config file and the `theme_preferences` migration and offers to run it. The migration is only needed when users may pick a theme and the choice is kept in the database (the default). You can run the pieces yourself instead:
+The install command publishes the config file and the `nitpick_theme_preferences` migration and offers to run it. The migration is only needed when users may pick a theme and the choice is kept in the database (the default). You can run the pieces yourself instead:
 
 ```bash
 php artisan vendor:publish --tag="nitpick-config"

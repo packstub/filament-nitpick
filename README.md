@@ -21,11 +21,11 @@ It is also a home for the themes you already like. Install a theme plugin from t
 
 ```php
 use Caresome\FilamentNeobrutalism\NeobrutalismeTheme;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
-Themes::register(
+Nitpick::register(
     Theme::make('neobrutalism')->plugin(fn () => NeobrutalismeTheme::make()),
 );
 ```
@@ -56,7 +56,7 @@ php artisan nitpick:install
 php artisan filament:assets
 ```
 
-The install command publishes the config file and the `theme_preferences` migration and offers to run it. Then register the plugin:
+The install command publishes the config file and the `nitpick_theme_preferences` migration and offers to run it. Then register the plugin:
 
 ```php
 use Packstub\Nitpick\NitpickPlugin;
@@ -111,11 +111,11 @@ Then register the theme, naming the compiled file with the `vite:` prefix, and r
 
 ```php
 use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
 
 // AppServiceProvider::boot()
-Themes::register(
+Nitpick::register(
     Theme::make('nord')
         ->plugin(fn () => FilamentNordThemePlugin::make())
         ->stylesheet('vite:resources/css/themes/nord.css'),
@@ -165,7 +165,7 @@ NitpickPlugin::make()->picker()
 Turning this on:
 
 - adds an **Appearance** item to the user menu that opens the picker in a modal of fixed width and columns, and registers an Appearance page (`/appearance`) with the same picker;
-- saves each user's choice for this panel in the `theme_preferences` table (or the session, see [Configuration](#configuration));
+- saves each user's choice for this panel in the `nitpick_theme_preferences` table (or the session, see [Configuration](#configuration));
 - changes the theme the moment a card is clicked, behind a short fade (`->picker(transition: Transition::Slide)`, `Transition::Sweep`, or `false` for none). A theme that changes the layout reloads the page under the same cover, and the modal opens again.
 
 ![The user menu with the Appearance link under the light and dark toggle](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/user-menu.png)
@@ -217,14 +217,14 @@ class Ocean extends Theme
 }
 ```
 
-Add a stylesheet to restyle the panel. Scope every rule to `html[data-packstub-theme="ocean"]` so other panels stay untouched, and declare the mode the design is made for:
+Add a stylesheet to restyle the panel. Scope every rule to `html[data-nitpick-theme="ocean"]` so other panels stay untouched, and declare the mode the design is made for:
 
 ```php
 use Filament\Enums\ThemeMode;
 
-public function getStylesheetPath(): ?string
+public function getStylesheets(): array
 {
-    return __DIR__.'/../resources/css/ocean.css';
+    return [__DIR__.'/../resources/css/ocean.css'];
 }
 
 public function getPreferredMode(): ?ThemeMode
@@ -236,9 +236,9 @@ public function getPreferredMode(): ?ThemeMode
 Register it from a service provider (or `AppServiceProvider::boot()`):
 
 ```php
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 
-Themes::register(Ocean::class);
+Nitpick::register(Ocean::class);
 ```
 
 ![A products table in Ocean, a palette-only theme: teal accents on Filament's standard surfaces](https://raw.githubusercontent.com/packstub/art/main/filament-nitpick/docs/custom-theme.png)
@@ -250,7 +250,7 @@ A small theme needs no class file. `Theme::make()` defines one where you registe
 ```php
 use Packstub\Nitpick\Theme;
 
-Themes::register(
+Nitpick::register(
     Theme::make('nord')
         ->colors(['primary' => Color::Sky, 'gray' => Color::Slate])
         ->stylesheet(resource_path('css/themes/nord.css'))

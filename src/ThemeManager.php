@@ -93,7 +93,7 @@ class ThemeManager
         if ($resolved === null) {
             $name = is_string($theme) ? $theme : $theme::class;
 
-            throw new InvalidArgumentException("Theme [{$name}] is not registered. Register it with Themes::register() or check the id.");
+            throw new InvalidArgumentException("Theme [{$name}] is not registered. Register it with Nitpick::register() or check the id.");
         }
 
         return $resolved;
@@ -153,13 +153,13 @@ class ThemeManager
     }
 
     /**
-     * The asset id of a theme's stylesheet: `packstub-theme-<id>` for the
-     * first, `packstub-theme-<id>--2` and up for the ones after it (an id
+     * The asset id of a theme's stylesheet: `nitpick-theme-<id>` for the
+     * first, `nitpick-theme-<id>--2` and up for the ones after it (an id
      * never holds two dashes in a row, so the two never collide).
      */
     public function assetId(Theme $theme, int $index = 0): string
     {
-        return 'packstub-theme-'.$theme->getId().($index === 0 ? '' : '--'.($index + 1));
+        return 'nitpick-theme-'.$theme->getId().($index === 0 ? '' : '--'.($index + 1));
     }
 
     public function store(): ThemePreferenceStore
@@ -220,7 +220,7 @@ class ThemeManager
 
     public static function tableName(): string
     {
-        return config('nitpick.table', 'theme_preferences');
+        return config('nitpick.table', 'nitpick_theme_preferences');
     }
 
     protected function registerStylesheet(Theme $theme): void

@@ -1,9 +1,9 @@
 <?php
 
-use Packstub\Nitpick\Facades\Themes;
+use Packstub\Nitpick\Facades\Nitpick;
 
 it('scopes every bundled stylesheet to its own theme', function (string $id): void {
-    $css = file_get_contents(Themes::find($id)->getStylesheetPath());
+    $css = file_get_contents(Nitpick::find($id)->getStylesheets()[0]);
 
     preg_match_all('/^([^\s@\/*}][^{]*)\{/m', $css, $rules);
 
@@ -11,7 +11,7 @@ it('scopes every bundled stylesheet to its own theme', function (string $id): vo
 
     foreach ($rules[1] as $selectors) {
         foreach (explode(',', $selectors) as $selector) {
-            expect(trim($selector))->toContain('[data-packstub-theme="'.$id.'"]');
+            expect(trim($selector))->toContain('[data-nitpick-theme="'.$id.'"]');
         }
     }
 })->with(['aurora', 'midnight']);
@@ -19,13 +19,13 @@ it('scopes every bundled stylesheet to its own theme', function (string $id): vo
 // .fi-wi-widget is the grid cell around every widget, with the widget's own
 // section, table or stats inside it: a surface on it draws a second card.
 it('leaves the widget wrapper unstyled', function (string $id): void {
-    expect(file_get_contents(Themes::find($id)->getStylesheetPath()))->not->toContain('.fi-wi-widget');
+    expect(file_get_contents(Nitpick::find($id)->getStylesheets()[0]))->not->toContain('.fi-wi-widget');
 })->with(['aurora', 'midnight']);
 
 // .fi-wi-stats-overview-stat-chart is the strip that holds a stat's sparkline:
 // a background on it draws a solid band across the bottom of the card.
 it('leaves the stat chart strip without a background', function (string $id): void {
-    $css = file_get_contents(Themes::find($id)->getStylesheetPath());
+    $css = file_get_contents(Nitpick::find($id)->getStylesheets()[0]);
 
     preg_match_all('/([^{}]*\.fi-wi-stats-overview-stat-chart[^{]*)\{([^}]*)\}/', $css, $rules, PREG_SET_ORDER);
 
@@ -60,7 +60,7 @@ it('keeps the Appearance modal above a sidebar that shares the modal z-index', f
 
     $css = preg_replace('#/\*.*?\*/#s', '', file_get_contents(__DIR__.'/../../resources/css/nitpick.css'));
 
-    preg_match_all('/([^{}]*\.fi-modal:has\(\.pst-theme-picker\)[^{]*)\{([^}]*)\}/', $css, $rules, PREG_SET_ORDER);
+    preg_match_all('/([^{}]*\.fi-modal:has\(\.nitpick-picker\)[^{]*)\{([^}]*)\}/', $css, $rules, PREG_SET_ORDER);
 
     $raised = array_filter($rules, fn (array $rule): bool => (bool) preg_match('/z-index:\s*'.$stacked[1].'\s*(;|$)/', $rule[2]));
 
@@ -69,6 +69,6 @@ it('keeps the Appearance modal above a sidebar that shares the modal z-index', f
     $selectors = array_map(trim(...), explode(',', reset($raised)[1]));
 
     expect($selectors)
-        ->toContain('html .fi-modal:has(.pst-theme-picker) > .fi-modal-close-overlay')
-        ->toContain('html .fi-modal:has(.pst-theme-picker) > .fi-modal-window-ctn');
+        ->toContain('html .fi-modal:has(.nitpick-picker) > .fi-modal-close-overlay')
+        ->toContain('html .fi-modal:has(.nitpick-picker) > .fi-modal-window-ctn');
 });

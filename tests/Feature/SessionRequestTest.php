@@ -17,7 +17,7 @@ it('applies a saved choice on a request authenticated through the session', func
     $this->withSession([auth()->guard('web')->getName() => $user->getAuthIdentifier()])
         ->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="midnight">', false)
+        ->assertSee('<meta name="nitpick-theme" content="midnight">', false)
         ->assertSee('--default-theme-mode: dark', false)
         ->assertSee('--primary-500:'.Color::Violet[500], false);
 });
@@ -25,7 +25,7 @@ it('applies a saved choice on a request authenticated through the session', func
 it('renders the default theme for a signed-out visitor', function (): void {
     $this->get(Filament::getPanel('admin')->getLoginUrl())
         ->assertOk()
-        ->assertSee('<meta name="packstub-theme" content="aurora">', false)
+        ->assertSee('<meta name="nitpick-theme" content="aurora">', false)
         ->assertSee('--default-theme-mode: light', false)
         ->assertSee('--primary-500:'.Color::Sky[500], false);
 });

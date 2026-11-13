@@ -40,22 +40,14 @@ abstract class Theme implements ThemeContract
     }
 
     /**
-     * Absolute path to the theme's CSS file, or null for a palette-only
-     * theme. A theme made of several files overrides getStylesheets() instead.
-     */
-    public function getStylesheetPath(): ?string
-    {
-        return null;
-    }
-
-    /**
+     * None: a palette-only theme. A theme that restyles the panel returns
+     * its CSS files, URLs or `vite:` entries, in order.
+     *
      * @return array<int, string>
      */
     public function getStylesheets(): array
     {
-        $path = $this->getStylesheetPath();
-
-        return $path === null ? [] : [$path];
+        return [];
     }
 
     /**

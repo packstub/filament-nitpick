@@ -84,6 +84,6 @@ abstract class TestCase extends Orchestra
             $table->timestamps();
         });
 
-        (include __DIR__.'/../database/migrations/create_theme_preferences_table.php.stub')->up();
+        (include __DIR__.'/../database/migrations/create_nitpick_theme_preferences_table.php.stub')->up();
     }
 }

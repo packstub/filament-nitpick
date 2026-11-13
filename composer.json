@@ -81,7 +81,7 @@
                 "Packstub\\Nitpick\\NitpickServiceProvider"
             ],
             "aliases": {
-                "Themes": "Packstub\\Nitpick\\Facades\\Themes"
+                "Nitpick": "Packstub\\Nitpick\\Facades\\Nitpick"
             }
         }
     },

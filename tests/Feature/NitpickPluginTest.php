@@ -177,13 +177,6 @@ it('turns the transition off with false, from the picker or the config', functio
         ->and(NitpickPlugin::make()->picker(transition: 'slide')->getTransition())->toBe(Transition::Slide);
 });
 
-it('keeps the beta names working: userSelectable(), appearancePage() and their getters', function (): void {
-    $plugin = NitpickPlugin::make()->userSelectable()->appearancePage(CustomAppearance::class);
-
-    expect($plugin->isUserSelectable())->toBeTrue()
-        ->and($plugin->hasPicker())->toBeTrue()
-        ->and($plugin->getAppearancePage())->toBe(CustomAppearance::class)
-        ->and(NitpickPlugin::make()->userSelectable(false)->hasPicker())->toBeFalse();
-
-    expect(userMenuItemsOf(registerOn(NitpickPlugin::make()->userSelectable(userMenuItem: false))))->not->toHaveKey('nitpick-appearance');
-});
+it('leaves the beta names out of 1.0: picker() and getPickerPage() replace them', function (string $method): void {
+    expect(method_exists(NitpickPlugin::class, $method))->toBeFalse();
+})->with(['userSelectable', 'appearancePage', 'isUserSelectable', 'getAppearancePage']);

@@ -9,6 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // An install from a 1.0 beta keeps its table under the old name ('table' => 'theme_preferences'):
+        // publishing this migration again leaves it as it is.
+        if (Schema::connection(ThemeManager::connectionName())->hasTable(ThemeManager::tableName())) {
+            return;
+        }
+
         Schema::connection(ThemeManager::connectionName())->create(ThemeManager::tableName(), function (Blueprint $table): void {
             $table->id();
             $table->morphs('user');
@@ -22,6 +28,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        // The beta table was not created by this migration: a rollback leaves it and its choices alone.
+        if (ThemeManager::tableName() === 'theme_preferences') {
+            return;
+        }
+
         Schema::connection(ThemeManager::connectionName())->dropIfExists(ThemeManager::tableName());
     }
 };

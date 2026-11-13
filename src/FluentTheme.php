@@ -15,7 +15,7 @@ use Throwable;
 /**
  * A theme defined inline, without a class of its own; Theme::make() returns one:
  *
- *     Themes::register(
+ *     Nitpick::register(
  *         Theme::make('nord')
  *             ->colors(['primary' => Color::Sky])
  *             ->stylesheet(resource_path('css/themes/nord.css')),
@@ -193,11 +193,6 @@ class FluentTheme extends Theme implements ConfiguresPanel
     public function getPreferredMode(): ?ThemeMode
     {
         return $this->mode;
-    }
-
-    public function getStylesheetPath(): ?string
-    {
-        return $this->getStylesheets()[0] ?? null;
     }
 
     public function getStylesheets(): array
