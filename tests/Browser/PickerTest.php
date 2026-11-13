@@ -98,3 +98,17 @@ it('changes the theme at once, without the cover, for visitors who prefer reduce
         ->assertScript("document.getElementById('nitpick-cover-layer') === null", true)
         ->assertNoJavaScriptErrors();
 });
+
+it('goes back to the panel default from the "Panel default" card', function (): void {
+    pluginFor('admin')->setUserTheme('midnight', $this->user);
+
+    $page = visit('/admin/appearance');
+
+    $page->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight')
+        ->click(card('_default'))
+        ->wait(1.5)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'aurora')
+        ->assertNoJavaScriptErrors();
+
+    expect(pluginFor('admin')->getUserTheme($this->user))->toBeNull();
+});

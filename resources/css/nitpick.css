@@ -82,6 +82,17 @@
     color: white;
 }
 
+.nitpick-option-hint {
+    margin-top: -0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--gray-500);
+}
+
+.dark .nitpick-option-hint {
+    color: var(--gray-400);
+}
+
 .nitpick-option-current {
     font-size: 0.6875rem;
     font-weight: 500;
