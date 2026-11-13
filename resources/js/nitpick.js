@@ -235,6 +235,9 @@
             layer.setAttribute('aria-hidden', 'true');
             layer.appendChild(document.createElement('div'));
         }
+        // Right to left, the whole cover mirrors: the slide comes from the right, the sweep turns
+        // about a point below the left corner. The layer itself never moves, so this costs nothing.
+        layer.style.transform = getComputedStyle(html).direction === 'rtl' ? 'scaleX(-1)' : '';
         var shape = layer.firstChild;
         shape.removeAttribute('style');
         shape.style.background = coverColor;

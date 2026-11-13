@@ -72,3 +72,18 @@ it('keeps the Appearance modal above a sidebar that shares the modal z-index', f
         ->toContain('html .fi-modal:has(.nitpick-picker) > .fi-modal-close-overlay')
         ->toContain('html .fi-modal:has(.nitpick-picker) > .fi-modal-window-ctn');
 });
+
+// Right-to-left panels (Arabic, Hebrew, Persian) flip Filament's layout: the bundled styles use logical
+// properties, so they flip with it.
+it('uses no physical left or right in the bundled styles', function (string $file): void {
+    $css = file_get_contents(__DIR__.'/../../resources/css/'.$file);
+
+    expect($css)->not->toMatch('/(^|[\s;{])(left|right|margin-left|margin-right|padding-left|padding-right|border-left|border-right)\s*:/m')
+        ->not->toMatch('/text-align:\s*(left|right)/')
+        ->not->toMatch('/^\s*(margin|padding):\s*\S+ \S+ \S+ \S+;/m');
+})->with(['nitpick.css', 'themes/aurora.css', 'themes/midnight.css']);
+
+it('mirrors the swap\'s cover on a right-to-left page', function (): void {
+    expect(file_get_contents(__DIR__.'/../../resources/js/nitpick.js'))
+        ->toContain("layer.style.transform = getComputedStyle(html).direction === 'rtl' ? 'scaleX(-1)' : '';");
+});

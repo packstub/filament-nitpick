@@ -147,3 +147,18 @@ it('lets a manager set the theme for everyone, which their own panel follows', f
 
     expect(pluginFor('admin')->getPanelTheme()?->themeId)->toBe('midnight');
 });
+
+it('mirrors the swap on a right-to-left panel', function (): void {
+    app()->setLocale('ar');
+    pluginFor('admin')->picker(transition: 'slide');
+
+    $page = visit('/admin/appearance');
+
+    $page->assertScript('document.documentElement.dir', 'rtl')
+        ->click(card('midnight'))
+        ->wait(0.15)
+        ->assertScript("(document.getElementById('nitpick-cover-layer') || {}).style.transform", 'scaleX(-1)')
+        ->wait(1.5)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight')
+        ->assertNoJavaScriptErrors();
+});

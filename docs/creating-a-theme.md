@@ -83,6 +83,8 @@ public function getStylesheets(): array
 
 ### Writing the CSS
 
+Use logical properties (`margin-inline-start`, `inset-inline-end`, `padding-inline`) rather than `left` and `right`, so the theme flips with Filament's layout in a right-to-left panel.
+
 Scope every rule to the theme's attribute on `<html>`. The plugin sets it before the body paints, and other panels or themes never see your rules:
 
 ```css
