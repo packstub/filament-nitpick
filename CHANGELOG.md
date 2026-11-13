@@ -2,37 +2,16 @@
 
 All notable changes to `packstub/filament-nitpick` are documented here.
 
-## Unreleased
+## 1.0.0
 
-**Upgrading:** names settle for 1.0, see [Upgrading](docs/upgrading.md): the `Nitpick` facade (was `Themes`), `html[data-nitpick-theme]` in your CSS, `window.Nitpick` in your scripts, `'table' => 'theme_preferences'` in the config to keep your users' choices, and the new migration published and run.
+The first stable release: the names you build against stay the same until 2.0. **Upgrading** from a beta: see [Upgrading](docs/upgrading.md) (the `Nitpick` facade, `data-nitpick-theme` in your CSS, `window.Nitpick` and the `nitpick:theme-changed` event in your scripts, `->picker()` for the removed `userSelectable()` and `appearancePage()`, `getStylesheets()` for `getStylesheetPath()`, `'table' => 'theme_preferences'` to keep your users' choices, `php artisan filament:assets`, and the new migrations published and run).
 
-### Changed
-
-- The picker's script is a cached file, `nitpick.js`, published by `php artisan filament:assets`, instead of 400 lines inlined into every page; a few lines stay inline to set the theme before the page paints. The inline script and styles carry the app's CSP nonce when it sets one (`Vite::useCspNonce()`). ([#22](https://github.com/packstub/filament-nitpick/issues/22))
-- Requires Filament 5.8.3 or later, the first Filament 5 release without a published security advisory, and the lowest version CI now tests on. ([#21](https://github.com/packstub/filament-nitpick/issues/21))
-- Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
-
-### Fixed
-
-- In an SPA app, the picker kept the first panel's themes after a navigation to another panel, so a theme only that panel offers could not be picked.
-
-### Added
-
-- Translations: Spanish, Brazilian Portuguese, German, French, Italian, Dutch, Arabic and Romanian, with a test that keeps every language in step with English. Corrections from native speakers are welcome. ([#27](https://github.com/packstub/filament-nitpick/issues/27))
-- The theme for everyone: with `->picker(manage: fn (): bool => ...)`, managers get a **For everyone** section (**For <tenant>** on a tenant panel) to set the theme and accent everyone sees until they pick their own, and a lock that sets users' picks aside and closes the picker to all but managers. A user's own pick, then the tenant's, then the panel's, then `->default()`. `PanelThemeChanged` event, `PanelThemeStore` contract; run the new migration to use it. ([#26](https://github.com/packstub/filament-nitpick/issues/26))
-- Accent colours: with `->picker(accent: true)`, each user picks an accent for the panel's buttons and links, from Filament's colours or any hex, on top of their theme. Applied at once, saved per user and panel, checked for contrast (WCAG AA for interface parts) with a message when refused; the bundled themes' gradients follow it. `setUserAccent()`, `getUserAccent()`, the `AccentPicker` field and the `AccentChanged` event. **Upgrading:** publish and run the new migration. ([#25](https://github.com/packstub/filament-nitpick/issues/25))
-- Theme cards show a small preview of each theme in light and dark (page, sidebar, a card and a button in its colours) instead of swatches. Drawn from the theme's palette, or from `Contracts\HasPreview` (`Theme::make()->preview([...])`) for a theme whose stylesheet changes the surfaces; Aurora and Midnight describe their own. `ThemePicker::make()->previews(false)` shows swatches instead. ([#24](https://github.com/packstub/filament-nitpick/issues/24))
-- A **Panel default** card, first in the picker: it says which theme the panel uses by default, and picking it clears the user's choice, so they follow the default again, including when it changes later. `ThemePicker::make()->defaultOption(false)` leaves it out. ([#23](https://github.com/packstub/filament-nitpick/issues/23))
-- Apps whose users have UUID or ULID keys can save a theme: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration. Left `null`, the column follows the app's morph key type, as before. ([#19](https://github.com/packstub/filament-nitpick/issues/19))
-
-### Fixed
-
-- Right-to-left panels (Arabic, Hebrew, Persian): Aurora's floating sidebar and its active-item bar sit on the right side, and the slide and sweep transitions mirror. ([#28](https://github.com/packstub/filament-nitpick/issues/28))
-- Under Octane, a user's theme is worked out on every request: it was remembered by the worker, so after a pick the other workers kept serving the old theme, and a `->default()` closure that follows the tenant kept the first tenant's theme. ([#20](https://github.com/packstub/filament-nitpick/issues/20))
-
-### Removed
-
-- `userSelectable()`, `appearancePage()`, `isUserSelectable()` and `getAppearancePage()`, deprecated since beta.2: `->picker(...)` and `getPickerPage()` replace them. A theme gives its CSS with `getStylesheets()` only; `getStylesheetPath()` is gone.
+- Each theme previewed in light and dark on its card, and a **Panel default** card to go back to the panel's theme
+- Accent colours: each user picks a colour for buttons and links, checked for contrast
+- The theme for everyone: managers set the theme and accent for the panel or a tenant, and can lock it
+- Nine languages, right-to-left panels, and a cached script that works with a Content Security Policy
+- Fixed: under Octane, a new pick is served by every worker at once; in SPA apps, the picker follows a navigation to another panel
+- Works with UUID and ULID user keys; requires Filament 5.8.3 or later
 
 ## 1.0.0-beta.3 — 2026-10-28
 

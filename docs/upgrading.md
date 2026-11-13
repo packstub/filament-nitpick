@@ -1,5 +1,13 @@
 # Upgrading
 
+## What stays the same in 1.x
+
+Nitpick follows semantic versioning from 1.0: until 2.0, every 1.x release keeps what you build against working.
+
+- **Stable:** the `Theme` contract (new abilities come as small optional interfaces, as `ConfiguresPanel` and `HasPreview` do), `Theme::make()`, `NitpickPlugin`'s methods and `->picker()` options, the `ThemePicker` and `AccentPicker` fields, the `Nitpick` facade, the stores' contracts, the events, the config keys; on the page, `html[data-nitpick-theme]`, `<meta name="nitpick-theme">`, `window.Nitpick` and the `nitpick:theme-changed` event.
+- **Internal, may change in a minor:** the picker's `nitpick-*` classes, the swap's cover, the bundled themes' `--nitpick-*` variables, and the `Support` namespace. Style the picker through its options, and your own theme through its stylesheet.
+- **Database:** a change to a table is additive and comes with a guarded migration; a column is never renamed or dropped within 1.x.
+
 ## From a 1.0 beta to 1.0
 
 1.0 settles the names you build against, so they stay the same until 2.0. Most apps need two changes: the facade import, and the selector in any CSS of their own.

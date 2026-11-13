@@ -9,7 +9,7 @@
 ## 1. Require the package
 
 ```bash
-composer require "packstub/filament-nitpick:^1.0@beta"
+composer require packstub/filament-nitpick
 php artisan nitpick:install
 ```
 
