@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Event;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 use Packstub\Nitpick\Stores\DatabaseThemePreferenceStore;
 use Packstub\Nitpick\Stores\SessionThemePreferenceStore;
+use Packstub\Nitpick\Support\RequestMemo;
 use Packstub\Nitpick\Themes\Aurora;
 use Packstub\Nitpick\Themes\Midnight;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -48,6 +49,9 @@ class NitpickServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(ThemeManager::class);
+
+        // Scoped: Octane and queue workers forget it between requests and jobs.
+        $this->app->scoped(RequestMemo::class);
 
         $this->app->bind(ThemePreferenceStore::class, function (): ThemePreferenceStore {
             return match (config('nitpick.store', 'database')) {

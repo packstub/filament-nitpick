@@ -30,6 +30,7 @@ use Packstub\Nitpick\Events\ThemeChanged;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
 use Packstub\Nitpick\Support\PanelServing;
+use Packstub\Nitpick\Support\RequestMemo;
 use RuntimeException;
 use Throwable;
 
@@ -77,9 +78,6 @@ class NitpickPlugin implements Plugin
     protected bool $hasForcedMode = false;
 
     protected ?Panel $panel = null;
-
-    /** @var array<int | string, Theme> */
-    protected array $activeThemes = [];
 
     /**
      * The colours the active theme set on the panel while serving this
@@ -339,7 +337,10 @@ class NitpickPlugin implements Plugin
             return $this->getDefaultTheme();
         }
 
-        return $this->activeThemes[$user->getAuthIdentifier()] ??= $this->getUserTheme($user) ?? $this->getDefaultTheme();
+        return RequestMemo::current()->remember(
+            $this->activeThemeKey($user->getAuthIdentifier()),
+            fn (): Theme => $this->getUserTheme($user) ?? $this->getDefaultTheme(),
+        );
     }
 
     public function getUserTheme(?Authenticatable $user = null): ?Theme
@@ -382,7 +383,7 @@ class NitpickPlugin implements Plugin
         }
 
         $this->manager()->store()->set($user, $this->getPanelId(), $resolved?->getId());
-        $this->activeThemes = [];
+        RequestMemo::current()->forget($this->activeThemeKey());
         Cache::forget($this->failedThemeKey($user->getAuthIdentifier()));
 
         event(new ThemeChanged($user, $this->getPanelId(), $resolved));
@@ -484,7 +485,13 @@ class NitpickPlugin implements Plugin
 
         $panel->renderHook(PanelsRenderHook::HEAD_END, fn (): string => $this->renderHead());
 
-        Event::listen(RequestHandled::class, fn (RequestHandled $event) => $this->rememberFailedTheme($event));
+        Event::listen(RequestHandled::class, function (RequestHandled $event): void {
+            $this->rememberFailedTheme($event);
+
+            // The request is over: the next one, on a server that keeps the app between requests, works
+            // its users' themes out again (RequestMemo is scoped too, for jobs and Octane's own reset).
+            RequestMemo::current()->forget($this->activeThemeKey());
+        });
     }
 
     public function boot(Panel $panel): void
@@ -562,12 +569,7 @@ class NitpickPlugin implements Plugin
             throw $exception ?? new LogicException("The default theme [{$failed->getId()}] has nothing to fall back to.");
         }
 
-        $key = $user->getAuthIdentifier();
-        $this->activeThemes[$key] = $default;
-
-        app()->terminating(function () use ($key): void {
-            unset($this->activeThemes[$key]);
-        });
+        RequestMemo::current()->put($this->activeThemeKey($user->getAuthIdentifier()), $default);
 
         if ($exception !== null) {
             report(new RuntimeException(
@@ -627,6 +629,15 @@ class NitpickPlugin implements Plugin
         return $user !== null
             && $theme->getId() !== $this->getDefaultTheme()->getId()
             && Cache::get($this->failedThemeKey($user->getAuthIdentifier())) === $theme->getId();
+    }
+
+    /**
+     * The memo key of a user's active theme on this panel; without a user,
+     * the prefix of every user's.
+     */
+    protected function activeThemeKey(int|string|null $user = null): string
+    {
+        return "nitpick:active-theme:{$this->getPanelId()}:".($user ?? '');
     }
 
     protected function failedThemeKey(int|string $user): string

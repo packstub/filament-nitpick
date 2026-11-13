@@ -81,6 +81,10 @@ php artisan vendor:publish --tag="nitpick-translations"
 
 Strings live under `nitpick::themes`: the Appearance page title and subheading, the picker label, the saved notification, and the bundled themes' labels and descriptions.
 
+## Octane
+
+Nitpick works under Laravel Octane with nothing to configure. A user's theme, and a `->default()` closure, are worked out on each request, and a theme that [configures the panel](creating-a-theme.md#configuring-the-panel) leaves it as it found it when the request ends, so the next request on the same worker starts clean.
+
 ## Assets on deploy
 
 Theme stylesheets are Filament assets. Keep `php artisan filament:assets` in your deploy step, as for every Filament plugin, so a new theme's CSS is published.
