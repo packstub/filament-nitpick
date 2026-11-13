@@ -155,10 +155,12 @@ it('marks the themes that configure the panel in the preview manifest', function
     $this->get(Filament::getPanel('admin')->getUrl())
         ->assertOk()
         ->assertSee('"rail":{"hrefs":[],"label":"Rail","mode":null,"reload":true}', false)
-        ->assertSee('"reload":false', false)
-        // The live preview stops at the light/dark mode for such a theme, or when leaving one.
-        ->assertSee('return !! (manifest.themes[slug].reload || (active && active.reload));', false)
-        ->assertSee('if (needsReload(slug)) {', false);
+        ->assertSee('"reload":false', false);
+
+    // The live preview stops at the light/dark mode for such a theme, or when leaving one.
+    expect(file_get_contents(__DIR__.'/../../resources/js/nitpick.js'))
+        ->toContain('return !! (manifest.themes[slug].reload || (active && active.reload));')
+        ->toContain('if (needsReload(slug)) {');
 });
 
 it('reloads the page when a pick enters or leaves such a theme', function (): void {

@@ -151,7 +151,7 @@ Bring your own store by binding `Packstub\Nitpick\Contracts\ThemePreferenceStore
 
 ## Live preview
 
-When user selection is on, the page head carries every offered palette as CSS variables scoped to `[data-nitpick-theme="…"]` and a tiny script exposing `window.Nitpick`:
+When user selection is on, the page head carries every offered palette as CSS variables scoped to `[data-nitpick-theme="…"]`, and Nitpick's script (`nitpick.js`, published by `php artisan filament:assets` and cached like Filament's own) exposes `window.Nitpick`:
 
 ```js
 window.Nitpick.current()          // 'aurora'

@@ -26,7 +26,7 @@
 | the picker's `pst-theme-*` classes | `nitpick-*` (internal: style the picker through its own options where you can) |
 | the bundled themes' `--pst-*` variables | `--nitpick-*` |
 
-A theme stylesheet of your own is published again under its new asset name: keep `php artisan filament:assets` in your deploy, as for every Filament plugin.
+Nitpick's script is now a file, `nitpick.js`, published with its stylesheets: `php artisan filament:assets` (which `filament:upgrade` runs after `composer update`) puts it in place. A theme stylesheet of your own is published again under its new asset name: keep `php artisan filament:assets` in your deploy, as for every Filament plugin.
 
 ### The preferences table
 

@@ -81,6 +81,10 @@ php artisan vendor:publish --tag="nitpick-translations"
 
 Strings live under `nitpick::themes`: the Appearance page title and subheading, the picker label, the saved notification, and the bundled themes' labels and descriptions.
 
+## Content Security Policy
+
+Nitpick's script is a Filament asset (`js/packstub/filament-nitpick/nitpick.js`), so a policy that allows your own scripts allows it. A few lines run inline in the head, before the page paints (they set the active theme on `<html>`), next to two inline `<style>` blocks with the palettes and the swap's cover. When your app sets a nonce with `Vite::useCspNonce()`, all of them carry it, as Vite's own tags do.
+
 ## Octane
 
 Nitpick works under Laravel Octane with nothing to configure. A user's theme, and a `->default()` closure, are worked out on each request, and a theme that [configures the panel](creating-a-theme.md#configuring-the-panel) leaves it as it found it when the request ends, so the next request on the same worker starts clean.
