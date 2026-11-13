@@ -22,15 +22,15 @@ return new class extends Migration
         $schema->create(ThemeManager::panelTableName(), function (Blueprint $table): void {
             $table->id();
             $table->string('panel_id');
-            // Null on a panel without tenancy; the key as text, so any key type fits.
-            $table->string('tenant_type')->nullable();
-            $table->string('tenant_id')->nullable();
+            // '' for the whole panel (a unique index never treats two nulls as equal); the key as text, so any key type fits.
+            $table->string('tenant_type')->default('');
+            $table->string('tenant_id')->default('');
             $table->string('theme_id')->nullable();
             $table->string('accent')->nullable();
             $table->boolean('locked')->default(false);
             $table->timestamps();
 
-            $table->index(['panel_id', 'tenant_type', 'tenant_id']);
+            $table->unique(['panel_id', 'tenant_type', 'tenant_id']);
         });
     }
 

@@ -253,3 +253,20 @@ it('shows swatches instead with ->previews(false)', function (): void {
     expect($html)->not->toContain('nitpick-preview-mode')
         ->toContain('class="nitpick-swatches"');
 });
+
+it('skips preview values that are not text instead of failing the picker', function (): void {
+    Nitpick::register(Theme::make('odd')->colors(['primary' => Color::Indigo])->preview(['light' => ['background' => null, 'surface' => ['#fff']], 'dark' => '#000']));
+
+    $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
+
+    expect($html)->toContain('--nitpick-preview-primary: '.Color::Indigo[600].';');
+});
+
+it('keeps a swatch to one declaration', function (): void {
+    Nitpick::register(Theme::make('loud')->swatches(['red; position: fixed; inset: 0']));
+
+    $html = $this->get(Appearance::getUrl())->getContent();
+
+    expect($html)->toContain('style="background: red position: fixed inset: 0"')
+        ->not->toContain('red; position');
+});

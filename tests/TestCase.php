@@ -17,6 +17,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\NitpickServiceProvider;
 use Packstub\Nitpick\Tests\Fixtures\AdminPanelProvider;
 use Packstub\Nitpick\Tests\Fixtures\CustomerPanelProvider;
@@ -30,6 +31,9 @@ abstract class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
+
+        // The plugin remembers a missing panel themes table for the process.
+        (fn () => static::$panelTableMissing = false)->bindTo(null, NitpickPlugin::class)();
 
         $this->migrate();
 

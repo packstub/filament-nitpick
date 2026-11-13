@@ -129,7 +129,17 @@ it('checks every accent against WCAG AA for interface parts', function (string $
     'an unknown name' => ['chartreuse', 'nitpick::themes.accent.invalid'],
     'a short hex' => ['#fff', 'nitpick::themes.accent.invalid'],
     'CSS' => ['red; background: url(x)', 'nitpick::themes.accent.invalid'],
+    'a hex with a line break after it' => ["#0ea5e9\n", 'nitpick::themes.accent.invalid'],
 ]);
+
+it('serves no accent that was stored around the check', function (): void {
+    withAccents();
+    $user = createUser();
+    pluginFor('admin')->setUserAccent('teal', $user);
+    ThemePreference::query()->update(['accent' => '</style><script>alert(1)</script>']);
+
+    expect(pluginFor('admin')->getUserAccent($user))->toBeNull();
+});
 
 it('offers only the colours that pass, and no grays', function (): void {
     expect(Accent::swatches())->toHaveKey('indigo')
