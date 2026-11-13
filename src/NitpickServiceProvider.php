@@ -7,7 +7,9 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
+use Packstub\Nitpick\Contracts\PanelThemeStore;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
+use Packstub\Nitpick\Stores\DatabasePanelThemeStore;
 use Packstub\Nitpick\Stores\DatabaseThemePreferenceStore;
 use Packstub\Nitpick\Stores\SessionThemePreferenceStore;
 use Packstub\Nitpick\Support\RequestMemo;
@@ -37,7 +39,7 @@ class NitpickServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews(static::$name)
             ->hasTranslations()
-            ->hasMigrations(['create_nitpick_theme_preferences_table', 'add_accent_to_nitpick_theme_preferences_table'])
+            ->hasMigrations(['create_nitpick_theme_preferences_table', 'add_accent_to_nitpick_theme_preferences_table', 'create_nitpick_panel_themes_table'])
             ->hasInstallCommand(function (InstallCommand $command): void {
                 $command
                     ->publishConfigFile()
@@ -50,6 +52,8 @@ class NitpickServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(ThemeManager::class);
+
+        $this->app->bind(PanelThemeStore::class, DatabasePanelThemeStore::class);
 
         // Scoped: Octane and queue workers forget it between requests and jobs.
         $this->app->scoped(RequestMemo::class);

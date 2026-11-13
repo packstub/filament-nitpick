@@ -133,3 +133,17 @@ it('applies an accent colour at once, and keeps it after a reload', function ():
 
     visit('/admin')->assertScript($primary, Color::Rose[500]);
 });
+
+it('lets a manager set the theme for everyone, which their own panel follows', function (): void {
+    pluginFor('admin')->picker(manage: true);
+
+    $page = visit('/admin/appearance');
+
+    $page->assertSee('For everyone')
+        ->click('label.nitpick-option:has(input[name="data.panel_theme"][value="midnight"])')
+        ->wait(1.5)
+        ->assertScript('document.documentElement.dataset.nitpickTheme', 'midnight')
+        ->assertNoJavaScriptErrors();
+
+    expect(pluginFor('admin')->getPanelTheme()?->themeId)->toBe('midnight');
+});

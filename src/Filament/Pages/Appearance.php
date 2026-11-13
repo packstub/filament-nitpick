@@ -6,8 +6,6 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Packstub\Nitpick\Filament\Forms\Components\AccentPicker;
-use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\NitpickPlugin;
 
 /**
@@ -57,10 +55,7 @@ class Appearance extends Page
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                NitpickPlugin::get()->configurePicker(ThemePicker::make('theme')->hiddenLabel()),
-                AccentPicker::make('accent')->visible(fn (): bool => NitpickPlugin::get()->hasAccent()),
-            ])
+            ->components(NitpickPlugin::get()->getPickerSchema())
             ->statePath('data');
     }
 }

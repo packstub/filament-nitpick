@@ -120,6 +120,30 @@ The cards fill the width they have. Fix the number of columns, in the shape of F
 ThemePicker::make()->columns(['default' => 1, 'sm' => 2, 'lg' => 3])
 ```
 
+## The theme for everyone
+
+Let some users (an admin, a workspace owner) set the theme everyone sees, without a deploy:
+
+```php
+NitpickPlugin::make()->picker(manage: fn (): bool => auth()->user()->isAdmin())
+```
+
+Whoever passes the check gets a **For everyone** section on the Appearance modal and page (**For Acme** on a tenant panel, set per tenant): the theme, the accent when accents are on, and **Lock for everyone**. Run the migration first: the setting lives in its own table, `nitpick_panel_themes` (`panel_table` in the config).
+
+Which theme a user sees, first match wins:
+
+1. a manager's lock: the theme set for everyone, whatever the user picked;
+2. the user's own pick;
+3. the theme set for their tenant;
+4. the theme set for the whole panel;
+5. `->default()` in code (or the config's `default`).
+
+A tenant's setting falls back to the whole panel's one field at a time: a tenant that sets only an accent keeps the panel's theme, and a lock for the whole panel holds in every tenant. On a tenant panel the setting is always a tenant's: a write with no tenant current is refused.
+
+The **Panel default** card follows 3 to 5, so users who never picked a theme follow a manager's change at once. While the theme is locked, users' own themes and accents are set aside and the picker is closed to everyone but managers, who keep the page to change or unlock it.
+
+From code, `setPanelTheme()`, `setPanelAccent()` and `setPanelLocked()` (each refuses anyone who fails the `manage` check), `getPanelTheme()`, `isLocked()` and `getCodeDefaultTheme()`. A change fires `Packstub\Nitpick\Events\PanelThemeChanged`. The setting is kept through `Packstub\Nitpick\Contracts\PanelThemeStore`; bind your own to keep it elsewhere. Without `manage`, the table is never read.
+
 ## Accent colours
 
 Turn on accents and each user picks a colour of their own for the panel's buttons, links and highlights, on top of whatever theme they use:

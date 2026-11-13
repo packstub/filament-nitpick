@@ -17,6 +17,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Packstub\Nitpick\NitpickPlugin;
 use Packstub\Nitpick\NitpickServiceProvider;
 use Packstub\Nitpick\Tests\Fixtures\AdminPanelProvider;
 use Packstub\Nitpick\Tests\Fixtures\CustomerPanelProvider;
@@ -30,6 +31,9 @@ abstract class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
+
+        // The plugin remembers a missing panel themes table for the process.
+        (fn () => static::$panelTableMissing = false)->bindTo(null, NitpickPlugin::class)();
 
         $this->migrate();
 
@@ -86,5 +90,6 @@ abstract class TestCase extends Orchestra
 
         (include __DIR__.'/../database/migrations/create_nitpick_theme_preferences_table.php.stub')->up();
         (include __DIR__.'/../database/migrations/add_accent_to_nitpick_theme_preferences_table.php.stub')->up();
+        (include __DIR__.'/../database/migrations/create_nitpick_panel_themes_table.php.stub')->up();
     }
 }

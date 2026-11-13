@@ -19,6 +19,7 @@ NitpickPlugin::make()
         page: MyAppearance::class,               // your subclass of the page
         transition: Transition::Sweep,           // the swap animation: Fade (default), Slide, Sweep, or false for none
         accent: true,                            // each user picks an accent colour too
+        manage: fn (): bool => auth()->user()->isAdmin(), // who sets the theme for everyone (and per tenant)
     )
     ->colors(['primary' => Color::Indigo])       // slots applied on top of every theme
     ->customCss('css/admin-overrides.css')       // loaded after the theme's stylesheet
@@ -38,6 +39,7 @@ php artisan vendor:publish --tag="nitpick-config"
 | `default` | `'aurora'` | The theme a panel uses when its plugin sets no `->default()` |
 | `store` | `'database'` | `database` or `session`; see [User preferences](user-preferences.md#where-the-choice-is-kept) |
 | `table` | `'nitpick_theme_preferences'` | The preferences table |
+| `panel_table` | `'nitpick_panel_themes'` | What managers set for everyone (`->picker(manage: ...)`) |
 | `connection` | `null` | Its connection; null follows the user model's connection |
 | `user_model` | `null` | The user model; null uses the default auth provider's |
 | `user_key_type` | `null` | `'int'`, `'uuid'` or `'ulid'`: the type of the table's `user_id`; null follows the app's morph key type (`Schema::morphUsingUuids()`), else int. Set it before migrating |
@@ -73,6 +75,7 @@ The file is linked after the active theme's stylesheet, so your rules win on equ
 | Event | When | Payload |
 | --- | --- | --- |
 | `Packstub\Nitpick\Events\ThemeChanged` | After a user's choice is saved or cleared | `$user`, `$panelId`, `$theme` (null when cleared) |
+| `Packstub\Nitpick\Events\PanelThemeChanged` | After a manager changes the theme, accent or lock for everyone | `$panelId`, `$tenant` (null for the whole panel), `$theme` (a `PanelTheme`) |
 | `Packstub\Nitpick\Events\AccentChanged` | After a user's accent colour is saved or cleared | `$user`, `$panelId`, `$accent` (a colour name or hex, null when cleared) |
 
 ## Translations

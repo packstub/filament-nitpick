@@ -9,6 +9,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Database\Schema\Blueprint;
 use InvalidArgumentException;
 use Packstub\Nitpick\Contracts\ConfiguresPanel;
+use Packstub\Nitpick\Contracts\PanelThemeStore;
 use Packstub\Nitpick\Contracts\Theme;
 use Packstub\Nitpick\Contracts\ThemePreferenceStore;
 use Packstub\Nitpick\Support\PluginCapture;
@@ -233,6 +234,19 @@ class ThemeManager
             'ulid' => $table->ulidMorphs($name),
             default => throw new InvalidArgumentException("The nitpick.user_key_type config must be null, 'int', 'uuid' or 'ulid'."),
         };
+    }
+
+    /**
+     * The table of what managers set for everyone (->picker(manage: ...)).
+     */
+    public static function panelTableName(): string
+    {
+        return config('nitpick.panel_table', 'nitpick_panel_themes');
+    }
+
+    public function panelStore(): PanelThemeStore
+    {
+        return app(PanelThemeStore::class);
     }
 
     public static function tableName(): string

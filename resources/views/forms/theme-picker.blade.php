@@ -12,6 +12,8 @@
     // No theme with known colours: leave the row out instead of a blank strip on every card.
     $hasSwatches = filled(array_filter($swatches));
     $shouldPersist = $shouldPersist();
+    // A manager's pick for everyone changes their own panel only when they follow the default: the server says how.
+    $previewsOnPick = ! $isForEveryone();
 @endphp
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
@@ -37,7 +39,9 @@
                     name="{{ $statePath }}"
                     value="{{ $value }}"
                     x-model="state"
-                    x-on:change="window.Nitpick && window.Nitpick.pick(@js($theme->getId()), { reload: @js($shouldPersist) })"
+                    @if ($previewsOnPick)
+                        x-on:change="window.Nitpick && window.Nitpick.pick(@js($theme->getId()), { reload: @js($shouldPersist) })"
+                    @endif
                     @disabled($isDisabled)
                     class="nitpick-option-input"
                 />
