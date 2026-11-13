@@ -12,6 +12,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 - Requires Filament 5.8.3 or later, the first Filament 5 release without a published security advisory, and the lowest version CI now tests on. ([#21](https://github.com/packstub/filament-nitpick/issues/21))
 - Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
 
+### Fixed
+
+- In an SPA app, the picker kept the first panel's themes after a navigation to another panel, so a theme only that panel offers could not be picked.
+
 ### Added
 
 - Apps whose users have UUID or ULID keys can save a theme: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration. Left `null`, the column follows the app's morph key type, as before. ([#19](https://github.com/packstub/filament-nitpick/issues/19))

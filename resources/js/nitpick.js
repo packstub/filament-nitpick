@@ -9,7 +9,10 @@
     document.addEventListener('livewire:navigated', function () { manifest = readManifest(); });
 
     function readManifest() {
-        var element = document.getElementById('nitpick-manifest');
+        // Livewire's navigation appends the new page's head scripts and keeps the old ones, so after a
+        // navigation to another panel the newest block is the last one.
+        var blocks = document.querySelectorAll('script#nitpick-manifest');
+        var element = blocks.length ? blocks[blocks.length - 1] : null;
         try { return element ? JSON.parse(element.textContent) : null; } catch (e) { return null; }
     }
     var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -293,9 +296,10 @@
     // whole: Livewire started, the modal open again when the pick came from it (without its
     // fade), lazy widgets loaded and nothing else changing. Never longer than 2.5 s.
     var reloaded = null;
+    var reveal = null;
     try { reloaded = JSON.parse(sessionStorage.getItem(note) || 'null'); sessionStorage.removeItem(note); } catch (e) {}
     if (reloaded && Date.now() - reloaded.at < 10000) {
-        var reveal = transitionName(reloaded.transition);
+        reveal = transitionName(reloaded.transition);
         var lifted = false;
         var started = new Promise(function (resolve) {
             if (window.Livewire && window.Livewire.all && window.Livewire.all().length) { return resolve(); }
@@ -325,6 +329,12 @@
         // The user-menu item works once Livewire has started.
         if (reloaded.reopen) { reopened = started.then(reopenPicker); }
         if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', lift, { once: true }); } else { setTimeout(lift, 0); }
+    }
+    // The inline stamp may have started the cover on a note this script does not take up (it went past
+    // its 10 s, or names no transition): never leave the page under it.
+    if (! reveal) {
+        html.removeAttribute('data-nitpick-cover');
+        html.removeAttribute('data-nitpick-still');
     }
 
     var covered = null;
