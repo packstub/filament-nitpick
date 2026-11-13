@@ -2,7 +2,7 @@
 
 All notable changes to `packstub/filament-nitpick` are documented here.
 
-## 1.0.0
+## 1.0.0 — 2026-11-13
 
 The first stable release: the names you build against stay the same until 2.0. **Upgrading** from a beta: see [Upgrading](docs/upgrading.md) (the `Nitpick` facade, `data-nitpick-theme` in your CSS, `window.Nitpick` and the `nitpick:theme-changed` event in your scripts, `->picker()` for the removed `userSelectable()` and `appearancePage()`, `getStylesheets()` for `getStylesheetPath()`, `'table' => 'theme_preferences'` to keep your users' choices, `php artisan filament:assets`, and the new migrations published and run).
 
