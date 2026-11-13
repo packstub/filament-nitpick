@@ -62,14 +62,14 @@
                     {{-- No preview for this theme (colours unknown): its swatches, in a row the previews' height, so the names line up. --}}
                     <span class="nitpick-preview nitpick-preview-empty" aria-hidden="true">
                         @foreach ($swatches[$index] ?? [] as $swatch)
-                            <span class="nitpick-swatch" style="background: {{ $swatch }}"></span>
+                            <span class="nitpick-swatch" style="background: {{ \Packstub\Nitpick\Support\ThemePreview::cssValue((string) $swatch) }}"></span>
                         @endforeach
                     </span>
                 @elseif ($hasSwatches)
                     {{-- Colours unknown (set in a plugin's boot(), say): the row stays empty, so the names line up. --}}
                     <span class="nitpick-swatches" aria-hidden="true">
                         @foreach ($swatches[$index] as $swatch)
-                            <span class="nitpick-swatch" style="background: {{ $swatch }}"></span>
+                            <span class="nitpick-swatch" style="background: {{ \Packstub\Nitpick\Support\ThemePreview::cssValue((string) $swatch) }}"></span>
                         @endforeach
                     </span>
                 @endif

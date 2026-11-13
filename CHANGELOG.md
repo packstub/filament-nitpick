@@ -12,6 +12,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 - Requires Filament 5.8.3 or later, the first Filament 5 release without a published security advisory, and the lowest version CI now tests on. ([#21](https://github.com/packstub/filament-nitpick/issues/21))
 - Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
 
+### Fixed
+
+- In an SPA app, the picker kept the first panel's themes after a navigation to another panel, so a theme only that panel offers could not be picked.
+
 ### Added
 
 - The theme for everyone: with `->picker(manage: fn (): bool => ...)`, managers get a **For everyone** section (**For <tenant>** on a tenant panel) to set the theme and accent everyone sees until they pick their own, and a lock that sets users' picks aside and closes the picker to all but managers. A user's own pick, then the tenant's, then the panel's, then `->default()`. `PanelThemeChanged` event, `PanelThemeStore` contract; run the new migration to use it. ([#26](https://github.com/packstub/filament-nitpick/issues/26))

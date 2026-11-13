@@ -647,7 +647,12 @@ class NitpickPlugin implements Plugin
 
         return RequestMemo::current()->remember(
             "nitpick:accent:{$this->getPanelId()}:{$user->getAuthIdentifier()}",
-            fn (): ?string => $this->accentStore()->getAccent($user, $this->getPanelId()),
+            // A stored value is checked again, so one written around setUserAccent() is never served.
+            function () use ($user): ?string {
+                $accent = $this->accentStore()->getAccent($user, $this->getPanelId());
+
+                return $accent !== null && Accent::problem($accent) === null ? $accent : null;
+            },
         );
     }
 

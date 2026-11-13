@@ -44,7 +44,7 @@ class Accent
      */
     public static function problem(string $accent): ?string
     {
-        if (! isset(Color::all()[$accent]) && ! preg_match('/^#[0-9a-f]{6}$/i', $accent)) {
+        if (! isset(Color::all()[$accent]) && ! preg_match('/^#[0-9a-f]{6}\z/i', $accent)) {
             return 'nitpick::themes.accent.invalid';
         }
 
