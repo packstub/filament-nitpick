@@ -53,7 +53,8 @@ class ThemePreview
         ];
 
         foreach (['light', 'dark'] as $mode) {
-            $derived[$mode] = [...$derived[$mode], ...array_intersect_key($given[$mode] ?? [], array_flip(static::PARTS))];
+            $parts = is_array($given[$mode] ?? null) ? array_filter($given[$mode], is_string(...)) : [];
+            $derived[$mode] = [...$derived[$mode], ...array_intersect_key($parts, array_flip(static::PARTS))];
         }
 
         return $derived;
@@ -67,10 +68,19 @@ class ThemePreview
     public static function style(array $parts): string
     {
         return implode(' ', array_map(
-            fn (string $part, string $value): string => "--nitpick-preview-{$part}: ".str_replace([';', '{', '}', '<', '>'], '', $value).';',
+            fn (string $part, string $value): string => "--nitpick-preview-{$part}: ".static::cssValue($value).';',
             array_keys($parts),
             $parts,
         ));
+    }
+
+    /**
+     * A colour or background a theme gives, made safe for one declaration in a style attribute:
+     * no character that ends the declaration or the rule. Blade escapes the quotes.
+     */
+    public static function cssValue(string $value): string
+    {
+        return str_replace([';', '{', '}', '<', '>'], '', $value);
     }
 
     /**
