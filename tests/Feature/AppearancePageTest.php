@@ -2,6 +2,7 @@
 
 use Filament\Facades\Filament;
 use Filament\Livewire\Topbar;
+use Filament\Support\Colors\Color;
 use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Filament\Forms\Components\ThemePicker;
 use Packstub\Nitpick\Filament\Pages\Appearance;
@@ -95,6 +96,7 @@ it('shows descriptions when the panel asks for them', function (): void {
 
 it('leaves the swatch row empty for a theme whose colours are unknown', function (): void {
     Nitpick::register(Theme::make('blank')->label('Blank'));
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->previews(false));
 
     $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
 
@@ -204,4 +206,67 @@ it('leaves "Panel default" out with ->defaultOption(false), showing the active t
     $this->get(Appearance::getUrl())->assertDontSee('Panel default');
 
     livewire(Appearance::class)->assertSet('data.theme', 'aurora');
+});
+
+it('shows each theme in light and dark on its card', function (): void {
+    $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
+
+    // Panel default, Aurora, Midnight and Ocean: two halves each.
+    expect(substr_count($html, 'class="nitpick-preview-mode"'))->toBe(8)
+        ->and($html)->not->toContain('class="nitpick-swatches"')
+        // Aurora's own look, through HasPreview.
+        ->toContain('--nitpick-preview-background: linear-gradient(135deg, #cdeafe 0%, #e3f8ff 50%, #fde2f1 100%);')
+        // Ocean's, drawn from its palette: teal buttons on Filament's surfaces.
+        ->toContain('--nitpick-preview-primary: '.Color::Teal[600].';');
+});
+
+it('draws a preview from the palette, with the colours the panel would add on top', function (): void {
+    pluginFor('admin')->colors(['primary' => Color::Rose]);
+
+    $html = $this->get(Appearance::getUrl())->getContent();
+
+    expect($html)->toContain('--nitpick-preview-primary: '.Color::Rose[600].';');
+});
+
+it('takes a preview from Theme::make()->preview(), over the palette', function (): void {
+    Nitpick::register(Theme::make('ink')->colors(['primary' => Color::Indigo])->preview(['dark' => ['background' => '#010203']]));
+
+    $html = $this->get(Appearance::getUrl())->getContent();
+
+    expect($html)->toContain('--nitpick-preview-background: #010203;')
+        ->toContain('--nitpick-preview-primary: '.Color::Indigo[600].';');
+});
+
+it('keeps the swatches of a theme whose colours are unknown, in a row the previews\' height', function (): void {
+    Nitpick::register(Theme::make('blank')->swatches(['#123456']));
+
+    $html = $this->get(Appearance::getUrl())->getContent();
+
+    expect($html)->toMatch('/<span class="nitpick-preview nitpick-preview-empty" aria-hidden="true">(\s|<!--.*?-->)*<span class="nitpick-swatch" style="background: #123456"><\/span>/');
+});
+
+it('shows swatches instead with ->previews(false)', function (): void {
+    pluginFor('admin')->picker(fn (ThemePicker $picker) => $picker->previews(false));
+
+    $html = $this->get(Appearance::getUrl())->getContent();
+
+    expect($html)->not->toContain('nitpick-preview-mode')
+        ->toContain('class="nitpick-swatches"');
+});
+
+it('skips preview values that are not text instead of failing the picker', function (): void {
+    Nitpick::register(Theme::make('odd')->colors(['primary' => Color::Indigo])->preview(['light' => ['background' => null, 'surface' => ['#fff']], 'dark' => '#000']));
+
+    $html = $this->get(Appearance::getUrl())->assertOk()->getContent();
+
+    expect($html)->toContain('--nitpick-preview-primary: '.Color::Indigo[600].';');
+});
+
+it('keeps a swatch to one declaration', function (): void {
+    Nitpick::register(Theme::make('loud')->swatches(['red; position: fixed; inset: 0']));
+
+    $html = $this->get(Appearance::getUrl())->getContent();
+
+    expect($html)->toContain('style="background: red position: fixed inset: 0"')
+        ->not->toContain('red; position');
 });

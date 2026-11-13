@@ -90,9 +90,17 @@ NitpickPlugin::make()->picker(fn (ThemePicker $picker) => $picker->defaultOption
 
 In a form of your own, the field's state is `ThemePicker::PANEL_DEFAULT` (`'_default'`) while the card is picked.
 
-### Cards: descriptions and swatches
+### Cards: previews, descriptions and swatches
 
-Each card shows up to three swatches and the theme's name. Short cards scan faster, so the description is left off and shown as the card's tooltip. Show it under the name:
+Each card shows a small preview of the theme in light and dark: its page, sidebar, a card and a button, in the theme's colours (with your `->colors()` overrides), so a glance tells a dark glass theme from a flat light one. The bundled themes describe their own look; any other theme is drawn from its palette, and a theme can say what its palette gets wrong (see [Previews](creating-a-theme.md#the-preview-on-its-card)). Turn them off to show swatches instead:
+
+```php
+NitpickPlugin::make()->picker(fn (ThemePicker $picker) => $picker->previews(false))
+```
+
+A theme whose colours are unknown has no preview, and keeps its swatches in a row of the same height.
+
+Without previews, each card shows up to three swatches and the theme's name. Short cards scan faster, so the description is left off and shown as the card's tooltip. Show it under the name:
 
 ```php
 ThemePicker::make()->descriptions()
