@@ -23,6 +23,19 @@ final class PanelTheme
         );
     }
 
+    /**
+     * A tenant's setting over the panel's: each field the tenant leaves unset
+     * comes from the panel's, and a lock on either holds.
+     */
+    public static function over(?self $tenant, ?self $panel): ?self
+    {
+        if ($tenant === null || $panel === null) {
+            return $tenant ?? $panel;
+        }
+
+        return new self($tenant->themeId ?? $panel->themeId, $tenant->accent ?? $panel->accent, $tenant->locked || $panel->locked);
+    }
+
     public function isEmpty(): bool
     {
         return $this->themeId === null && $this->accent === null && ! $this->locked;

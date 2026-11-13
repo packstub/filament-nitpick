@@ -26,15 +26,12 @@ class DatabasePanelThemeStore implements PanelThemeStore
             return;
         }
 
-        $values = ['theme_id' => $theme->themeId, 'accent' => $theme->accent, 'locked' => $theme->locked, 'updated_at' => now()];
-
-        if ($this->query($panelId, $tenant)->exists()) {
-            $this->query($panelId, $tenant)->update($values);
-
-            return;
-        }
-
-        $this->table()->insert([...$this->keys($panelId, $tenant), ...$values, 'created_at' => now()]);
+        // One statement on the unique key: two saves at the same moment never make two rows.
+        $this->table()->upsert(
+            [[...$this->keys($panelId, $tenant), 'theme_id' => $theme->themeId, 'accent' => $theme->accent, 'locked' => $theme->locked, 'created_at' => now(), 'updated_at' => now()]],
+            ['panel_id', 'tenant_type', 'tenant_id'],
+            ['theme_id', 'accent', 'locked', 'updated_at'],
+        );
     }
 
     /**
@@ -42,27 +39,23 @@ class DatabasePanelThemeStore implements PanelThemeStore
      */
     protected function query(string $panelId, ?Model $tenant)
     {
-        $query = $this->table()->where('panel_id', $panelId);
-
-        foreach ($this->keys($panelId, $tenant) as $column => $value) {
-            $value === null ? $query->whereNull($column) : $query->where($column, $value);
-        }
-
-        return $query;
+        return $this->table()->where($this->keys($panelId, $tenant));
     }
 
     /**
      * The tenant's key as a string, so the column holds integer, UUID and
-     * ULID keys alike, compared as text on every database.
+     * ULID keys alike, compared as text on every database. The whole panel
+     * is '' rather than null, so the unique key holds for it too (a unique
+     * index never treats two nulls as equal).
      *
-     * @return array{panel_id: string, tenant_type: string | null, tenant_id: string | null}
+     * @return array{panel_id: string, tenant_type: string, tenant_id: string}
      */
     protected function keys(string $panelId, ?Model $tenant): array
     {
         return [
             'panel_id' => $panelId,
-            'tenant_type' => $tenant?->getMorphClass(),
-            'tenant_id' => $tenant === null ? null : (string) $tenant->getKey(),
+            'tenant_type' => $tenant?->getMorphClass() ?? '',
+            'tenant_id' => $tenant === null ? '' : (string) $tenant->getKey(),
         ];
     }
 
