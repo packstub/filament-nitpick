@@ -30,6 +30,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        // The beta table was not created by this migration: a rollback leaves it and its choices alone.
+        if (ThemeManager::tableName() === 'theme_preferences') {
+            return;
+        }
+
         Schema::connection(ThemeManager::connectionName())->dropIfExists(ThemeManager::tableName());
     }
 };

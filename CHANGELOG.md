@@ -12,6 +12,10 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 - Requires Filament 5.8.3 or later, the first Filament 5 release without a published security advisory, and the lowest version CI now tests on. ([#21](https://github.com/packstub/filament-nitpick/issues/21))
 - Every public name says Nitpick: the `data-nitpick-theme` attribute, `window.Nitpick`, the `nitpick:theme-changed` event, the `Nitpick` facade and, for new installs, the `nitpick_theme_preferences` table. They stay the same until 2.0. ([#18](https://github.com/packstub/filament-nitpick/issues/18))
 
+### Fixed
+
+- In an SPA app, the picker kept the first panel's themes after a navigation to another panel, so a theme only that panel offers could not be picked.
+
 ### Added
 
 - Accent colours: with `->picker(accent: true)`, each user picks an accent for the panel's buttons and links, from Filament's colours or any hex, on top of their theme. Applied at once, saved per user and panel, checked for contrast (WCAG AA for interface parts) with a message when refused; the bundled themes' gradients follow it. `setUserAccent()`, `getUserAccent()`, the `AccentPicker` field and the `AccentChanged` event. **Upgrading:** publish and run the new migration. ([#25](https://github.com/packstub/filament-nitpick/issues/25))

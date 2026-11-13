@@ -250,3 +250,15 @@ it('puts the app\'s CSP nonce on its inline script and styles', function (): voi
 it('leaves the nonce out when the app sets none', function (): void {
     expect(headFor(NitpickPlugin::make()->picker()))->not->toContain('nonce=');
 });
+
+it('reads the newest manifest after a navigation to another panel', function (): void {
+    // Livewire's navigation keeps the old head scripts, so the old panel's block comes first.
+    expect(nitpickScript())
+        ->toContain("document.querySelectorAll('script#nitpick-manifest')")
+        ->toContain('blocks[blocks.length - 1]');
+});
+
+it('never leaves a page under a cover the script does not lift', function (): void {
+    expect(nitpickScript())
+        ->toContain("if (! reveal) {\n        html.removeAttribute('data-nitpick-cover');\n        html.removeAttribute('data-nitpick-still');");
+});
