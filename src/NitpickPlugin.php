@@ -20,10 +20,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use InvalidArgumentException;
 use Livewire\Livewire;
@@ -93,6 +95,9 @@ class NitpickPlugin implements Plugin
     protected bool $hasForcedMode = false;
 
     protected ?Panel $panel = null;
+
+    /** The panel themes table is missing in this process (the migration not run): not asked again. */
+    protected static bool $panelTableMissing = false;
 
     /**
      * The colours the active theme set on the panel while serving this
@@ -281,12 +286,21 @@ class NitpickPlugin implements Plugin
         return RequestMemo::current()->remember(
             "nitpick:panel-theme:{$this->getPanelId()}:".($tenant === null ? '' : $tenant->getMorphClass().':'.$tenant->getKey()),
             function () use ($tenant): ?PanelTheme {
+                if (static::$panelTableMissing) {
+                    return null;
+                }
+
                 try {
                     $store = $this->manager()->panelStore();
+                    $own = $store->get($this->getPanelId(), $tenant);
 
-                    return $store->get($this->getPanelId(), $tenant) ?? ($tenant === null ? null : $store->get($this->getPanelId(), null));
-                } catch (Throwable $exception) {
-                    // No table yet (the migration not run): the panel works as if nothing were set.
+                    // A tenant's setting falls back to the panel's one field at a time: a tenant
+                    // that set only an accent keeps the theme and the lock set for the whole panel.
+                    return $tenant === null ? $own : PanelTheme::over($own, $store->get($this->getPanelId(), null));
+                } catch (QueryException $exception) {
+                    // No table yet (the migration not run): the panel works as if nothing were set,
+                    // and says so once per process instead of on every request.
+                    static::$panelTableMissing = ! Schema::connection(ThemeManager::connectionName())->hasTable(ThemeManager::panelTableName());
                     report($exception);
 
                     return null;
@@ -356,6 +370,13 @@ class NitpickPlugin implements Plugin
         }
 
         $tenant = Filament::getTenant();
+
+        // On a tenant panel the setting belongs to a tenant: with none current (a page outside the
+        // tenant's routes) the write would land on every tenant's fallback.
+        if ($tenant === null && $this->panel?->hasTenancy()) {
+            throw new AuthorizationException("The [{$this->getPanelId()}] panel's theme for everyone is set per tenant, and no tenant is current.");
+        }
+
         $store = $this->manager()->panelStore();
         $theme = $change($store->get($this->getPanelId(), $tenant) ?? new PanelTheme);
 
@@ -626,7 +647,12 @@ class NitpickPlugin implements Plugin
 
         return RequestMemo::current()->remember(
             "nitpick:accent:{$this->getPanelId()}:{$user->getAuthIdentifier()}",
-            fn (): ?string => $this->accentStore()->getAccent($user, $this->getPanelId()),
+            // A stored value is checked again, so one written around setUserAccent() is never served.
+            function () use ($user): ?string {
+                $accent = $this->accentStore()->getAccent($user, $this->getPanelId());
+
+                return $accent !== null && Accent::problem($accent) === null ? $accent : null;
+            },
         );
     }
 

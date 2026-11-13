@@ -213,3 +213,49 @@ it('reloads the manager\'s page when the theme for everyone configures the panel
         ->set('data.panel_theme', 'rail')
         ->tap(fn ($component) => expect(json_encode($component->effects))->toContain('window.Nitpick.reload()'));
 });
+
+it('falls back to the panel\'s setting one field at a time in a tenant', function (): void {
+    pluginFor('admin')->picker(accent: true);
+    $acme = createUser(['name' => 'Acme']);
+    app(PanelThemeStore::class)->set('admin', null, new PanelTheme('midnight', locked: true));
+    Filament::setTenant($acme, isQuiet: true);
+    setForEveryone(fn ($plugin) => $plugin->setPanelAccent('teal'));
+    app()->forgetScopedInstances();
+    $this->actingAs($this->member);
+
+    expect(pluginFor('admin')->getPanelTheme())
+        ->themeId->toBe('midnight')
+        ->accent->toBe('teal')
+        ->locked->toBeTrue();
+});
+
+it('refuses a write for everyone on a tenant panel with no tenant current', function (): void {
+    $panel = Filament::getPanel('admin');
+    $tenancy = (fn () => $this->tenantModel)->call($panel);
+    (fn () => $this->tenantModel = Model::class)->call($panel);
+
+    try {
+        setForEveryone(fn ($plugin) => $plugin->setPanelTheme('midnight'));
+    } finally {
+        (fn () => $this->tenantModel = $tenancy)->call($panel);
+    }
+})->throws(AuthorizationException::class, 'no tenant is current');
+
+it('keeps one row for the whole panel, however often it is saved', function (): void {
+    app(PanelThemeStore::class)->set('admin', null, new PanelTheme('midnight'));
+    app(PanelThemeStore::class)->set('admin', null, new PanelTheme('ocean'));
+
+    expect(DB::table('nitpick_panel_themes')->count())->toBe(1)
+        ->and(app(PanelThemeStore::class)->get('admin', null)?->themeId)->toBe('ocean');
+});
+
+it('asks for a missing table once per process', function (): void {
+    Schema::drop('nitpick_panel_themes');
+    $this->actingAs($this->member);
+
+    pluginFor('admin')->getPanelTheme();
+    app()->forgetScopedInstances();
+    app()->bind(PanelThemeStore::class, fn () => throw new RuntimeException('read again'));
+
+    expect(pluginFor('admin')->getPanelTheme())->toBeNull();
+});

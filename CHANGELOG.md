@@ -4,13 +4,13 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ## 1.0.0
 
-The first stable release: the names you build against stay the same until 2.0. **Upgrading** from a beta: see [Upgrading](docs/upgrading.md) (the `Nitpick` facade, `data-nitpick-theme` in your CSS, `window.Nitpick` in your scripts, `'table' => 'theme_preferences'` to keep your users' choices, and the new migrations published and run).
+The first stable release: the names you build against stay the same until 2.0. **Upgrading** from a beta: see [Upgrading](docs/upgrading.md) (the `Nitpick` facade, `data-nitpick-theme` in your CSS, `window.Nitpick` and the `nitpick:theme-changed` event in your scripts, `->picker()` for the removed `userSelectable()` and `appearancePage()`, `getStylesheets()` for `getStylesheetPath()`, `'table' => 'theme_preferences'` to keep your users' choices, `php artisan filament:assets`, and the new migrations published and run).
 
 - Each theme previewed in light and dark on its card, and a **Panel default** card to go back to the panel's theme
 - Accent colours: each user picks a colour for buttons and links, checked for contrast
 - The theme for everyone: managers set the theme and accent for the panel or a tenant, and can lock it
 - Nine languages, right-to-left panels, and a cached script that works with a Content Security Policy
-- Fixed under Octane: a new pick is served by every worker at once
+- Fixed: under Octane, a new pick is served by every worker at once; in SPA apps, the picker follows a navigation to another panel
 - Works with UUID and ULID user keys; requires Filament 5.8.3 or later
 
 ## 1.0.0-beta.3 — 2026-10-28
