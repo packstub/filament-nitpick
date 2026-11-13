@@ -222,18 +222,13 @@ it('serves the default theme and tells the user when their theme fails to config
     $panel = Filament::getPanel('admin');
     pluginFor('admin')->setUserTheme('broken');
 
-    $this->get($panel->getUrl())
+    $response = $this->get($panel->getUrl())
         ->assertOk()
         ->assertSee('<meta name="nitpick-theme" content="aurora">', false)
         ->assertDontSee('id="broken-hook"', false)
         ->assertDontSee('fi-body-has-top-navigation', false);
 
-    Notification::assertNotified(
-        Notification::make()
-            ->warning()
-            ->title('Broken is unavailable right now')
-            ->body('This panel is shown in Aurora instead. You can pick another theme from Appearance.'),
-    );
+    expectNotice($response, 'Broken is unavailable right now', 'This panel is shown in Aurora instead. You can pick another theme from Appearance.');
 
     expect($panel->hasTopNavigation())->toBeFalse()
         ->and($panel->getPlugins())->not->toHaveKey('broken-theme')
@@ -308,16 +303,11 @@ it('serves the default theme after the user\'s theme made a page fail while rend
         && $context['panel'] === 'admin'
         && $context['status'] === 500);
 
-    $this->get($panel->getUrl())
+    $response = $this->get($panel->getUrl())
         ->assertOk()
         ->assertSee('<meta name="nitpick-theme" content="aurora">', false);
 
-    Notification::assertNotified(
-        Notification::make()
-            ->warning()
-            ->title('Fragile is unavailable right now')
-            ->body('This panel is shown in Aurora instead. You can pick another theme from Appearance.'),
-    );
+    expectNotice($response, 'Fragile is unavailable right now', 'This panel is shown in Aurora instead. You can pick another theme from Appearance.');
 
     // The choice is kept, and the picker opens.
     expect(pluginFor('admin')->getUserTheme($this->user)?->getId())->toBe('fragile');

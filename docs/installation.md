@@ -4,7 +4,7 @@
 
 - PHP 8.3 or newer
 - Laravel 12 or 13
-- Filament 5
+- Filament 5.8.3 or later
 
 ## 1. Require the package
 
