@@ -138,6 +138,8 @@ Which theme a user sees, first match wins:
 4. the theme set for the whole panel;
 5. `->default()` in code (or the config's `default`).
 
+A tenant's setting falls back to the whole panel's one field at a time: a tenant that sets only an accent keeps the panel's theme, and a lock for the whole panel holds in every tenant. On a tenant panel the setting is always a tenant's: a write with no tenant current is refused.
+
 The **Panel default** card follows 3 to 5, so users who never picked a theme follow a manager's change at once. While the theme is locked, users' own themes and accents are set aside and the picker is closed to everyone but managers, who keep the page to change or unlock it.
 
 From code, `setPanelTheme()`, `setPanelAccent()` and `setPanelLocked()` (each refuses anyone who fails the `manage` check), `getPanelTheme()`, `isLocked()` and `getCodeDefaultTheme()`. A change fires `Packstub\Nitpick\Events\PanelThemeChanged`. The setting is kept through `Packstub\Nitpick\Contracts\PanelThemeStore`; bind your own to keep it elsewhere. Without `manage`, the table is never read.
