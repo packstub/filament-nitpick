@@ -27,6 +27,9 @@ class ThemePreference extends Model
         return ThemeManager::connectionName();
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function user(): MorphTo
     {
         return $this->morphTo();

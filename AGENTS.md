@@ -9,6 +9,7 @@ composer test               # Pest suite (Unit, Feature)
 composer test:filter <name>
 composer test:browser       # Pest browser tests (tests/Browser): once, npm install && npx playwright install chromium
 composer lint               # Pint
+composer analyse            # Larastan, level 6 (phpstan.neon.dist)
 ```
 
 ## Layout
