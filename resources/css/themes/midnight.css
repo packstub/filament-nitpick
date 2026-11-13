@@ -84,3 +84,9 @@
     border: 1px solid var(--nitpick-border);
     box-shadow: var(--nitpick-shadow-lg);
 }
+
+/* A user's accent colour (->picker(accent: true)): the gradient follows it instead of violet to cyan. */
+
+[data-nitpick-theme="midnight"]:has(#nitpick-accent:not(:empty)) {
+    --nitpick-accent-gradient: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-500) 50%, var(--primary-400) 100%);
+}

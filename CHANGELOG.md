@@ -4,7 +4,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ## Unreleased
 
-**Upgrading:** names settle for 1.0, see [Upgrading](docs/upgrading.md): the `Nitpick` facade (was `Themes`), `html[data-nitpick-theme]` in your CSS, `window.Nitpick` in your scripts, and `'table' => 'theme_preferences'` in the config to keep your users' choices.
+**Upgrading:** names settle for 1.0, see [Upgrading](docs/upgrading.md): the `Nitpick` facade (was `Themes`), `html[data-nitpick-theme]` in your CSS, `window.Nitpick` in your scripts, `'table' => 'theme_preferences'` in the config to keep your users' choices, and the new migration published and run.
 
 ### Changed
 
@@ -18,6 +18,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 
 ### Added
 
+- Accent colours: with `->picker(accent: true)`, each user picks an accent for the panel's buttons and links, from Filament's colours or any hex, on top of their theme. Applied at once, saved per user and panel, checked for contrast (WCAG AA for interface parts) with a message when refused; the bundled themes' gradients follow it. `setUserAccent()`, `getUserAccent()`, the `AccentPicker` field and the `AccentChanged` event. **Upgrading:** publish and run the new migration. ([#25](https://github.com/packstub/filament-nitpick/issues/25))
 - Theme cards show a small preview of each theme in light and dark (page, sidebar, a card and a button in its colours) instead of swatches. Drawn from the theme's palette, or from `Contracts\HasPreview` (`Theme::make()->preview([...])`) for a theme whose stylesheet changes the surfaces; Aurora and Midnight describe their own. `ThemePicker::make()->previews(false)` shows swatches instead. ([#24](https://github.com/packstub/filament-nitpick/issues/24))
 - A **Panel default** card, first in the picker: it says which theme the panel uses by default, and picking it clears the user's choice, so they follow the default again, including when it changes later. `ThemePicker::make()->defaultOption(false)` leaves it out. ([#23](https://github.com/packstub/filament-nitpick/issues/23))
 - Apps whose users have UUID or ULID keys can save a theme: set `'user_key_type' => 'uuid'` (or `'ulid'`) in `config/nitpick.php` before running the migration. Left `null`, the column follows the app's morph key type, as before. ([#19](https://github.com/packstub/filament-nitpick/issues/19))

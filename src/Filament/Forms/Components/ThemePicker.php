@@ -207,7 +207,9 @@ class ThemePicker extends Field
             return null;
         }
 
-        return ThemePreview::for($theme, $this->getPlugin()->getColorsFor($theme));
+        $plugin = $this->getPlugin();
+
+        return ThemePreview::for($theme, $plugin->getColorsFor($theme), accent: $plugin->getUserAccent() !== null);
     }
 
     public function hasDescriptions(): bool

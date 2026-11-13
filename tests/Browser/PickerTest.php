@@ -2,6 +2,7 @@
 
 use Filament\Facades\Filament;
 use Filament\Panel;
+use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\Artisan;
 use Packstub\Nitpick\Facades\Nitpick;
 use Packstub\Nitpick\Theme;
@@ -111,4 +112,24 @@ it('goes back to the panel default from the "Panel default" card', function (): 
         ->assertNoJavaScriptErrors();
 
     expect(pluginFor('admin')->getUserTheme($this->user))->toBeNull();
+});
+
+it('applies an accent colour at once, and keeps it after a reload', function (): void {
+    pluginFor('admin')->picker(accent: true);
+
+    $page = visit('/admin/appearance');
+    $primary = "getComputedStyle(document.documentElement).getPropertyValue('--primary-500').trim()";
+
+    $page->assertScript("document.getElementById('nitpick-accent').textContent", '')
+        ->click('label.nitpick-accent:has(input[value="rose"])')
+        ->wait(1)
+        ->assertScript("document.getElementById('nitpick-accent').textContent.includes('--primary-500')", true)
+        ->assertScript($primary, Color::Rose[500])
+        // Aurora's gradient buttons follow the accent too.
+        ->assertScript("getComputedStyle(document.documentElement).getPropertyValue('--nitpick-primary-gradient').includes('#0ea5e9')", false)
+        ->assertNoJavaScriptErrors();
+
+    expect(pluginFor('admin')->getUserAccent($this->user))->toBe('rose');
+
+    visit('/admin')->assertScript($primary, Color::Rose[500]);
 });

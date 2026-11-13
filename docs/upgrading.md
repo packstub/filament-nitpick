@@ -30,6 +30,13 @@ Nitpick's script is now a file, `nitpick.js`, published with its stylesheets: `p
 
 ### The preferences table
 
+1.0 adds an `accent` column (and lets `theme_id` be null, for a user who keeps an accent but follows the panel's default theme). Publish the new migration and run it; it skips a table that has the column already:
+
+```bash
+php artisan vendor:publish --tag="nitpick-migrations"
+php artisan migrate
+```
+
 New installs keep choices in `nitpick_theme_preferences`. Your users' choices are in `theme_preferences`: keep that table by setting its name in `config/nitpick.php` (publish the config first with `php artisan vendor:publish --tag="nitpick-config"` if you have not):
 
 ```php

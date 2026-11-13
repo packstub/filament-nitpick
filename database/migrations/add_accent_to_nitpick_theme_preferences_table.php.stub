@@ -1,0 +1,45 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Packstub\Nitpick\ThemeManager;
+
+/**
+ * 1.0 keeps a user's accent colour next to their theme, and a row with an
+ * accent but no theme of its own (the user follows the panel's default).
+ * Guarded: a table created by the 1.0 create migration has both already.
+ */
+return new class extends Migration
+{
+    public function up(): void
+    {
+        $schema = Schema::connection(ThemeManager::connectionName());
+        $table = ThemeManager::tableName();
+
+        if (! $schema->hasTable($table)) {
+            return;
+        }
+
+        // Each change on its own guard: MySQL cannot roll a schema change back, so a run that stopped
+        // after the first one finishes the second when it runs again.
+        if (! $schema->hasColumn($table, 'accent')) {
+            $schema->table($table, function (Blueprint $table): void {
+                $table->string('accent')->nullable();
+            });
+        }
+
+        $themeId = collect($schema->getColumns($table))->firstWhere('name', 'theme_id');
+
+        if ($themeId !== null && ! $themeId['nullable']) {
+            $schema->table($table, function (Blueprint $table): void {
+                $table->string('theme_id')->nullable()->change();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        // The column stays: a later migration of yours may rely on it, and dropping it loses users' accents.
+    }
+};

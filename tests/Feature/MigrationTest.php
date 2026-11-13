@@ -79,6 +79,45 @@ it('refuses an unknown user key type', function (): void {
     runPreferencesMigration();
 })->throws(InvalidArgumentException::class, 'user_key_type');
 
+it('adds the accent to a table created by a beta, and lets a row hold an accent without a theme', function (): void {
+    Schema::drop('nitpick_theme_preferences');
+    Schema::create('nitpick_theme_preferences', function (Blueprint $table): void {
+        $table->id();
+        $table->morphs('user');
+        $table->string('panel_id');
+        $table->string('theme_id');
+        $table->timestamps();
+        $table->unique(['user_type', 'user_id', 'panel_id']);
+    });
+
+    $add = fn () => (include __DIR__.'/../../database/migrations/add_accent_to_nitpick_theme_preferences_table.php.stub')->up();
+    $add();
+    $add();
+
+    expect(Schema::hasColumn('nitpick_theme_preferences', 'accent'))->toBeTrue();
+
+    pluginFor('admin')->picker(accent: true)->setUserAccent('teal', createUser());
+
+    expect(DB::table('nitpick_theme_preferences')->value('accent'))->toBe('teal')
+        ->and(DB::table('nitpick_theme_preferences')->value('theme_id'))->toBeNull();
+});
+
+it('finishes the accent migration when a run stopped after adding the column', function (): void {
+    Schema::drop('nitpick_theme_preferences');
+    Schema::create('nitpick_theme_preferences', function (Blueprint $table): void {
+        $table->id();
+        $table->morphs('user');
+        $table->string('panel_id');
+        $table->string('theme_id');
+        $table->string('accent')->nullable();
+        $table->timestamps();
+    });
+
+    (include __DIR__.'/../../database/migrations/add_accent_to_nitpick_theme_preferences_table.php.stub')->up();
+
+    expect(collect(Schema::getColumns('nitpick_theme_preferences'))->firstWhere('name', 'theme_id')['nullable'])->toBeTrue();
+});
+
 it('leaves a beta install table alone when the migration is rolled back', function (): void {
     Schema::create('theme_preferences', function (Blueprint $table): void {
         $table->id();

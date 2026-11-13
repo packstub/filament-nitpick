@@ -18,6 +18,7 @@ NitpickPlugin::make()
         userMenuItem: false,                     // no user-menu item: the page only
         page: MyAppearance::class,               // your subclass of the page
         transition: Transition::Sweep,           // the swap animation: Fade (default), Slide, Sweep, or false for none
+        accent: true,                            // each user picks an accent colour too
     )
     ->colors(['primary' => Color::Indigo])       // slots applied on top of every theme
     ->customCss('css/admin-overrides.css')       // loaded after the theme's stylesheet
@@ -72,6 +73,7 @@ The file is linked after the active theme's stylesheet, so your rules win on equ
 | Event | When | Payload |
 | --- | --- | --- |
 | `Packstub\Nitpick\Events\ThemeChanged` | After a user's choice is saved or cleared | `$user`, `$panelId`, `$theme` (null when cleared) |
+| `Packstub\Nitpick\Events\AccentChanged` | After a user's accent colour is saved or cleared | `$user`, `$panelId`, `$accent` (a colour name or hex, null when cleared) |
 
 ## Translations
 

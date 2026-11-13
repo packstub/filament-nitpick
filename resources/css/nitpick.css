@@ -180,6 +180,65 @@
     color: var(--gray-400);
 }
 
+/* Accent colours: the theme's own, Filament's colours, and the browser's colour picker. */
+.nitpick-accents {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nitpick-accent {
+    position: relative;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    outline-offset: 2px;
+}
+
+.nitpick-accent-theme {
+    padding: 0 0.75rem;
+    border: 1px solid var(--gray-200);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.dark .nitpick-accent-theme {
+    border-color: var(--gray-700);
+    color: var(--gray-200);
+}
+
+.nitpick-accent-swatch {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.nitpick-accent-swatch-custom {
+    background: conic-gradient(#ef4444, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ef4444);
+}
+
+.nitpick-accent-color-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.nitpick-accent-active {
+    outline: 2px solid var(--primary-500);
+}
+
+.nitpick-accent:has(input:focus-visible) {
+    outline: 2px dashed var(--primary-500);
+}
+
 /*
  * Filament renders a modal opened from the user menu (the Appearance modal among them) inside the topbar
  * or the sidebar. A theme that gives either a backdrop-filter, a filter or a transform makes it the box

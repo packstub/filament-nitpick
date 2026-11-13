@@ -18,12 +18,20 @@ class ThemePreview
     public const PARTS = ['background', 'sidebar', 'surface', 'border', 'primary', 'text'];
 
     /**
+     * With $accent, the user's accent colour is in $colors and paints the
+     * button, over a button the theme describes itself (its stylesheet
+     * follows the accent too).
+     *
      * @param  array<string, array<int | string, string | int> | string>  $colors  the palette the panel would use
      * @return array{light: array<string, string>, dark: array<string, string>} | null
      */
-    public static function for(Theme $theme, array $colors): ?array
+    public static function for(Theme $theme, array $colors, bool $accent = false): ?array
     {
         $given = $theme instanceof HasPreview ? $theme->getPreview() : [];
+
+        if ($accent) {
+            unset($given['light']['primary'], $given['dark']['primary']);
+        }
 
         if (! isset($colors['primary']) && $given === []) {
             return null;

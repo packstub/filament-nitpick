@@ -120,6 +120,20 @@ The cards fill the width they have. Fix the number of columns, in the shape of F
 ThemePicker::make()->columns(['default' => 1, 'sm' => 2, 'lg' => 3])
 ```
 
+## Accent colours
+
+Turn on accents and each user picks a colour of their own for the panel's buttons, links and highlights, on top of whatever theme they use:
+
+```php
+NitpickPlugin::make()->picker(accent: true)
+```
+
+The Appearance modal and page show an **Accent colour** row under the themes: **Theme's colour** (the default), Filament's colours, and **Your own colour**, the browser's colour picker for any hex colour. A pick applies at once, without a reload, and is saved per user and panel next to their theme. The bundled themes' gradient buttons follow it too.
+
+Every accent is checked before it is saved: a colour whose button and link shades would not stand out on a light page or in dark mode (WCAG AA for interface parts, 3:1) is refused with a message saying why, and the previous colour stays. Filament evens out the lightness of a palette it builds from a hex colour, so a colour of the user's own rarely fails; among Filament's colours, Yellow does, so it is not offered.
+
+From code, `NitpickPlugin::get()->setUserAccent('indigo')` (or `'#4f46e5'`, or `null` for the theme's colour) and `getUserAccent()`. The field is `Packstub\Nitpick\Filament\Forms\Components\AccentPicker`, for a profile form of your own. Accents need a store that keeps them: both bundled stores do; a store of your own implements `Packstub\Nitpick\Contracts\StoresAccents` as well.
+
 ## Swap animations
 
 A pick runs in two steps: a cover, black or white for the light/dark mode the new theme uses, comes over the panel, the theme changes underneath, and the cover lifts to show it. A theme that reloads the page waits for the cover, and the next page starts under it; the cover lifts once that page is whole (the modal back, lazy widgets loaded, at most 2.5 s), so nobody sees a layout arriving in pieces. The panel's own CSS transitions are held while it runs, so the cover lifts on the new theme already in place, not on colours still easing over. Three come with the plugin:
