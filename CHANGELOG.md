@@ -5,6 +5,7 @@ All notable changes to `packstub/filament-nitpick` are documented here.
 ## Unreleased
 
 - `composer.json`'s homepage points at the package's page on packstub.dev
+- Fixed: on Filament 5.12, a theme that sets up the panel (`->panel()`, `->plugin()`) is applied again instead of falling back to the default theme
 
 ## 1.0.0 — 2026-11-13
 
