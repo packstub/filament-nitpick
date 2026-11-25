@@ -151,10 +151,12 @@ it('keeps a setting per tenant, over the panel\'s', function (): void {
 
     expect(pluginFor('admin')->getActiveTheme()->getId())->toBe('ocean');
 
+    // The test panel has no tenancy and Filament 5.12+ clears the tenant when a request
+    // sets up the panel, so the page is rendered with the tenant still set.
     $this->actingAs($this->manager);
     Filament::setTenant($acme, isQuiet: true);
 
-    $this->get(Appearance::getUrl())->assertSee('For Acme');
+    livewire(Appearance::class)->assertSee('For Acme');
 });
 
 it('keeps a tenant\'s key as text, so any key type fits', function (): void {

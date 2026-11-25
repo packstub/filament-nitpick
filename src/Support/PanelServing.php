@@ -2,6 +2,7 @@
 
 namespace Packstub\Nitpick\Support;
 
+use Closure;
 use Filament\Panel;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentView;
@@ -105,6 +106,39 @@ class PanelServing
     }
 
     /**
+     * A panel's render hooks as name => scope => hooks. Filament 5.12 keeps them
+     * as name => list of {hook, scopes}; earlier versions as name => scope =>
+     * hooks. Either way a hook the theme adds lands at the end of its scope.
+     *
+     * @param  array<string, array<int | string, mixed>>  $renderHooks
+     * @return array<string, array<string, array<int, Closure>>>
+     */
+    public static function renderHooksByScope(array $renderHooks): array
+    {
+        $byScope = [];
+
+        foreach ($renderHooks as $name => $entries) {
+            foreach ($entries as $key => $entry) {
+                if (is_array($entry) && ($entry['hook'] ?? null) instanceof Closure) {
+                    foreach ((array) ($entry['scopes'] ?? ['']) as $scope) {
+                        $byScope[$name][(string) $scope][] = $entry['hook'];
+                    }
+
+                    continue;
+                }
+
+                foreach ((array) $entry as $hook) {
+                    if ($hook instanceof Closure) {
+                        $byScope[$name][(string) $key][] = $hook;
+                    }
+                }
+            }
+        }
+
+        return $byScope;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected static function snapshot(Panel $panel): array
@@ -125,12 +159,12 @@ class PanelServing
     }
 
     /**
-     * @return array{renderHooks: array<string, array<string, array<int, mixed>>>, assets: array<string, array<int, mixed>>, colors: array<int, mixed>, plugins: array<string, mixed>, components: array<string, array<mixed>>}
+     * @return array{renderHooks: array<string, array<string, array<int, Closure>>>, assets: array<string, array<int, mixed>>, colors: array<int, mixed>, plugins: array<string, mixed>, components: array<string, array<mixed>>}
      */
     protected static function state(Panel $panel): array
     {
         return (fn (): array => [
-            'renderHooks' => $this->renderHooks,
+            'renderHooks' => PanelServing::renderHooksByScope($this->renderHooks),
             'assets' => $this->assets,
             'colors' => $this->colors,
             'plugins' => $this->plugins,
